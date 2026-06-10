@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Forest — Complete Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --bg2: #141414;
+    --bg3: #1a1a1a;
+    --bg4: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
+    --text: #e8e4dc;
+    --text2: #9a9590;
+    --text3: #5a5550;
+    --accent: #c8a96e;
+    --accent2: #8bb87a;
+    --accent3: #7a9fc8;
+    --accent4: #c87a8b;
+    --accent5: #9a7ac8;
+    --tag-bg: #1e1c18;
+    --tag-border: #3a3420;
+    --tag-text: #c8a96e;
+    --code-bg: #111111;
+    --formula-bg: #0f0f0f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    font-size: 15px;
+  }
+
+  .page-header {
+    border-bottom: 1px solid var(--border);
+    padding: 4rem 0 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(200,169,110,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  .subtitle {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto 2rem;
+  }
+
+  .topic-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border: 1px solid var(--tag-border);
+    border-radius: 100px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .toc {
+    padding: 3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 1.5rem;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg2);
+    text-decoration: none;
+    color: var(--text2);
+    font-size: 13px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .toc-item:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    min-width: 20px;
+  }
+
+  .section {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 2.5rem;
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 24px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 2rem 0 1rem;
+  }
+
+  p {
+    color: var(--text2);
+    margin-bottom: 1rem;
+  }
+
+  .formula-block {
+    background: var(--formula-bg);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.9;
+  }
+
+  .formula-block .label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .insight-box {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .insight-box .insight-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .insight-box p {
+    color: var(--text);
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .warning-box {
+    background: rgba(200,122,139,0.05);
+    border: 1px solid rgba(200,122,139,0.2);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .warning-box .warning-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent4);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .warning-box p {
+    color: var(--text);
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .compare-cell {
+    background: var(--bg2);
+    padding: 1rem;
+  }
+
+  .compare-cell.header {
+    background: var(--bg3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .compare-cell p {
+    font-size: 13px;
+    color: var(--text2);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .compare-cell .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 1.5rem 0;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .card ul li {
+    font-size: 13px;
+    color: var(--text2);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .card ul li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: var(--text3);
+  }
+
+  .hp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 13px;
+  }
+
+  .hp-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border2);
+    background: var(--bg3);
+  }
+
+  .hp-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .hp-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    white-space: nowrap;
+  }
+
+  .hp-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .hp-table tr:hover td {
+    background: var(--bg3);
+  }
+
+  .q-section {
+    padding: 4rem 0;
+  }
+
+  .q-section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .q-section-header h2 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .q-section-header p {
+    font-size: 14px;
+  }
+
+  .q-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .q-card:hover {
+    border-color: var(--border2);
+  }
+
+  .q-header {
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    user-select: none;
+  }
+
+  .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 28px;
+    padding-top: 2px;
+  }
+
+  .q-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .q-difficulty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .diff-medium {
+    background: rgba(122,159,200,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(122,159,200,0.2);
+  }
+
+  .diff-hard {
+    background: rgba(200,122,139,0.1);
+    color: var(--accent4);
+    border: 1px solid rgba(200,122,139,0.2);
+  }
+
+  .diff-easy {
+    background: rgba(139,184,122,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(139,184,122,0.2);
+  }
+
+  .q-chevron {
+    color: var(--text3);
+    font-size: 18px;
+    transition: transform 0.25s;
+    margin-top: 1px;
+  }
+
+  .q-card.open .q-chevron {
+    transform: rotate(180deg);
+  }
+
+  .q-answer {
+    display: none;
+    padding: 0 1.5rem 1.5rem 3.7rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .q-card.open .q-answer {
+    display: block;
+  }
+
+  .must-have {
+    margin-top: 1rem;
+  }
+
+  .must-have-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    margin-top: 1.5rem;
+  }
+
+  .must-have ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .must-have ul li {
+    font-size: 13px;
+    color: var(--text2);
+    padding: 5px 0 5px 20px;
+    position: relative;
+    line-height: 1.5;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .must-have ul li:last-child {
+    border-bottom: none;
+  }
+
+  .must-have ul li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent2);
+    font-size: 11px;
+    top: 6px;
+  }
+
+  .answer-note {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 1rem;
+    line-height: 1.6;
+    padding-top: 1rem;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent3);
+  }
+
+  .section-divider {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 3rem 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-divider::before, .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .inline-formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="container">
+    <div class="eyebrow">Topic 03 — Ensemble Methods</div>
+    <h1>Random Forest</h1>
+    <p class="subtitle">Complete study guide covering all concepts, hyperparameters, variants, and 23 interview questions.</p>
+    <div class="topic-pills">
+      <span class="pill">Decorrelation</span>
+      <span class="pill">Variance Reduction</span>
+      <span class="pill">OOB Error</span>
+      <span class="pill">Feature Importance</span>
+      <span class="pill">ExtraTrees</span>
+      <span class="pill">Hyperparameters</span>
+      <span class="pill">Missing Values</span>
+      <span class="pill">Class Imbalance</span>
+      <span class="pill">Prediction Intervals</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <nav class="toc">
+    <div class="eyebrow">Contents</div>
+    <div class="toc-grid">
+      <a href="#s1" class="toc-item"><span class="toc-num">01</span>Core Mechanism</a>
+      <a href="#s2" class="toc-item"><span class="toc-num">02</span>Variance Formula</a>
+      <a href="#s3" class="toc-item"><span class="toc-num">03</span>OOB Error</a>
+      <a href="#s4" class="toc-item"><span class="toc-num">04</span>Feature Importance</a>
+      <a href="#s5" class="toc-item"><span class="toc-num">05</span>Hyperparameters</a>
+      <a href="#s6" class="toc-item"><span class="toc-num">06</span>ExtraTrees</a>
+      <a href="#s7" class="toc-item"><span class="toc-num">07</span>Practical Considerations</a>
+      <a href="#s8" class="toc-item"><span class="toc-num">08</span>When to Use RF</a>
+      <a href="#s9" class="toc-item"><span class="toc-num">09</span>Interview Questions</a>
+    </div>
+  </nav>
+
+  <!-- Section 1 -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Core Mechanism & Decorrelation</h2>
+    </div>
+
+    <p>Random Forest builds B decision trees in parallel, each on a bootstrap sample, then averages (regression) or votes (classification) across all trees. The power comes from two decorrelation mechanisms applied together.</p>
+
+    <h3>Why a single deep tree fails</h3>
+    <p>A deep decision tree has high variance — small changes in training data produce very different trees. The tree also assigns nearly all importance to the strongest predictor by always choosing it at the root.</p>
+
+    <h3>Two decorrelation sources</h3>
+    <div class="two-col">
+      <div class="card">
+        <h4>Bootstrap Sampling</h4>
+        <ul>
+          <li>Each tree trains on a different bootstrap sample</li>
+          <li>~63.2% unique points per sample</li>
+          <li>Decorrelates via different <em>data</em></li>
+          <li>Weaker mechanism — dominant features still win every split</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>max_features</h4>
+        <ul>
+          <li>At each split, only a random subset of features is considered</li>
+          <li>Dominant features get blocked out of many splits</li>
+          <li>Decorrelates at the <em>split decision level</em></li>
+          <li>More powerful — directly lowers ρ</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">Key Insight</div>
+      <p>With bootstrap sampling alone, if feature X has the highest information gain, it will still be chosen at the root of nearly every tree — regardless of which bootstrap sample. The trees share the same top-level structure → high ρ. max_features is what breaks this.</p>
+    </div>
+
+    <h3>The max_features bias-variance tradeoff</h3>
+    <p>Decreasing <code>max_features</code> lowers tree correlation ρ (variance↓) but weakens each individual tree (bias↑). The optimal value depends on how many features are truly informative.</p>
+
+    <div class="formula-block">
+      <div class="label">sklearn defaults</div>
+      max_features = "sqrt"  →  √p features per split  (classification)<br>
+      max_features = 1.0     →  all p features          (regression, sklearn default)<br><br>
+      Rule: many irrelevant features → go lower (noise drops out harmlessly)<br>
+      Rule: few features, most informative → go higher (can't afford to drop signal)
+    </div>
+
+    <p style="margin-top:1rem;">√p is empirical / heuristic — not derived from theory. It works well because real datasets often have many features but only a moderate number are truly informative.</p>
+  </section>
+
+  <!-- Section 2 -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Variance Reduction Formula</h2>
+    </div>
+
+    <div class="formula-block">
+      <div class="label">Variance of the average of B trees</div>
+      Var(average) = ρ·σ² + (1−ρ)·σ²/B<br><br>
+      where:<br>
+      ρ = pairwise correlation between trees<br>
+      σ² = variance of a single tree<br>
+      B = number of trees
+    </div>
+
+    <p>As B → ∞, the second term vanishes. The irreducible floor is <span class="inline-formula">ρ·σ²</span>. Adding more trees can never go below this floor — only reducing ρ can.</p>
+
+    <div class="two-col">
+      <div class="card">
+        <h4>Reducing σ² (per-tree variance)</h4>
+        <ul>
+          <li>Limit max_depth</li>
+          <li>Increase min_samples_leaf</li>
+          <li>These are tree-level controls</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Reducing ρ (tree correlation)</h4>
+        <ul>
+          <li>max_features — primary lever</li>
+          <li>Bootstrap sampling — secondary lever</li>
+          <li>This is what makes RF > single tree</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">Interview Point</div>
+      <p>Unlike boosting, adding more trees (increasing B) in Random Forest never causes overfitting. Each tree fits original labels independently. OOB error and validation error monotonically plateau — they never go back up.</p>
+    </div>
+  </section>
+
+  <!-- Section 3 -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Out-of-Bag Error</h2>
+    </div>
+
+    <p>Each training point is excluded from roughly 36.8% of bootstrap samples. Those trees form that point's OOB ensemble — a free, unbiased validation estimate requiring no held-out data.</p>
+
+    <h3>Exact OOB prediction mechanism</h3>
+    <div class="formula-block">
+      <div class="label">For a single point (xᵢ, yᵢ)</div>
+      1. Identify all trees NOT trained on xᵢ (≈36.8% of B trees)<br>
+      2. Pass xᵢ through each of those trees → collect predictions<br>
+      3. Aggregate: majority vote (classification) or mean (regression)<br>
+      4. Compare to yᵢ → OOB error for this point<br><br>
+      Repeat for all N points → one global OOB error number
+    </div>
+
+    <h3>Why OOB is noisier than k-fold CV</h3>
+    <p>On average each point is OOB for 36.8% of trees, but this varies per point. Some points are OOB for only 20% of trees (their prediction is based on few trees → noisy), others for 50% (stable). In k-fold CV, every point is in the validation set exactly once, evaluated on a model trained on exactly (k−1)/k of the data — symmetric and controlled.</p>
+
+    <div class="two-col">
+      <div class="card">
+        <h4>When to use OOB error</h4>
+        <ul>
+          <li>Large datasets where CV is computationally expensive</li>
+          <li>When you need a quick estimate during tuning</li>
+          <li>Tracking n_estimators convergence (warm_start)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>When to use k-fold CV instead</h4>
+        <ul>
+          <li>Small datasets where OOB instability matters</li>
+          <li>Final model evaluation / reporting</li>
+          <li>When you need controlled, reproducible splits</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4 -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Feature Importance</h2>
+    </div>
+
+    <h3>MDI aggregation across trees</h3>
+    <p>For each tree, compute the weighted impurity reduction at all nodes where feature f was used to split. Average across all B trees. Normalize so all features sum to 1.</p>
+
+    <h3>How max_features affects importance</h3>
+    <p>In a single tree, one dominant correlated feature wins all splits. In Random Forest, correlated features take turns being available at each split. Their importance gets shared rather than winner-take-all. This is a benefit — MDI is more fairly distributed across correlated features.</p>
+
+    <div class="warning-box">
+      <div class="warning-label">MDI Caveats</div>
+      <p>High-cardinality features (many unique values) get artificially inflated importance — more threshold choices means more opportunities to reduce impurity by chance. Use permutation importance for reliable feature selection.</p>
+    </div>
+
+    <h3>Correlated features and feature selection</h3>
+    <p>If features A and B are both informative and correlated, their importance is split between them. B might appear near-zero and get dropped even though it carries real signal — especially dangerous if A ever becomes unavailable at inference time.</p>
+
+    <h3>Permutation importance</h3>
+    <p>Shuffle feature f across all rows, breaking its relationship with the target. Measure the increase in OOB error. Repeat for all features. More expensive but unbiased by cardinality. Measures marginal contribution <em>given all other features</em> — correlated features still mask each other.</p>
+
+    <h3>Proximity matrix</h3>
+    <div class="formula-block">
+      <div class="label">Definition</div>
+      Proximity(xᵢ, xⱼ) = (number of trees where xᵢ and xⱼ land in same leaf) / B
+    </div>
+    <p>Uses: outlier detection (low proximity to all other points), clustering (distance = 1 − proximity). Limitation: O(N²) memory and compute — impractical for large N.</p>
+
+    <h3>RF-based imputation using proximity</h3>
+    <div class="formula-block">
+      <div class="label">Two-phase algorithm</div>
+      Phase 1: Fill missing values with median (continuous) or mode (categorical)<br>
+      Phase 2: Train RF → compute proximity matrix → re-impute each missing<br>
+               value as proximity-weighted average across all other points<br>
+      Iterate until convergence
+    </div>
+    <p>Note: sklearn does not support this natively. Use <code>SimpleImputer</code> or <code>IterativeImputer</code> before passing data to RF.</p>
+  </section>
+
+  <!-- Section 5 -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Hyperparameters</h2>
+    </div>
+
+    <table class="hp-table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>What it controls</th>
+          <th>Guidance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>n_estimators</td>
+          <td>Number of trees</td>
+          <td>More is never worse (no overfitting risk). Watch OOB error curve — stop when it plateaus. Typically 100–500 suffices.</td>
+        </tr>
+        <tr>
+          <td>max_features</td>
+          <td>Features per split</td>
+          <td>Primary variance lever. "sqrt" for classification, 1.0 for regression by default. Lower = more decorrelation but higher bias.</td>
+        </tr>
+        <tr>
+          <td>max_samples</td>
+          <td>Bootstrap sample size</td>
+          <td>Default = N (full bootstrap). Reduce on small datasets to lower per-tree bias at cost of more correlation.</td>
+        </tr>
+        <tr>
+          <td>max_depth</td>
+          <td>Tree depth limit</td>
+          <td>Default = None (fully grown). Limiting reduces memory and speeds up inference. Start tuning here after n_estimators and max_features.</td>
+        </tr>
+        <tr>
+          <td>min_samples_leaf</td>
+          <td>Min samples per leaf</td>
+          <td>Smooths predictions. More useful than min_samples_split in practice.</td>
+        </tr>
+        <tr>
+          <td>class_weight</td>
+          <td>Sample weights per class</td>
+          <td>"balanced" sets weight inversely proportional to class frequency. Use for imbalanced classification.</td>
+        </tr>
+        <tr>
+          <td>warm_start</td>
+          <td>Incremental training</td>
+          <td>Reuses existing trees and adds more. Use with increasing n_estimators to trace OOB curve efficiently.</td>
+        </tr>
+        <tr>
+          <td>n_jobs</td>
+          <td>Parallelism</td>
+          <td>n_jobs=-1 uses all cores. Trees are independent → embarrassingly parallel training. Key advantage over boosting.</td>
+        </tr>
+        <tr>
+          <td>oob_score</td>
+          <td>Compute OOB estimate</td>
+          <td>Set True to get a free validation score. Slight overhead but usually worth it.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 6 -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>ExtraTrees</h2>
+    </div>
+
+    <p>Extremely Randomized Trees add a third level of randomization: instead of searching for the optimal threshold at each split, the threshold is drawn randomly for each candidate feature.</p>
+
+    <div class="compare-grid">
+      <div class="compare-cell header">Method</div>
+      <div class="compare-cell header">Data</div>
+      <div class="compare-cell header">Threshold</div>
+
+      <div class="compare-cell"><p class="val">Decision Tree</p></div>
+      <div class="compare-cell"><p>Full dataset, all features</p></div>
+      <div class="compare-cell"><p>Optimal (exhaustive search)</p></div>
+
+      <div class="compare-cell"><p class="val">Random Forest</p></div>
+      <div class="compare-cell"><p>Bootstrap, random feature subset</p></div>
+      <div class="compare-cell"><p>Optimal (exhaustive search)</p></div>
+
+      <div class="compare-cell"><p class="val">ExtraTrees</p></div>
+      <div class="compare-cell"><p>Full dataset (no bootstrap), random feature subset</p></div>
+      <div class="compare-cell"><p>Random (no search)</p></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h4>Advantages</h4>
+        <ul>
+          <li>Lower variance than RF (more decorrelated trees)</li>
+          <li>Significantly faster — random thresholds replace expensive optimal search</li>
+          <li>Better regularization on noisy datasets</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Disadvantages</h4>
+        <ul>
+          <li>Higher bias per tree — splits are not optimal</li>
+          <li>No bootstrap → loses OOB error and implicit regularization</li>
+          <li>Worse than RF on clean low-noise data</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">When to prefer ExtraTrees</div>
+      <p>Noisy datasets (random thresholds regularize — don't overfit noisy optima), when speed is critical, or when RF variance is still too high. In practice, try both and cross-validate.</p>
+    </div>
+  </section>
+
+  <!-- Section 7 -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Practical Considerations</h2>
+    </div>
+
+    <h3>Feature scaling</h3>
+    <p>Not required. Tree splits rank values by order — monotonic transformations (standardization, normalization) don't change the relative order of values, so the same thresholds are found regardless. Unlike SVMs and logistic regression where feature scale affects the decision boundary.</p>
+
+    <h3>Class imbalance</h3>
+    <p>With severe imbalance (e.g. 95/5 split), the model optimizes for the majority class. <code>class_weight="balanced"</code> sets weights inversely proportional to class frequency:</p>
+    <div class="formula-block">
+      weight_c = n_samples / (n_classes × n_samples_in_class_c)
+    </div>
+    <p>SMOTE creates synthetic minority samples by interpolating in feature space (not duplicating). Prefer <code>class_weight</code> as a default — SMOTE must be applied only inside CV folds to avoid data leakage, which is an easy mistake to make.</p>
+
+    <h3>RF on small datasets</h3>
+    <p>Bootstrap sampling trains each tree on only ~63.2% of an already small dataset — per-tree bias increases. Bootstrap samples also overlap heavily → high ρ → variance floor stays high. Consider pasting (sampling without replacement) or a single well-pruned tree instead.</p>
+
+    <h3>Prediction intervals (regression)</h3>
+    <p>Each of the B trees gives a separate prediction for point x. The spread of these predictions estimates uncertainty:</p>
+    <div class="formula-block">
+      <div class="label">Percentile method</div>
+      Lower = percentile(predictions, 5)<br>
+      Upper = percentile(predictions, 95)<br>
+      → 90% prediction interval<br><br>
+      <div class="label">Std dev method</div>
+      ŷ ± 1.96 · std(tree predictions)
+    </div>
+    <p>High spread = trees disagree = high uncertainty. These capture model variance only, not irreducible noise. For full uncertainty quantification, consider Quantile Regression Forests or Gaussian Processes.</p>
+
+    <h3>Monotonic constraints</h3>
+    <p>Random Forest cannot enforce monotonic constraints natively. Each tree independently partitions feature space with no global constraint. XGBoost and LightGBM both support <code>monotone_constraints</code> — use them in regulated industries (credit, insurance, healthcare) where monotonicity is a legal or business requirement.</p>
+
+    <h3>Memory and deployment</h3>
+    <p>500 deep trees storing all node splits can be hundreds of MBs. Reduce <code>max_depth</code> and <code>n_estimators</code> to minimum needed for deployment. XGBoost and LightGBM are generally more memory-efficient alternatives.</p>
+
+    <h3>Multioutput RF</h3>
+    <p>sklearn RF natively supports multiple targets — each leaf stores a prediction vector. Useful for multilabel classification or predicting multiple continuous outputs simultaneously.</p>
+  </section>
+
+  <!-- Section 8 -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>When to Use Random Forest</h2>
+    </div>
+
+    <div class="compare-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="compare-cell header">Single Deep Tree</div>
+      <div class="compare-cell header">Random Forest</div>
+      <div class="compare-cell header">XGBoost / GBM</div>
+
+      <div class="compare-cell"><p>✓ Fully interpretable<br>✓ Fast to train/infer<br>✗ High variance<br>✗ Overfits on noise<br>✗ Dominated by one feature</p></div>
+      <div class="compare-cell"><p>✓ Low variance, robust<br>✓ Handles noise well<br>✓ Parallelizable<br>✗ Not interpretable<br>✗ No monotonic constraints</p></div>
+      <div class="compare-cell"><p>✓ Best accuracy (clean data)<br>✓ Early stopping for noise<br>✗ Sequential — not parallel<br>✗ More tuning required<br>✗ Sensitive to outliers</p></div>
+    </div>
+
+    <div class="insight-box" style="margin-top: 1.5rem;">
+      <div class="insight-label">The Interpretability Tension</div>
+      <p>If interpretability is a hard requirement → single tree with ccp_alpha pruning. If soft requirement → RF or XGBoost + SHAP values for post-hoc explanation. Name this tradeoff explicitly in interviews — it separates good answers from great ones.</p>
+    </div>
+
+    <div class="two-col" style="margin-top: 1.5rem;">
+      <div class="card">
+        <h4>Prefer RF when</h4>
+        <ul>
+          <li>Noisy data where boosting overfits residuals</li>
+          <li>Small/medium datasets</li>
+          <li>Speed matters — n_jobs=-1 parallelizes</li>
+          <li>Minimal tuning budget</li>
+          <li>Need OOB estimate without separate validation set</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Prefer XGBoost when</h4>
+        <ul>
+          <li>Clean large datasets, accuracy is paramount</li>
+          <li>Need monotonic constraints</li>
+          <li>Willing to tune carefully with early stopping</li>
+          <li>Memory efficiency matters at deployment</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interview Questions -->
+  <section class="q-section" id="s9">
+    <div class="q-section-header">
+      <div class="eyebrow">Interview Prep</div>
+      <h2>23 Interview Questions</h2>
+      <p>Click any question to reveal must-have answer points. Sorted by difficulty.</p>
+    </div>
+
+    <div class="section-divider">Core Concepts</div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q01</span>
+        <span class="q-text">Why does Random Forest reduce variance compared to a single decision tree?</span>
+        <span class="q-difficulty diff-easy">Easy</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Single deep tree has high variance — small data changes produce very different trees</li>
+            <li>RF averages B decorrelated trees — invoke the formula: Var(avg) = ρ·σ² + (1−ρ)·σ²/B</li>
+            <li>Second term → 0 as B → ∞, leaving floor of ρ·σ²</li>
+            <li>Decorrelation comes from bootstrap sampling AND max_features (max_features is more powerful)</li>
+            <li>More trees never hurts — no overfitting mechanism</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q02</span>
+        <span class="q-text">Why is max_features more powerful than bootstrap sampling for decorrelation?</span>
+        <span class="q-difficulty diff-easy">Easy</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Bootstrap changes which data each tree sees — but still evaluates all features at every split</li>
+            <li>If feature X has highest info gain, it wins the root split in nearly every tree regardless of bootstrap sample</li>
+            <li>Trees share the same top-level structure → high ρ</li>
+            <li>max_features blocks feature X from consideration at many splits — other features define tree structure</li>
+            <li>max_features decorrelates at the split decision level, not just the data level</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q03</span>
+        <span class="q-text">Explain how OOB error is computed. Why is it slightly noisier than k-fold CV?</span>
+        <span class="q-difficulty diff-easy">Easy</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Each point is excluded from ~36.8% of trees (derivation: (1−1/N)^N → 1/e)</li>
+            <li>OOB prediction = majority vote / mean across only those trees that didn't train on it</li>
+            <li>Noisier because: each point is OOB for a different number of trees (not fixed like CV)</li>
+            <li>Some points predicted by few trees (noisy), others by many (stable)</li>
+            <li>k-fold CV: every point in validation set exactly once, evaluated on model trained on (k−1)/k data — symmetric</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q04</span>
+        <span class="q-text">How does max_features affect MDI feature importances in a Random Forest?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>In a single tree, one dominant correlated feature takes all the credit</li>
+            <li>In RF, correlated features take turns being available → importance is split between them</li>
+            <li>This is a benefit — more fair distribution than single tree MDI</li>
+            <li>Risk: correlated feature may appear near-zero and get incorrectly dropped in feature selection</li>
+            <li>Can't directly compare importances between single tree and RF</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q05</span>
+        <span class="q-text">Does Random Forest require feature scaling? Why or why not?</span>
+        <span class="q-difficulty diff-easy">Easy</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>No scaling required</li>
+            <li>Tree splits are invariant to monotonic transformations of features</li>
+            <li>Scaling doesn't change relative order of values → same thresholds found</li>
+            <li>Contrast with SVM and logistic regression where scale affects decision boundary / distance computation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Intermediate</div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q06</span>
+        <span class="q-text">A Random Forest has higher test accuracy than a single deep decision tree trained on the same data. Explain the exact mechanism.</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Deep single tree: high training accuracy because it fits noise → low test accuracy (high variance)</li>
+            <li>RF: each tree is trained on different bootstrap sample + different feature subsets at each split</li>
+            <li>Each tree has its own errors — averaging cancels them out when errors are uncorrelated</li>
+            <li>Invoke Var(avg) = ρ·σ² + (1−ρ)·σ²/B — variance drops toward ρ·σ²</li>
+            <li>max_features is the key lever that makes ρ small enough for averaging to help significantly</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q07</span>
+        <span class="q-text">You have a severely imbalanced dataset (95/5). How would you handle it in Random Forest?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Default RF optimizes for majority class — 95% accuracy just by always predicting class 0</li>
+            <li>class_weight="balanced": weight_c = n_samples / (n_classes × n_samples_c) → minority gets ~10x weight</li>
+            <li>This affects Gini/entropy calculations and leaf predictions — minority class misclassifications cost more</li>
+            <li>SMOTE: synthetic samples via interpolation in feature space (not duplication) — must apply inside CV folds only</li>
+            <li>Prefer class_weight as default — simpler, no leakage risk</li>
+            <li>Evaluation: use F1, AUC-ROC, precision-recall curves — not accuracy</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q08</span>
+        <span class="q-text">What is ExtraTrees and when would you prefer it over Random Forest?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>ExtraTrees = RF but threshold drawn randomly per feature instead of optimal search</li>
+            <li>No bootstrap — trains on full dataset</li>
+            <li>Lower variance (more decorrelated) but higher bias (suboptimal splits)</li>
+            <li>Significantly faster — threshold search is the expensive step</li>
+            <li>Prefer on: noisy data (random thresholds regularize — don't overfit noise in threshold), speed-critical applications</li>
+            <li>In practice: try both and cross-validate</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q09</span>
+        <span class="q-text">How would you determine the right number of trees (n_estimators) for a Random Forest?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>More trees never overfits — OOB/validation error monotonically decreases then plateaus</li>
+            <li>Method: use warm_start=True, incrementally add trees, track OOB error each time</li>
+            <li>Stop when OOB error curve flattens — diminishing returns beyond that</li>
+            <li>Typical range: 100–500 trees for most datasets</li>
+            <li>Contrast with boosting: XGBoost CAN overfit with more trees → needs early stopping</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q10</span>
+        <span class="q-text">Explain the bias-variance tradeoff when tuning max_features. What dataset property should guide your choice?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Lower max_features → trees more decorrelated (ρ↓, variance↓) but each tree weaker (bias↑)</li>
+            <li>Higher max_features → each tree stronger (bias↓) but more correlated (variance↑)</li>
+            <li>Key dataset property: proportion of truly informative features</li>
+            <li>Many irrelevant features → go lower (dropping features mostly removes noise, little bias cost)</li>
+            <li>Few features, mostly informative → go higher (can't afford to drop real signal)</li>
+            <li>√p is heuristic / empirical, not derived from theory</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q11</span>
+        <span class="q-text">How does Random Forest handle regression vs classification differently?</span>
+        <span class="q-difficulty diff-easy">Easy</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Regression: splits on MSE, leaves store mean, forest averages predictions across trees</li>
+            <li>Classification: splits on Gini/entropy, leaves store class distribution, forest votes</li>
+            <li>Hard voting: majority class wins — loses confidence information</li>
+            <li>Soft voting: average class probabilities across trees — better, preserves confidence</li>
+            <li>Example where they disagree: P(Dog)=0.55, 0.10, 0.60 → hard vote = Dog (2/3), soft vote = 0.42 = Cat</li>
+            <li>max_features default differs: "sqrt" for classification, 1.0 for regression in sklearn</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Hard</div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q12</span>
+        <span class="q-text">You use MDI feature importances to select features, dropping the bottom 950 from a 1000-feature dataset. What are the risks?</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>High-cardinality bias: features with many unique values get inflated MDI scores — noisy features may look important</li>
+            <li>Correlated feature splitting: if two informative features A and B are correlated, importance is split between them — B may appear near-zero and get incorrectly dropped</li>
+            <li>If A and B are correlated and B is dropped, model is fragile if A becomes unavailable at inference</li>
+            <li>Better approach: use permutation importance instead of MDI</li>
+            <li>Permutation importance limitation: also masks correlated features (shuffling X doesn't hurt if Z carries same info)</li>
+            <li>Combine statistical importance with domain knowledge for final feature selection</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q13</span>
+        <span class="q-text">You shuffle feature X and retrain — OOB error barely changes. Your colleague concludes X is unimportant. When is this wrong?</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>If X is correlated with feature Z, shuffling X doesn't hurt — Z carries the same information and compensates</li>
+            <li>OOB error stays low even though X carries real signal — its signal is redundant given Z</li>
+            <li>But X may be important independently: if Z becomes unavailable at inference time, dropping X leaves a gap</li>
+            <li>Permutation importance measures marginal contribution given all other features — correlated features always mask each other</li>
+            <li>This is a fundamental limitation of all permutation-based importance methods</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q14</span>
+        <span class="q-text">A stakeholder needs predictions with uncertainty intervals. How would you extract them from a Random Forest?</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Each of B trees produces a separate prediction for point x — treat as a distribution</li>
+            <li>Percentile method: 5th/95th percentile of tree predictions → 90% interval</li>
+            <li>Std dev method: ŷ ± 1.96·std(tree predictions) — assumes normal distribution of predictions</li>
+            <li>Spread = tree disagreement = model uncertainty. High spread = point in sparse/uncertain region</li>
+            <li>Limitation: captures model variance only, not irreducible noise</li>
+            <li>For full uncertainty: Quantile Regression Forests or Gaussian Processes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q15</span>
+        <span class="q-text">Why does Random Forest perform worse than expected on a dataset with only 200 training samples?</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Bootstrap trains each tree on only 63.2% × 200 = 126 unique points — already small dataset starved further</li>
+            <li>With 200 total points, bootstrap samples overlap heavily → high ρ → variance floor stays high</li>
+            <li>High per-tree bias (too little data to learn complex patterns) + high correlation = RF doesn't help much</li>
+            <li>Alternative: pasting (sampling without replacement) gives more unique points per tree</li>
+            <li>Or: single well-pruned decision tree — competitive and interpretable on small data</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q16</span>
+        <span class="q-text">A regulated insurance model must predict higher risk for applicants with more prior claims — no exceptions. Can you use Random Forest?</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>No — Random Forest cannot enforce monotonic constraints</li>
+            <li>Each tree independently partitions feature space — no global constraint on feature-output relationship</li>
+            <li>Some leaf region could predict lower risk for more claims if the bootstrap data suggested that locally</li>
+            <li>XGBoost and LightGBM both support monotone_constraints natively — use these instead</li>
+            <li>This is a concrete reason to prefer gradient boosting over RF in regulated industries</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q17</span>
+        <span class="q-text">Compare Random Forest and XGBoost on: parallelism, overfitting risk, noise sensitivity, and tuning complexity.</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Parallelism: RF = embarrassingly parallel (n_jobs=-1). XGBoost = sequential across trees, parallelism only within each tree's split search</li>
+            <li>Overfitting: RF never overfits by adding more trees. XGBoost can — later trees fit residual noise → needs early stopping</li>
+            <li>Noise: RF dilutes noise via averaging. XGBoost compounds it (residuals grow for outliers) — though subsampling helps</li>
+            <li>Tuning: RF works well near-default. XGBoost needs careful tuning (learning rate, max_depth, subsampling, early stopping)</li>
+            <li>Accuracy: XGBoost typically wins on clean large datasets. RF more robust on noisy/small data</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Edge Cases & Nuances</div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q18</span>
+        <span class="q-text">How would you use Random Forest to impute missing values?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Phase 1: rough imputation — median for continuous, mode for categorical</li>
+            <li>Phase 2: train RF → compute proximity matrix → impute missing as proximity-weighted average</li>
+            <li>Iterate until convergence — proximity captures non-linear feature relationships</li>
+            <li>sklearn RF doesn't support missing values natively — must impute before fitting</li>
+            <li>In practice: SimpleImputer or IterativeImputer from sklearn is more common</li>
+            <li>Proximity-based imputation is in R's rfImpute() — know it exists even if rarely used</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q19</span>
+        <span class="q-text">What is the proximity matrix in Random Forest and what can you use it for?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Proximity(xᵢ, xⱼ) = fraction of trees where both points land in the same leaf</li>
+            <li>High proximity = points are similar in feature space (consistently take same splits)</li>
+            <li>Use 1: outlier detection — outlier has low proximity to all other points (unusual split path)</li>
+            <li>Use 2: clustering — distance = 1 − proximity, then hierarchical clustering</li>
+            <li>Limitation: O(N²) memory and compute — impractical for large N</li>
+            <li>In sklearn: use .apply() method to get leaf indices, compute proximity manually</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q20</span>
+        <span class="q-text">You need to add trees to an already-trained Random Forest without retraining from scratch. How?</span>
+        <span class="q-difficulty diff-easy">Easy</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Use warm_start=True in sklearn</li>
+            <li>Increase n_estimators, then call fit() again — only the new trees are trained</li>
+            <li>Use case: iteratively finding the right n_estimators by tracking OOB error curve</li>
+            <li>Practical workflow: start at 100, increment by 50, plot OOB error, stop at plateau</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q21</span>
+        <span class="q-text">Soft voting vs hard voting in Random Forest classification — when do they disagree and which wins?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Hard voting: majority class wins (counts votes). Soft voting: average class probabilities</li>
+            <li>They disagree when a confident minority overrules an uncertain majority</li>
+            <li>Example: P(Dog) = 0.55, 0.10, 0.60 → Hard: Dog (2/3 trees). Soft: 0.42 = Cat</li>
+            <li>Tree 2 is 90% confident it's Cat — hard voting ignores this confidence</li>
+            <li>Soft voting is almost always better — preserves calibration information</li>
+            <li>Requires trees to output calibrated probabilities — RF probabilities can be poorly calibrated, consider CalibratedClassifierCV</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q22</span>
+        <span class="q-text">You have a dataset with 1000 features. Why might √p for max_features be too aggressive here?</span>
+        <span class="q-difficulty diff-hard">Hard</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>√1000 ≈ 32 features per split out of 1000 — only 3.2% of features considered at each node</li>
+            <li>If only 50 features are truly informative, probability that any given split sees an informative feature ≈ 1 − C(950,32)/C(1000,32) ≈ 83% — actually ok</li>
+            <li>But if features are noisy and correlated, 32 might include too many noise features drowning signal</li>
+            <li>Counter-argument: with 1000 features and only 50 informative, dropping many features per split mostly removes noise → lower bias cost → √p might actually be fine or even too large</li>
+            <li>Key: answer depends on the signal density. This is a nuanced question — show you can reason both directions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card" onclick="toggle(this)">
+      <div class="q-header">
+        <span class="q-num">Q23</span>
+        <span class="q-text">When would you choose a single pruned decision tree over Random Forest despite lower accuracy?</span>
+        <span class="q-difficulty diff-medium">Medium</span>
+        <span class="q-chevron">▾</span>
+      </div>
+      <div class="q-answer">
+        <div class="must-have">
+          <div class="must-have-title">Must-have points</div>
+          <ul>
+            <li>Interpretability is a hard requirement — single tree can be printed and followed by hand</li>
+            <li>Regulatory/legal requirement to explain individual predictions (credit decisions, medical)</li>
+            <li>Small dataset where bootstrap sampling hurts more than it helps (high bootstrap overlap → high ρ)</li>
+            <li>Deployment memory constraints where 500 trees are impractical</li>
+            <li>Monotonic constraints needed (neither RF nor single tree handles this — but single tree is at least inspectable)</li>
+            <li>Name the tradeoff explicitly: accuracy vs interpretability is a design choice, not just a technical one</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<script>
+function toggle(card) {
+  card.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

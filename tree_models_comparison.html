@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree Models — Exhaustive Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --accent1: #e8c547;
+    --accent2: #5b8dee;
+    --accent3: #e05c7a;
+    --accent4: #4ecb94;
+    --accent5: #c47ae8;
+    --accent6: #e87a4e;
+    --accent7: #4ec9e8;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --text-dimmer: #55556a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Playfair Display', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    padding: 60px 48px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(232,197,71,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: 100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(91,141,238,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent1); }
+  .header-sub {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 560px;
+    font-weight: 300;
+  }
+
+  /* MODEL PILLS */
+  .model-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 24px 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .pill:hover { opacity: 0.8; transform: translateY(-1px); }
+  .pill.dt  { border-color: var(--accent1); color: var(--accent1); background: rgba(232,197,71,0.08); }
+  .pill.rf  { border-color: var(--accent2); color: var(--accent2); background: rgba(91,141,238,0.08); }
+  .pill.gbm { border-color: var(--accent3); color: var(--accent3); background: rgba(224,92,122,0.08); }
+  .pill.xgb { border-color: var(--accent4); color: var(--accent4); background: rgba(78,203,148,0.08); }
+  .pill.lgb { border-color: var(--accent5); color: var(--accent5); background: rgba(196,122,232,0.08); }
+  .pill.cat { border-color: var(--accent6); color: var(--accent6); background: rgba(232,122,78,0.08); }
+  .pill.et  { border-color: var(--accent7); color: var(--accent7); background: rgba(78,201,232,0.08); }
+  .pill.iso { border-color: #aa88ff; color: #aa88ff; background: rgba(170,136,255,0.08); }
+
+  /* CONTROLS */
+  .controls {
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 14px 10px 36px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent1); }
+  .search-icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dimmer);
+    font-size: 13px;
+  }
+  .filter-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent1);
+    color: var(--accent1);
+    background: rgba(232,197,71,0.07);
+  }
+  .count-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+    margin-left: auto;
+  }
+
+  /* TABLE WRAPPER */
+  .table-outer {
+    padding: 0 48px 60px;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+    margin-top: 32px;
+  }
+
+  /* SECTION HEADER ROWS */
+  .section-row td {
+    padding: 28px 0 10px 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    border-bottom: 1px solid var(--accent1);
+    opacity: 0.7;
+  }
+  .section-row td:first-child { padding-left: 0; }
+
+  /* COLUMN HEADERS */
+  thead th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    padding: 16px 14px;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  thead th:first-child {
+    width: 220px;
+    min-width: 220px;
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background: var(--bg);
+  }
+  thead th.dt-col  { color: var(--accent1); }
+  thead th.rf-col  { color: var(--accent2); }
+  thead th.gbm-col { color: var(--accent3); }
+  thead th.xgb-col { color: var(--accent4); }
+  thead th.lgb-col { color: var(--accent5); }
+  thead th.cat-col { color: var(--accent6); }
+  thead th.et-col  { color: var(--accent7); }
+  thead th.iso-col { color: #aa88ff; }
+
+  /* DATA ROWS */
+  tbody tr.data-row {
+    border-bottom: 1px solid rgba(42,42,58,0.6);
+    transition: background 0.15s;
+  }
+  tbody tr.data-row:hover { background: rgba(255,255,255,0.025); }
+  tbody tr.data-row.hidden { display: none; }
+
+  td {
+    padding: 13px 14px;
+    vertical-align: top;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+    position: sticky;
+    left: 0;
+    background: var(--bg);
+    z-index: 5;
+    min-width: 220px;
+    border-right: 1px solid var(--border);
+  }
+  tbody tr.data-row:hover td:first-child { background: #0f0f18; }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .badge-yes  { background: rgba(78,203,148,0.15); color: #4ecb94; }
+  .badge-no   { background: rgba(224,92,122,0.12); color: #e05c7a; }
+  .badge-partial { background: rgba(232,197,71,0.12); color: #e8c547; }
+  .badge-native { background: rgba(91,141,238,0.12); color: #5b8dee; }
+  .badge-low  { background: rgba(78,203,148,0.12); color: #4ecb94; }
+  .badge-med  { background: rgba(232,197,71,0.12); color: #e8c547; }
+  .badge-high { background: rgba(224,92,122,0.12); color: #e05c7a; }
+  .badge-very-high { background: rgba(224,92,122,0.2); color: #ff4466; }
+  .badge-tag  { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+
+  /* VERDICT ROW */
+  tr.verdict-row td {
+    background: rgba(232,197,71,0.04);
+    border-top: 2px solid rgba(232,197,71,0.2);
+    border-bottom: 2px solid rgba(232,197,71,0.2);
+    font-weight: 500;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text);
+    padding: 16px 14px;
+  }
+  tr.verdict-row td:first-child {
+    font-style: normal;
+    color: var(--accent1);
+    background: rgba(232,197,71,0.07);
+  }
+
+  /* TOOLTIP */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e1e30;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+    max-width: 240px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.4;
+  }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* FOOTER */
+  footer {
+    padding: 32px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-note {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+  }
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a55; }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .table-outer { animation: fadeIn 0.5s ease both; animation-delay: 0.1s; opacity: 0; }
+  header       { animation: fadeIn 0.4s ease both; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Machine Learning · Decision Trees Family</div>
+  <h1>Tree Models<br><span>Exhaustive Comparison</span></h1>
+  <p class="header-sub">A comprehensive side-by-side reference across all major tree-based models — from algorithm mechanics to production deployment.</p>
+</header>
+
+<div class="model-pills">
+  <span class="pill dt">Decision Tree</span>
+  <span class="pill rf">Random Forest</span>
+  <span class="pill gbm">Gradient Boosting</span>
+  <span class="pill xgb">XGBoost</span>
+  <span class="pill lgb">LightGBM</span>
+  <span class="pill cat">CatBoost</span>
+  <span class="pill et">Extra Trees</span>
+  <span class="pill iso">Isolation Forest</span>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search dimensions..." oninput="filterRows()">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" onclick="filterSection('all', this)">All</button>
+    <button class="filter-btn" onclick="filterSection('core', this)">Core Concepts</button>
+    <button class="filter-btn" onclick="filterSection('training', this)">Training</button>
+    <button class="filter-btn" onclick="filterSection('performance', this)">Performance</button>
+    <button class="filter-btn" onclick="filterSection('data', this)">Data</button>
+    <button class="filter-btn" onclick="filterSection('prediction', this)">Prediction</button>
+    <button class="filter-btn" onclick="filterSection('cv', this)">CV & Eval</button>
+    <button class="filter-btn" onclick="filterSection('interp', this)">Interpretability</button>
+    <button class="filter-btn" onclick="filterSection('practical', this)">Practical</button>
+  </div>
+  <span class="count-label" id="rowCount"></span>
+</div>
+
+<div class="table-outer">
+<table id="mainTable">
+<thead>
+  <tr>
+    <th>Dimension</th>
+    <th class="dt-col">Decision<br>Tree</th>
+    <th class="rf-col">Random<br>Forest</th>
+    <th class="gbm-col">Gradient<br>Boosting</th>
+    <th class="xgb-col">XGBoost</th>
+    <th class="lgb-col">LightGBM</th>
+    <th class="cat-col">CatBoost</th>
+    <th class="et-col">Extra<br>Trees</th>
+    <th class="iso-col">Isolation<br>Forest</th>
+  </tr>
+</thead>
+<tbody id="tableBody">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: CORE CONCEPTS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Core Concepts</td></tr>
+
+<tr class="data-row" data-section="core">
+  <td>Algorithm Type</td>
+  <td>Single tree</td>
+  <td>Bagging ensemble</td>
+  <td>Boosting ensemble</td>
+  <td>Boosting ensemble</td>
+  <td>Boosting ensemble</td>
+  <td>Boosting ensemble</td>
+  <td>Bagging ensemble</td>
+  <td>Isolation ensemble</td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Base Learner</td>
+  <td>Single CART tree</td>
+  <td>Full-depth CART trees</td>
+  <td>Shallow CART trees</td>
+  <td>Shallow CART trees</td>
+  <td>Leaf-wise trees</td>
+  <td>Symmetric (oblivious) trees</td>
+  <td>Extremely randomized trees</td>
+  <td>Random partial trees</td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Ensemble Method</td>
+  <td>None</td>
+  <td>Average / majority vote</td>
+  <td>Weighted additive sum</td>
+  <td>Weighted additive sum</td>
+  <td>Weighted additive sum</td>
+  <td>Weighted additive sum</td>
+  <td>Average / majority vote</td>
+  <td>Anomaly score averaging</td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Weak vs Strong Learner</td>
+  <td>Strong learner</td>
+  <td>Strong learners aggregated</td>
+  <td>Weak learners (stumps/shallow)</td>
+  <td>Weak learners</td>
+  <td>Weak learners</td>
+  <td>Weak learners</td>
+  <td>Strong learners aggregated</td>
+  <td>Very shallow random trees</td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Tree Correlation</td>
+  <td>N/A</td>
+  <td>Low (feature subsampling reduces correlation)</td>
+  <td>Moderate (each tree targets prior residuals)</td>
+  <td>Moderate</td>
+  <td>Moderate</td>
+  <td>Moderate</td>
+  <td>Very low (extreme randomization)</td>
+  <td>Very low (random splits)</td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Sequential vs Parallel Building</td>
+  <td>Sequential (single)</td>
+  <td><span class="badge badge-native">Parallel</span></td>
+  <td><span class="badge badge-no">Sequential</span></td>
+  <td>Sequential (parallel within tree)</td>
+  <td>Sequential (parallel within tree)</td>
+  <td>Sequential (parallel within tree)</td>
+  <td><span class="badge badge-native">Parallel</span></td>
+  <td><span class="badge badge-native">Parallel</span></td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Theoretical Basis</td>
+  <td>Information theory / recursive partitioning</td>
+  <td>Bias-variance decomposition + bagging</td>
+  <td>Functional gradient descent</td>
+  <td>Functional gradient descent + regularization</td>
+  <td>Gradient descent + histogram binning</td>
+  <td>Ordered boosting (target-leak prevention)</td>
+  <td>Variance reduction via extreme randomization</td>
+  <td>Anomaly isolation via path length</td>
+</tr>
+
+<tr class="data-row" data-section="core">
+  <td>Primary Use Case</td>
+  <td>Classification, Regression</td>
+  <td>Classification, Regression</td>
+  <td>Classification, Regression</td>
+  <td>Classification, Regression, Ranking</td>
+  <td>Classification, Regression, Ranking</td>
+  <td>Classification, Regression, Ranking</td>
+  <td>Classification, Regression</td>
+  <td>Anomaly / Outlier Detection</td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: ALGORITHM MECHANICS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Algorithm Mechanics</td></tr>
+
+<tr class="data-row" data-section="training">
+  <td>Split Criterion (Classification)</td>
+  <td>Gini / Entropy</td>
+  <td>Gini / Entropy</td>
+  <td>Deviance / Log-loss</td>
+  <td>Gain (second-order Taylor)</td>
+  <td>Gain (second-order Taylor)</td>
+  <td>Gain (second-order Taylor)</td>
+  <td>Gini / Entropy (random threshold)</td>
+  <td>Random splits</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Split Criterion (Regression)</td>
+  <td>MSE / MAE / Friedman MSE</td>
+  <td>MSE / MAE</td>
+  <td>MSE / MAE / Huber / Quantile</td>
+  <td>Squared error / custom</td>
+  <td>Squared error / custom</td>
+  <td>Squared error / custom</td>
+  <td>MSE / MAE (random threshold)</td>
+  <td>Random splits</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Leaf Value Computation</td>
+  <td>Mean (reg) / majority (clf)</td>
+  <td>Mean / majority vote across trees</td>
+  <td>Negative gradient (residual)</td>
+  <td>Newton step (gradient + hessian)</td>
+  <td>Newton step</td>
+  <td>Newton step (ordered)</td>
+  <td>Mean / majority vote</td>
+  <td>Anomaly score from path depth</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Tree Growth Strategy</td>
+  <td>Level-wise (depth-first)</td>
+  <td>Level-wise (depth-first)</td>
+  <td>Level-wise (depth-limited)</td>
+  <td>Level-wise (depth-limited)</td>
+  <td><strong>Leaf-wise (best-first)</strong> — key differentiator</td>
+  <td>Symmetric / oblivious (same split per level)</td>
+  <td>Level-wise (random thresholds)</td>
+  <td>Random partial splits</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Row Sampling Strategy</td>
+  <td>Full dataset</td>
+  <td>Bootstrap (with replacement)</td>
+  <td>Subsampling (without replacement)</td>
+  <td>Subsampling (without replacement)</td>
+  <td>GOSS (Gradient-based one-side sampling)</td>
+  <td>MVS (Minimal variance sampling)</td>
+  <td>Bootstrap (with replacement)</td>
+  <td>Subsampling (without replacement)</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Feature Sampling</td>
+  <td>All features at each split</td>
+  <td>√p features per split</td>
+  <td>Configurable fraction per tree</td>
+  <td>Configurable per tree and per level</td>
+  <td>Configurable (GOSS + feature fraction)</td>
+  <td>Configurable per tree</td>
+  <td>√p features, <strong>random thresholds</strong></td>
+  <td>Random feature subset per split</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Histogram-based Optimization</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Partial</span> (approx. split)</td>
+  <td><span class="badge badge-yes">Yes</span> — core innovation</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Shrinkage / Learning Rate</td>
+  <td>N/A</td>
+  <td>N/A</td>
+  <td><span class="badge badge-yes">Yes</span> (key param)</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td>N/A</td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Early Stopping Support</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Via OOB</span></td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Warm Starting</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span> (sklearn)</td>
+  <td><span class="badge badge-yes">Yes</span> (sklearn)</td>
+  <td><span class="badge badge-yes">Yes</span> (continue training)</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span> (sklearn)</td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Pruning Support</td>
+  <td>Pre & post pruning (cost-complexity)</td>
+  <td>Max depth / min samples</td>
+  <td>Max depth / min samples</td>
+  <td>Gamma (min split gain), L1/L2 reg</td>
+  <td>Min gain to split, num leaves</td>
+  <td>Min data in leaf, depth</td>
+  <td>Max depth / min samples</td>
+  <td>Max depth</td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: REGULARIZATION -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Regularization</td></tr>
+
+<tr class="data-row" data-section="training">
+  <td>Built-in Regularization</td>
+  <td>Min samples leaf, max depth, cost-complexity (ccp_alpha)</td>
+  <td>Max depth, min samples, max features</td>
+  <td>Max depth, min samples, subsample</td>
+  <td>L1 (alpha), L2 (lambda), gamma, max_delta_step</td>
+  <td>L1, L2, min_gain_to_split, num_leaves</td>
+  <td>L2, model_size_reg, leaf regularization</td>
+  <td>Min samples, max depth</td>
+  <td>Contamination param, max samples</td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Dropout Support</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span> — DART booster</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="training">
+  <td>Monotonicity Constraints</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Sklearn only</span></td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: PERFORMANCE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Performance</td></tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Bias-Variance Profile</td>
+  <td>Low bias, high variance</td>
+  <td>Low bias, reduced variance</td>
+  <td>Low bias, low variance</td>
+  <td>Very low bias, low variance</td>
+  <td>Very low bias, low variance</td>
+  <td>Very low bias, low variance</td>
+  <td>Low bias, lower variance than DT</td>
+  <td>Designed for anomaly only</td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Overfitting Tendency</td>
+  <td><span class="badge badge-very-high">Very High</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-low">Low–Med</span></td>
+  <td><span class="badge badge-low">Low–Med</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Training Speed</td>
+  <td><span class="badge badge-yes">Very Fast</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-high">Slow</span></td>
+  <td><span class="badge badge-med">Fast</span></td>
+  <td><span class="badge badge-yes">Very Fast</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Fast</span></td>
+  <td><span class="badge badge-yes">Very Fast</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Inference Speed</td>
+  <td><span class="badge badge-yes">Very Fast</span></td>
+  <td><span class="badge badge-med">Fast</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Fast</span></td>
+  <td><span class="badge badge-yes">Very Fast</span></td>
+  <td><span class="badge badge-yes">Very Fast</span> (symmetric trees)</td>
+  <td><span class="badge badge-med">Fast</span></td>
+  <td><span class="badge badge-yes">Very Fast</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Scalability (Large Datasets)</td>
+  <td><span class="badge badge-med">Poor</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Excellent</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Performance on Small Datasets</td>
+  <td><span class="badge badge-med">OK</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-high">Can overfit</span></td>
+  <td><span class="badge badge-high">Can overfit</span></td>
+  <td><span class="badge badge-high">Can overfit</span></td>
+  <td><span class="badge badge-yes">Good</span> (ordered boost helps)</td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Sensitivity to Outliers</td>
+  <td><span class="badge badge-low">Low</span> (splits are robust)</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-high">High</span> (residual-driven)</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-low">Low–Med</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-yes">Designed to detect them</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Sensitivity to Noisy Labels</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-low">Lower</span> (ordered boost)</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td>N/A (unsupervised)</td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Sensitive to Correlated Features</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-high">Yes</span> — splits importance</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-low">Low</span> (random splits reduce it)</td>
+  <td><span class="badge badge-low">Low</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Robust to Irrelevant Features</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>GPU Training Support</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Parallelizable Training</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span> (trees)</td>
+  <td><span class="badge badge-partial">Within tree only</span></td>
+  <td><span class="badge badge-yes">Yes</span> (within tree)</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span> (trees)</td>
+  <td><span class="badge badge-yes">Yes</span> (trees)</td>
+</tr>
+
+<tr class="data-row" data-section="performance">
+  <td>Prediction Variance (Stability)</td>
+  <td><span class="badge badge-high">High</span> (sensitive to data)</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: DATA COMPATIBILITY -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Data Compatibility</td></tr>
+
+<tr class="data-row" data-section="data">
+  <td>Handles Missing Values Natively</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span> — learns direction</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Handles Categorical Features Natively</td>
+  <td><span class="badge badge-no">No</span> (needs encoding)</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-yes">Yes</span> — key strength</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Requires Feature Scaling</td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+  <td><span class="badge badge-yes">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Works Well with Imbalanced Data</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Via class_weight</span></td>
+  <td><span class="badge badge-partial">Via scale_pos_weight</span></td>
+  <td><span class="badge badge-yes">Yes</span> (scale_pos_weight)</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-partial">Via class_weight</span></td>
+  <td><span class="badge badge-partial">Via contamination</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>High-Dimensional Data</td>
+  <td><span class="badge badge-no">Poor</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-yes">Good</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Sparse Data Support</td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-yes">Yes</span> — native sparse</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Multi-Output / Multi-Target</td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span> (workaround)</td>
+  <td><span class="badge badge-no">No</span> (workaround)</td>
+  <td><span class="badge badge-no">No</span> (workaround)</td>
+  <td><span class="badge badge-no">No</span> (workaround)</td>
+  <td><span class="badge badge-yes">Yes</span> — native</td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Time-Series Friendly</td>
+  <td><span class="badge badge-no">No</span> (no order awareness)</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">With feature eng.</span></td>
+  <td><span class="badge badge-partial">With feature eng.</span></td>
+  <td><span class="badge badge-partial">With feature eng.</span></td>
+  <td><span class="badge badge-partial">With feature eng.</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Feature Interaction Capture</td>
+  <td>Up to tree depth</td>
+  <td>Up to tree depth, averaged</td>
+  <td>Up to tree depth per stage</td>
+  <td>High-order interactions via deep trees</td>
+  <td>High-order via leaf-wise growth</td>
+  <td>Moderate (symmetric trees limit interactions)</td>
+  <td>Up to tree depth</td>
+  <td>Shallow — only simple interactions</td>
+</tr>
+
+<tr class="data-row" data-section="data">
+  <td>Extrapolation Beyond Training Range</td>
+  <td><span class="badge badge-no">No</span> — all tree models predict within range</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td>N/A</td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: PREDICTION -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Prediction</td></tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Prediction Output Types</td>
+  <td>Class label, probability</td>
+  <td>Class label, probability</td>
+  <td>Class label, probability</td>
+  <td>Class label, probability, raw margin</td>
+  <td>Class label, probability, raw margin</td>
+  <td>Class label, probability, raw margin</td>
+  <td>Class label, probability</td>
+  <td>Anomaly score (float), binary label</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Multi-Class Strategy</td>
+  <td>Native (split per class)</td>
+  <td>Native</td>
+  <td>One-vs-rest (multiple trees)</td>
+  <td>Softmax (native multi-class)</td>
+  <td>Softmax (native multi-class)</td>
+  <td>Softmax (native multi-class)</td>
+  <td>Native</td>
+  <td>N/A (binary: normal vs anomaly)</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Probability Output Method</td>
+  <td>Leaf fraction / Laplace smoothing</td>
+  <td>Mean of tree probabilities</td>
+  <td>Sigmoid / softmax on score</td>
+  <td>Sigmoid / softmax on raw score</td>
+  <td>Sigmoid / softmax</td>
+  <td>Sigmoid / softmax</td>
+  <td>Mean of tree probabilities</td>
+  <td>Anomaly score (not probability)</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Probability Calibration Quality</td>
+  <td><span class="badge badge-high">Poor</span> — needs calibration</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span> — needs Platt/isotonic</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Needs Platt Scaling / Isotonic Reg.</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-partial">Often</span></td>
+  <td><span class="badge badge-partial">Sometimes</span></td>
+  <td><span class="badge badge-partial">Sometimes</span></td>
+  <td><span class="badge badge-partial">Sometimes</span></td>
+  <td><span class="badge badge-partial">Sometimes</span></td>
+  <td><span class="badge badge-partial">Often</span></td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Quantile / Interval Prediction</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Via quantile forest</span></td>
+  <td><span class="badge badge-yes">Yes</span> (quantile loss)</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Native Uncertainty Estimates</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Via tree variance</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Via tree variance</span></td>
+  <td>Anomaly score = proxy for uncertainty</td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Ranking Support</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Via LambdaMART</span></td>
+  <td><span class="badge badge-yes">Yes</span> — rank:pairwise / ndcg</td>
+  <td><span class="badge badge-yes">Yes</span> — lambdarank</td>
+  <td><span class="badge badge-yes">Yes</span> — YetiRank</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Custom Loss Function</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Partial (sklearn)</span></td>
+  <td><span class="badge badge-yes">Yes</span> — grad + hessian</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="prediction">
+  <td>Loss Functions Available</td>
+  <td>MSE, MAE, Gini, Entropy</td>
+  <td>MSE, MAE, Gini, Entropy</td>
+  <td>Log-loss, MSE, MAE, Huber, Quantile, Deviance</td>
+  <td>Log-loss, MSE, MAE, Huber, Poisson, Tweedie, Cox</td>
+  <td>Log-loss, MSE, MAE, Huber, Poisson, Quantile, Tweedie</td>
+  <td>Log-loss, MSE, MAE, Poisson, Quantile, Huber, MAPE</td>
+  <td>MSE, MAE, Gini, Entropy</td>
+  <td>Isolation-based (not configurable)</td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: CROSS-VALIDATION & EVALUATION -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Cross-Validation & Evaluation</td></tr>
+
+<tr class="data-row" data-section="cv">
+  <td>OOB Error Estimation</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span> — reliable CV proxy</td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>OOB as Substitute for k-Fold</td>
+  <td>N/A</td>
+  <td><span class="badge badge-yes">Yes</span> — good substitute for large n</td>
+  <td>N/A</td>
+  <td>N/A</td>
+  <td>N/A</td>
+  <td>N/A</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Built-in CV During Training</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span> — xgb.cv()</td>
+  <td><span class="badge badge-yes">Yes</span> — lgb.cv()</td>
+  <td><span class="badge badge-yes">Yes</span> — cv()</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Early Stopping via CV Metric</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Custom Eval Metric Support</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Limited</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Stratified Sampling in CV</td>
+  <td>Via sklearn CV</td>
+  <td>Via sklearn CV</td>
+  <td>Via sklearn CV</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td>Via sklearn CV</td>
+  <td>Via sklearn CV</td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Time-Series CV Compatibility</td>
+  <td><span class="badge badge-partial">Via sklearn</span></td>
+  <td><span class="badge badge-partial">Via sklearn</span></td>
+  <td><span class="badge badge-partial">Via sklearn</span></td>
+  <td><span class="badge badge-yes">Yes</span> (custom folds)</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-partial">Via sklearn</span></td>
+  <td><span class="badge badge-partial">Via sklearn</span></td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>How Overfitting Manifests</td>
+  <td>Full tree memorizes training data</td>
+  <td>Rarely — check train vs OOB gap</td>
+  <td>Too many rounds → residual noise fitting</td>
+  <td>Too many rounds, deep trees</td>
+  <td>Too many leaves, too many rounds</td>
+  <td>Deep trees, many iterations</td>
+  <td>Rarely</td>
+  <td>Low path lengths on normal data</td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Key Hyperparams Controlling Overfit</td>
+  <td>max_depth, min_samples_leaf, ccp_alpha</td>
+  <td>n_estimators, max_depth, max_features</td>
+  <td>n_estimators, learning_rate, max_depth, subsample</td>
+  <td>n_estimators, learning_rate, max_depth, gamma, lambda, alpha</td>
+  <td>n_estimators, learning_rate, num_leaves, min_child_samples</td>
+  <td>iterations, learning_rate, depth, l2_leaf_reg</td>
+  <td>n_estimators, max_depth, max_features</td>
+  <td>n_estimators, max_samples, contamination</td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Train vs Val Gap as Estimators ↑</td>
+  <td>N/A (single tree)</td>
+  <td>Val error plateaus; no gap growth</td>
+  <td>Val error rises after optimal rounds</td>
+  <td>Val error rises after optimal rounds</td>
+  <td>Val error rises after optimal rounds</td>
+  <td>Val error rises after optimal rounds</td>
+  <td>Val error plateaus; no gap growth</td>
+  <td>Anomaly scores stabilize</td>
+</tr>
+
+<tr class="data-row" data-section="cv">
+  <td>Metrics Directly Optimized</td>
+  <td>Gini, MSE</td>
+  <td>Gini, MSE</td>
+  <td>Log-loss, MSE, MAE, Deviance</td>
+  <td>Log-loss, AUC, MSE, MAE, NDCG, MAP</td>
+  <td>Log-loss, AUC, MSE, MAE, NDCG, MAP</td>
+  <td>Log-loss, AUC, MSE, MAE, NDCG, Accuracy</td>
+  <td>Gini, MSE</td>
+  <td>Not configurable</td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: INTERPRETABILITY -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Interpretability</td></tr>
+
+<tr class="data-row" data-section="interp">
+  <td>Explainability Level</td>
+  <td><span class="badge badge-yes">Very High</span> — full tree visible</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-high">Low</span></td>
+</tr>
+
+<tr class="data-row" data-section="interp">
+  <td>Native Feature Importance Types</td>
+  <td>Impurity (Gini/MSE gain)</td>
+  <td>Impurity, permutation</td>
+  <td>Impurity, permutation</td>
+  <td>Weight, gain, cover, total_gain</td>
+  <td>Split count, gain, cover</td>
+  <td>PredictionValuesChange, LossFunctionChange, ShapValues</td>
+  <td>Impurity, permutation</td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="interp">
+  <td>SHAP Native Support</td>
+  <td><span class="badge badge-partial">Via SHAP library</span></td>
+  <td><span class="badge badge-partial">Via SHAP library</span></td>
+  <td><span class="badge badge-partial">Via SHAP library</span></td>
+  <td><span class="badge badge-yes">Yes</span> — TreeExplainer fast</td>
+  <td><span class="badge badge-yes">Yes</span> — TreeExplainer</td>
+  <td><span class="badge badge-yes">Yes</span> — built-in SHAP</td>
+  <td><span class="badge badge-partial">Via SHAP library</span></td>
+  <td><span class="badge badge-partial">Via SHAP library</span></td>
+</tr>
+
+<tr class="data-row" data-section="interp">
+  <td>Global vs Local Interpretability</td>
+  <td>Both — tree structure</td>
+  <td>Global (feature imp.) / Local (SHAP)</td>
+  <td>Global / Local (SHAP)</td>
+  <td>Global + Local (SHAP native)</td>
+  <td>Global + Local (SHAP native)</td>
+  <td>Global + Local (SHAP native)</td>
+  <td>Global / Local (SHAP)</td>
+  <td>Local only (isolation path)</td>
+</tr>
+
+<tr class="data-row" data-section="interp">
+  <td>Impurity Importance Bias</td>
+  <td>Biased toward high-cardinality features</td>
+  <td>Biased toward high-cardinality features</td>
+  <td>Less biased</td>
+  <td>Less biased (gain-based)</td>
+  <td>Less biased</td>
+  <td>Less biased</td>
+  <td>Biased toward high-cardinality</td>
+  <td>N/A</td>
+</tr>
+
+<tr class="data-row" data-section="interp">
+  <td>Partial Dependence Plots</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-partial">Limited</span></td>
+</tr>
+
+<tr class="data-row" data-section="interp">
+  <td>LIME Compatible</td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-yes">Yes</span></td>
+  <td><span class="badge badge-partial">Limited</span></td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION: PRACTICAL & DEPLOYMENT -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Practical & Deployment</td></tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Primary Library</td>
+  <td>scikit-learn</td>
+  <td>scikit-learn</td>
+  <td>scikit-learn</td>
+  <td>xgboost</td>
+  <td>lightgbm</td>
+  <td>catboost</td>
+  <td>scikit-learn</td>
+  <td>scikit-learn</td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Hyperparameter Sensitivity</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-med">Moderate</span> (good defaults)</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Ease of Tuning</td>
+  <td><span class="badge badge-yes">Easy</span></td>
+  <td><span class="badge badge-yes">Easy</span></td>
+  <td><span class="badge badge-high">Hard</span></td>
+  <td><span class="badge badge-high">Hard</span></td>
+  <td><span class="badge badge-high">Hard</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-yes">Easy</span></td>
+  <td><span class="badge badge-yes">Easy</span></td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Memory Usage</td>
+  <td><span class="badge badge-low">Very Low</span></td>
+  <td><span class="badge badge-med">Moderate–High</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-low">Low</span> (histogram)</td>
+  <td><span class="badge badge-med">Moderate</span></td>
+  <td><span class="badge badge-med">Moderate–High</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Model Size on Disk</td>
+  <td>Very small</td>
+  <td>Large (many trees)</td>
+  <td>Moderate</td>
+  <td>Moderate</td>
+  <td>Small–Moderate</td>
+  <td>Moderate</td>
+  <td>Large</td>
+  <td>Small</td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Online / Incremental Learning</td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-partial">Partial</span> (continue training)</td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-partial">Partial</span></td>
+  <td><span class="badge badge-no">No</span></td>
+  <td><span class="badge badge-no">No</span></td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>ONNX / PMML Export</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX + native json)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+  <td><span class="badge badge-yes">Yes</span> (ONNX)</td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Reproducibility (Random Seed)</td>
+  <td>Fully deterministic</td>
+  <td>Seed controls randomness</td>
+  <td>Seed controls randomness</td>
+  <td>Seed + nthread=1 for full repro</td>
+  <td>Seed + deterministic flag</td>
+  <td>Seed controls — generally stable</td>
+  <td>Seed controls randomness</td>
+  <td>Seed controls randomness</td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Complexity Rating</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-med">Medium</span></td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-high">High</span></td>
+  <td><span class="badge badge-med">Medium–High</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td><span class="badge badge-low">Low</span></td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>When NOT to Use</td>
+  <td>Large datasets, high accuracy needs, noisy data</td>
+  <td>Extreme speed needed, very sparse NLP tasks</td>
+  <td>Need fast training or interpretability</td>
+  <td>Small datasets without careful tuning</td>
+  <td>Very small datasets (&lt;1000 rows)</td>
+  <td>Purely numerical data with no categoricals</td>
+  <td>Boosting quality is needed</td>
+  <td>General supervised tasks</td>
+</tr>
+
+<tr class="data-row" data-section="practical">
+  <td>Typical Benchmark Rank (Tabular)</td>
+  <td>Lowest</td>
+  <td>Mid-tier</td>
+  <td>Mid–High</td>
+  <td>Top tier</td>
+  <td>Top tier</td>
+  <td>Top tier</td>
+  <td>Mid-tier</td>
+  <td>N/A (different task)</td>
+</tr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- VERDICT ROW -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<tr class="section-row"><td colspan="9">Summary Verdict</td></tr>
+
+<tr class="data-row verdict-row" data-section="all">
+  <td>One-liner verdict</td>
+  <td>Interpretable baseline; prone to overfit</td>
+  <td>Robust, parallelizable, easy to use</td>
+  <td>Powerful but slow; needs careful tuning</td>
+  <td>Kaggle workhorse; best regularization</td>
+  <td>Fastest boosting; large data specialist</td>
+  <td>Best with categoricals; great defaults</td>
+  <td>RF with more randomness; low variance</td>
+  <td>The go-to for anomaly detection</td>
+</tr>
+
+<tr class="data-row verdict-row" data-section="all">
+  <td>Choose this if…</td>
+  <td>You need explainability or a quick baseline</td>
+  <td>You want solid performance with minimal tuning</td>
+  <td>You need prediction intervals or Huber loss</td>
+  <td>You want a tunable, production-grade booster</td>
+  <td>You have millions of rows or need speed</td>
+  <td>Your data has many high-cardinality categoricals</td>
+  <td>You want RF but faster and less correlated</td>
+  <td>You have unlabeled data and need outlier flags</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<footer>
+  <div class="footer-note">All comparisons reflect default behaviour; tuning can shift many characteristics. Sklearn = scikit-learn.</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4ecb94"></div>Favorable</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e8c547"></div>Conditional</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e05c7a"></div>Unfavorable</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5b8dee"></div>Native/Built-in</div>
+  </div>
+</footer>
+
+<script>
+  function filterRows() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#tableBody tr.data-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const matches = text.includes(q);
+      row.classList.toggle('hidden', !matches);
+      if (matches) visible++;
+    });
+    document.getElementById('rowCount').textContent = `${visible} dimensions`;
+  }
+
+  function filterSection(section, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const rows = document.querySelectorAll('#tableBody tr.data-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const show = section === 'all' || row.dataset.section === section || row.dataset.section === 'all';
+      row.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    document.getElementById('rowCount').textContent = `${visible} dimensions`;
+    // also show/hide section header rows
+    document.querySelectorAll('.section-row').forEach(r => {
+      r.style.display = section === 'all' ? '' : 'none';
+    });
+    if (section === 'all') {
+      document.querySelectorAll('.section-row').forEach(r => r.style.display = '');
+    }
+  }
+
+  // Init count
+  window.addEventListener('load', () => {
+    const total = document.querySelectorAll('#tableBody tr.data-row').length;
+    document.getElementById('rowCount').textContent = `${total} dimensions`;
+  });
+</script>
+</body>
+</html>

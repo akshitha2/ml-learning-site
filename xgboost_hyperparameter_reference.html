@@ -1,0 +1,447 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1e1e28;
+--border:#2a2a38;--border2:#383848;
+--text:#e8e8f0;--text2:#9898b0;--text3:#5a5a70;
+--accent:#7c6af7;--accent2:#a594f9;--accent3:#c4b8ff;
+--teal:#2dd4a0;--teal2:#1a9e77;
+--amber:#f5a623;--coral:#f07060;--green:#5cb85c;
+--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+
+.page-header{padding-bottom:1rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.page-title{font-size:1.3rem;font-weight:500;color:var(--text);letter-spacing:-0.02em}
+.page-sub{font-size:13px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center}
+.filter-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-right:4px}
+.fb{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:4px;border:1px solid var(--border2);color:var(--text3);background:transparent;cursor:pointer;transition:all 0.15s}
+.fb:hover{border-color:var(--accent);color:var(--accent2)}
+.fb.active{border-color:var(--accent);color:var(--accent2);background:rgba(124,106,247,0.1)}
+.fb.cat-tree.active{border-color:var(--teal2);color:var(--teal);background:rgba(45,212,160,0.08)}
+.fb.cat-reg.active{border-color:#a594f9;color:var(--accent2);background:rgba(124,106,247,0.1)}
+.fb.cat-learn.active{border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,0.08)}
+.fb.cat-sample.active{border-color:#7ec8e3;color:#7ec8e3;background:rgba(126,200,227,0.08)}
+.fb.cat-task.active{border-color:var(--coral);color:var(--coral);background:rgba(240,112,96,0.08)}
+.fb.cat-speed.active{border-color:var(--green);color:var(--green);background:rgba(92,184,92,0.08)}
+
+.search-wrap{position:relative;margin-bottom:1.25rem}
+.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:8px 12px 8px 34px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color 0.15s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px}
+
+.cat-section{margin-bottom:2rem}
+.cat-header{display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border)}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cat-name{font-size:13px;font-weight:500;color:var(--text)}
+.cat-count{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.cat-desc{font-size:12px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
+
+.hp-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;transition:border-color 0.15s}
+.hp-card:hover{border-color:var(--border2)}
+.hp-head{display:flex;align-items:center;gap:10px;padding:0.75rem 1rem;cursor:pointer}
+.hp-name{font-family:var(--mono);font-size:13px;color:var(--accent2);min-width:180px;flex-shrink:0}
+.hp-default{font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 7px;flex-shrink:0}
+.hp-short{font-size:12.5px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-badges{display:flex;gap:5px;flex-shrink:0}
+.badge{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid;white-space:nowrap}
+.badge.new{color:var(--teal);border-color:rgba(45,212,160,0.3);background:rgba(45,212,160,0.07)}
+.badge.key{color:var(--amber);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.07)}
+.badge.trap{color:var(--coral);border-color:rgba(240,112,96,0.3);background:rgba(240,112,96,0.07)}
+.badge.coupled{color:var(--accent2);border-color:rgba(124,106,247,0.3);background:rgba(124,106,247,0.07)}
+.hp-chevron{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform 0.2s;margin-left:4px}
+
+.hp-body{display:none;padding:0 1rem 1rem;border-top:1px solid var(--border)}
+.hp-body.open{display:block}
+.hp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.875rem}
+.hp-meta{background:var(--bg3);border-radius:6px;padding:0.75rem;font-size:12px}
+.hp-meta-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.hp-meta-val{font-family:var(--mono);color:var(--accent2)}
+.hp-explain{font-size:13px;color:var(--text2);line-height:1.75;margin-top:0.875rem}
+.hp-explain strong{color:var(--text);font-weight:500}
+.hp-tuning{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.15);border-radius:6px;padding:0.625rem 0.875rem;margin-top:0.75rem;font-size:12px;color:var(--accent3)}
+.hp-tuning-label{font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em}
+.hp-trap{background:rgba(240,112,96,0.06);border:1px solid rgba(240,112,96,0.15);border-radius:6px;padding:0.625rem 0.875rem;margin-top:0.75rem;font-size:12px;color:#f4a898}
+.hp-trap-label{font-family:var(--mono);font-size:10px;color:var(--coral);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em}
+
+.tuning-order{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:2rem}
+.to-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.875rem}
+.to-flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.to-step{font-family:var(--mono);font-size:12px;padding:4px 12px;border-radius:4px;border:1px solid}
+.to-arrow{color:var(--text3);font-size:12px}
+.to-step.s1{color:var(--coral);border-color:rgba(240,112,96,0.3);background:rgba(240,112,96,0.07)}
+.to-step.s2{color:var(--accent2);border-color:rgba(124,106,247,0.3);background:rgba(124,106,247,0.07)}
+.to-step.s3{color:var(--amber);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.07)}
+.to-step.s4{color:#7ec8e3;border-color:rgba(126,200,227,0.3);background:rgba(126,200,227,0.07)}
+.to-step.s5{color:var(--teal);border-color:rgba(45,212,160,0.3);background:rgba(45,212,160,0.07)}
+.to-note{font-size:12px;color:var(--text3);margin-top:8px;font-family:var(--mono)}
+
+.empty{text-align:center;padding:3rem;color:var(--text3);font-family:var(--mono);font-size:13px}
+
+@media(max-width:600px){
+.hp-name{min-width:120px;font-size:12px}
+.hp-grid{grid-template-columns:1fr}
+.hp-short{display:none}
+.to-flow{gap:4px}
+}
+</style>
+
+<div class="wrap">
+
+<div class="page-header">
+  <div class="page-title">XGBoost — complete hyperparameter reference</div>
+  <div class="page-sub">all parameters · defaults · tuning guidance · interview traps</div>
+</div>
+
+<div class="tuning-order">
+  <div class="to-label">Tuning order for overfitting (high variance → low variance)</div>
+  <div class="to-flow">
+    <span class="to-step s1">max_depth</span>
+    <span class="to-arrow">→</span>
+    <span class="to-step s2">gamma · lambda · alpha</span>
+    <span class="to-arrow">→</span>
+    <span class="to-step s4">subsample · colsample_*</span>
+    <span class="to-arrow">→</span>
+    <span class="to-step s5">min_child_weight</span>
+    <span class="to-arrow">→</span>
+    <span class="to-step s3">learning_rate + n_estimators</span>
+  </div>
+  <div class="to-note">learning_rate and n_estimators are always tuned together using early stopping — never independently</div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">Category</span>
+  <button class="fb active" onclick="filter('all',this)">All</button>
+  <button class="fb cat-tree" onclick="filter('tree',this)">Tree structure</button>
+  <button class="fb cat-reg" onclick="filter('reg',this)">Regularisation</button>
+  <button class="fb cat-learn" onclick="filter('learn',this)">Learning</button>
+  <button class="fb cat-sample" onclick="filter('sample',this)">Sampling</button>
+  <button class="fb cat-task" onclick="filter('task',this)">Task / loss</button>
+  <button class="fb cat-speed" onclick="filter('speed',this)">Speed</button>
+</div>
+
+<div class="search-wrap">
+  <i class="ti ti-search search-icon" aria-hidden="true"></i>
+  <input type="text" placeholder="search parameters..." id="search-input" oninput="search(this.value)"/>
+</div>
+
+<div id="hp-container"></div>
+
+</div>
+
+<script>
+const params = [
+  {
+    cat:'tree', name:'max_depth', default:'6', short:'Maximum depth of each tree',
+    range:'0 to ∞ (0 = unlimited)',
+    effect:'Controls how many levels each tree can grow. Primary knob for bias-variance tradeoff.',
+    explain:'Each additional depth level allows the tree to capture more complex interactions between features. Depth 1 = stumps (one split, linear interactions only). Depth 6 = can capture up to 6-way feature interactions. Deeper trees memorise training residuals — including noise — which gets compounded across boosting rounds.',
+    tuning:'Start here when overfitting. For most tabular tasks: 3–6. For noisy data: 3–4. Rarely need above 8. When set to 0 (unlimited), tree grows until all leaves are pure or min_child_weight is hit.',
+    trap:'Thinking deep tree + tiny learning_rate compensate each other. They don\'t — these are orthogonal axes. Deep trees overfit residuals regardless of learning rate.',
+    badges:['key']
+  },
+  {
+    cat:'tree', name:'min_child_weight', default:'1', short:'Minimum sum of Hessians in a child node',
+    range:'0 to ∞',
+    effect:'Prevents splits that produce leaf nodes with very few or very uncertain examples.',
+    explain:'This is NOT minimum number of examples (that\'s min_samples_leaf in sklearn). It\'s the minimum sum of Hessians (h values) in a leaf. For MSE where h=1 always, it is equivalent to min samples. For log-loss where h=p(1−p), a leaf with 10 very confident predictions (h≈0.01 each) might sum to 0.1 — below a threshold of 1, so the split is rejected even with 10 examples.',
+    tuning:'Increase when overfitting on sparse data or when you have very imbalanced classes. Range: 1–10. Larger values = more conservative splits.',
+    trap:'Assuming this is the same as min_samples_leaf in sklearn GBM. It\'s Hessian-sum, not example count. For classification with confident predictions, can reject splits even with many examples.',
+    badges:['trap','key']
+  },
+  {
+    cat:'tree', name:'max_leaves', default:'0', short:'Maximum number of leaf nodes per tree',
+    range:'0 = unlimited',
+    effect:'Directly caps tree complexity by leaf count rather than depth.',
+    explain:'Alternative complexity control to max_depth. A tree with max_depth=3 has at most 8 leaves. But max_leaves=8 with no depth constraint can produce unbalanced trees that go deep on one branch. More commonly used in LightGBM (where it\'s the primary lever) than XGBoost.',
+    tuning:'Use when you want leaf-wise style growth in XGBoost. Set tree_method=\'hist\' together with this.',
+    badges:[]
+  },
+  {
+    cat:'tree', name:'max_delta_step', default:'0', short:'Maximum delta step for leaf weight estimation',
+    range:'0 = no constraint, typical: 1–10',
+    effect:'Constrains how large a single leaf value update can be.',
+    explain:'Clips leaf values to [−max_delta_step, +max_delta_step]. Rarely needed for regression. Particularly useful for logistic regression with severe class imbalance — without it, the log-odds update can become extremely large for very confident wrong predictions, destabilising training.',
+    tuning:'Set to 1 when training on highly imbalanced classification data (e.g. fraud, rare disease). Leave at 0 otherwise.',
+    badges:[]
+  },
+  {
+    cat:'reg', name:'gamma (min_split_loss)', default:'0', short:'Min loss reduction to make a split',
+    range:'0 to ∞',
+    effect:'A split only happens if Gain > γ. Acts as a pruning threshold on the Gain formula.',
+    explain:'Directly enters the Gain formula: Gain = ½[score_L + score_R − score_parent] − γ. If this is negative, the split is rejected. γ=0 means any positive loss reduction triggers a split. Increasing γ demands more from each split — prevents weak, noise-driven splits from being made at all. Acts before a leaf exists (prevention), unlike λ/α which act after.',
+    tuning:'For noisy data or many irrelevant features: 0.1–5. Start at 0 and increase until validation loss stops improving. γ too high → underfitting (no splits happen).',
+    trap:'Thinking Gain < 0 means the data is noisy. It means the split didn\'t pass the γ threshold — could be too-high γ or genuinely uninformative split.',
+    badges:['new','key']
+  },
+  {
+    cat:'reg', name:'lambda (reg_lambda)', default:'1', short:'L2 regularisation on leaf values',
+    range:'0 to ∞',
+    effect:'Adds L2 penalty to leaf values. Modifies leaf formula: w* = −G/(H+λ). Shrinks all leaves toward zero.',
+    explain:'L2 penalty discourages any single leaf from having a large value. The larger λ is, the more the denominator (H+λ) dominates, pulling w* toward zero. Unlike L1, never produces exactly-zero leaf values — it smoothly shrinks everything. Default of 1 is actually quite meaningful — it\'s already regularising out of the box.',
+    tuning:'Default of 1 is reasonable. Increase (1→10→100) when overfitting. Decrease toward 0 when underfitting on complex data. Works smoothly with γ.',
+    badges:['new','key']
+  },
+  {
+    cat:'reg', name:'alpha (reg_alpha)', default:'0', short:'L1 regularisation on leaf values',
+    range:'0 to ∞',
+    effect:'Adds L1 penalty to leaf values. Can shrink leaf values to exactly zero — implicit feature selection.',
+    explain:'L1 encourages sparse leaf values — weak, uninformative splits produce near-zero leaf values which get zeroed out entirely. This is analogous to Lasso in linear models. Unlike λ (L2), small α has no effect — L1 penalty has a dead zone near zero. Need to increase meaningfully to see effect.',
+    tuning:'Default 0 (off). Enable when you have many irrelevant features or noisy splits. Start at 0.1, increase to 1–10 for heavily noisy data. Use alongside γ: γ prevents the split, α zeros out the leaf if it passes.',
+    badges:['new']
+  },
+  {
+    cat:'learn', name:'learning_rate (eta)', default:'0.3', short:'Shrinkage factor on each tree\'s contribution',
+    range:'0 to 1, typical: 0.01–0.3',
+    effect:'Scales each tree\'s output before adding to predictions: F_m = F_{m-1} + η·h_m(x).',
+    explain:'Low η means each tree contributes less — the model learns slowly and conservatively. More trees are needed to achieve the same fit, but generalisation is typically better because the model doesn\'t overcommit to any single tree\'s residuals. The default of 0.3 is actually quite high for production models.',
+    tuning:'Always tune with n_estimators via early stopping. Common production setting: η=0.05 with 500–2000 trees. Very low η (0.01) with 5000+ trees often gives best results but is slow.',
+    trap:'Tuning learning_rate without adjusting n_estimators. They\'re coupled — lower η always needs more trees. Set η low and let early stopping find n_estimators.',
+    badges:['key','coupled']
+  },
+  {
+    cat:'learn', name:'n_estimators', default:'100', short:'Number of boosting rounds (trees)',
+    range:'1 to ∞',
+    effect:'Total number of trees built. More trees = more capacity to fit residuals.',
+    explain:'The optimal n_estimators depends entirely on learning_rate — they can\'t be set independently. With η=0.3, optimal might be 100–300 trees. With η=0.05, optimal might be 1000–3000. Always use early stopping to find the right value rather than grid searching.',
+    tuning:'Don\'t grid search this directly. Set it high (e.g. 5000) and use early_stopping_rounds with a validation set. XGBoost stops automatically when validation metric stops improving.',
+    trap:'Grid searching n_estimators independently of learning_rate. Or setting it too low without checking if the model has converged.',
+    badges:['key','coupled']
+  },
+  {
+    cat:'learn', name:'early_stopping_rounds', default:'None', short:'Stop if validation metric doesn\'t improve for N rounds',
+    range:'Positive integer, typical: 10–50',
+    effect:'Automatically finds optimal n_estimators by monitoring validation performance.',
+    explain:'Requires passing eval_set (validation data) to fit(). Training stops when the best validation score hasn\'t improved for early_stopping_rounds consecutive rounds. The model keeps the weights from the best round, not the last round.',
+    tuning:'Set to 10–50 depending on learning_rate. Lower learning_rate → more patience needed (set higher). Always use a 3-way split: train / val (for early stopping) / test (for final evaluation). Val set is "used up" by early stopping.',
+    trap:'Using the validation set for early stopping and also reporting final metrics on it. The val set has been used to make a training decision — it\'s no longer unbiased.',
+    badges:['key','trap']
+  },
+  {
+    cat:'sample', name:'subsample', default:'1.0', short:'Row sampling fraction per tree',
+    range:'0 to 1, typical: 0.5–0.9',
+    effect:'Randomly samples a fraction of training rows before building each tree (without replacement).',
+    explain:'Introduces stochasticity (Stochastic GBM). Each tree sees a different random subset of rows. Benefits: variance reduction, regularisation, rough OOB error estimate. Without replacement — distinct from Random Forest\'s bootstrap sampling. Replacement would cause duplicate rows with identical gradients, distorting the gradient signal.',
+    tuning:'0.8 is a strong default. Reduce to 0.5–0.7 for noisy data. Combined with colsample_bytree for maximum regularisation effect.',
+    trap:'Assuming XGBoost uses bootstrap (with replacement) like RF. It uses sampling without replacement.',
+    badges:['trap']
+  },
+  {
+    cat:'sample', name:'colsample_bytree', default:'1.0', short:'Feature sampling fraction per tree',
+    range:'0 to 1, typical: 0.5–0.9',
+    effect:'Randomly samples a fraction of features once per tree. Same feature subset used for all splits in that tree.',
+    explain:'Analogous to max_features in sklearn RF/GBM. Each tree is built using only a random subset of features — different trees see different feature subsets. This decorrelates trees, reduces variance, and provides a form of feature selection. Different from colsample_bylevel which resamples at each depth level.',
+    tuning:'0.8 is a reasonable default. For very high-dimensional data: 0.3–0.6. Tune alongside subsample.',
+    badges:[]
+  },
+  {
+    cat:'sample', name:'colsample_bylevel', default:'1.0', short:'Feature sampling fraction per tree level',
+    range:'0 to 1',
+    effect:'Resamples features at each depth level within a tree — more aggressive than colsample_bytree.',
+    explain:'At each depth level, a new random feature subset is drawn. Different nodes at the same level may still use the same feature subset (it\'s per-level, not per-node). More granular diversity than colsample_bytree — a feature excluded at level 2 might be available at level 3.',
+    tuning:'Use on very wide datasets. Can stack with colsample_bytree for maximum feature randomisation.',
+    badges:['new']
+  },
+  {
+    cat:'sample', name:'colsample_bynode', default:'1.0', short:'Feature sampling fraction per split node',
+    range:'0 to 1',
+    effect:'Resamples features at every individual split node — most granular sampling.',
+    explain:'This is the closest to Random Forest\'s per-split feature sampling (where RF draws a new random subset at every node). Stacking colsample_bytree + colsample_bylevel + colsample_bynode multiplies their fractions: e.g. 0.8 × 0.8 × 0.8 = 0.512 of features available at any given node.',
+    tuning:'Setting colsample_bynode=sqrt(n_features)/n_features replicates RF\'s feature sampling behaviour exactly.',
+    badges:[]
+  },
+  {
+    cat:'task', name:'objective', default:'reg:squarederror', short:'Loss function to optimise',
+    range:'See below',
+    effect:'Determines what gradients and Hessians are computed. Changes the entire math of training.',
+    explain:'Common values: reg:squarederror (MSE regression, h=1), reg:absoluteerror (MAE, uses median leaves), reg:huber (robust regression), binary:logistic (log-loss classification, h=p(1−p)), multi:softmax (multiclass), rank:pairwise (ranking). The objective determines F₀, g, h, and the output transformation. Everything else in XGBoost is the same regardless of objective.',
+    tuning:'Match to your problem. For heavy-tailed targets: reg:huber. For robust regression: reg:pseudohubererror. For ordinal targets: rank:*.',
+    badges:['key']
+  },
+  {
+    cat:'task', name:'eval_metric', default:'depends on objective', short:'Metric used to evaluate model on validation set',
+    range:'rmse, mae, logloss, error, auc, aucpr, map, ndcg, etc.',
+    effect:'Used by early stopping and printed during training. Does NOT affect the training objective.',
+    explain:'Separate from objective — you train with log-loss but evaluate with AUC-PR. Common choices: rmse / mae for regression, logloss / error / auc / aucpr for classification. For imbalanced classification: aucpr is more informative than auc. Can pass multiple metrics as a list.',
+    tuning:'For imbalanced binary classification: use aucpr not auc. For multi-label: map or ndcg.',
+    trap:'Confusing eval_metric with objective. eval_metric only affects what is monitored — it never changes what gradients are computed.',
+    badges:['trap']
+  },
+  {
+    cat:'task', name:'scale_pos_weight', default:'1', short:'Weight ratio for positive vs negative class',
+    range:'Positive float, typical: count(neg)/count(pos)',
+    effect:'Upweights gradient and Hessian contributions of minority class examples.',
+    explain:'For binary classification with imbalanced classes. Setting scale_pos_weight = count(negative)/count(positive) tells XGBoost that each positive example should count as N negative examples. For 1% fraud rate: scale_pos_weight ≈ 99. Directly scales g and h for positive class examples in the gradient computation.',
+    tuning:'Set to count(neg)/count(pos) as starting point. Fine-tune alongside threshold (use predict_proba + custom threshold). Always evaluate with AUC-PR, not accuracy.',
+    trap:'Thinking scale_pos_weight replaces threshold tuning. They do different things — scale_pos_weight changes training, threshold changes inference. Both needed for imbalanced problems.',
+    badges:['trap']
+  },
+  {
+    cat:'task', name:'base_score', default:'0.5', short:'Global bias / initial prediction F₀',
+    range:'Any float',
+    effect:'Sets the starting prediction before any trees are built.',
+    explain:'For regression: XGBoost automatically sets this to mean(y) if you don\'t specify. For classification: default 0.5 corresponds to log-odds of 0 (equal probability). In practice rarely needs tuning — XGBoost estimates the optimal value automatically from data. Only relevant if you have strong prior knowledge about the target distribution.',
+    tuning:'Leave at default unless you have a strong prior. For heavily skewed regression targets, setting this to the median can sometimes help early convergence.',
+    badges:[]
+  },
+  {
+    cat:'task', name:'num_class', default:'None', short:'Number of classes for multiclass classification',
+    range:'Integer ≥ 2',
+    effect:'Required when objective=multi:softmax or multi:softprob.',
+    explain:'For K-class classification, XGBoost builds K trees per boosting round — one per class. Each tree fits residuals for one class vs rest. Total trees = n_estimators × num_class. Predictions are K probability scores, softmax-normalised.',
+    tuning:'Set to exact number of classes. Use multi:softprob (not softmax) to get probabilities instead of class labels.',
+    badges:[]
+  },
+  {
+    cat:'speed', name:'tree_method', default:'auto', short:'Algorithm for building trees',
+    range:'auto, exact, approx, hist, gpu_hist',
+    effect:'Controls the split-finding algorithm. Major impact on speed and memory for large datasets.',
+    explain:'exact: exact greedy split finding. O(n log n) per feature per node. Optimal splits but slow at scale. approx: approximate quantile sketch. Buckets features into bins, evaluates only bin boundaries. hist: histogram-based (like LightGBM). Pre-computes histograms, fastest for large data. gpu_hist: hist on GPU. auto: XGBoost picks based on dataset size.',
+    tuning:'For < 100k rows: exact or auto. For > 1M rows: hist. For GPU available: gpu_hist. hist is almost always the right choice for production.',
+    badges:['key']
+  },
+  {
+    cat:'speed', name:'n_jobs', default:'1', short:'Number of parallel threads',
+    range:'-1 = all cores',
+    effect:'Parallelises within-tree split evaluation across CPU cores.',
+    explain:'XGBoost parallelises at the feature level within each tree — different features can be evaluated simultaneously on different threads. Set to -1 to use all available cores. Note: boosting rounds themselves are sequential (each tree depends on the previous), so parallelism is within a tree, not across trees.',
+    tuning:'Always set to -1 in production. Be careful in notebooks shared on servers — you may be monopolising cores.',
+    badges:[]
+  },
+  {
+    cat:'speed', name:'device', default:'cpu', short:'Device to run training on',
+    range:'cpu, cuda, gpu',
+    effect:'Moves computation to GPU when cuda is available.',
+    explain:'For large datasets (>1M rows) with a CUDA-capable GPU, device=\'cuda\' with tree_method=\'hist\' can give 10–50× speedup. Requires XGBoost built with GPU support. Memory constraint: full dataset must fit in GPU memory.',
+    tuning:'Use when: large dataset, GPU available, tree_method=hist. Profiling first is recommended — small datasets don\'t benefit from GPU overhead.',
+    badges:[]
+  },
+  {
+    cat:'speed', name:'max_bin', default:'256', short:'Number of histogram bins for approximate splits',
+    range:'Integer, typical: 64–512',
+    effect:'Controls granularity of the histogram approximation in hist/approx tree methods.',
+    explain:'Higher max_bin = more split candidates evaluated per feature = closer to exact splits = slower but potentially more accurate. Lower max_bin = coarser approximation = faster but may miss optimal splits. 256 bins means features are bucketed into 256 quantile-spaced bins, and only the 255 bin boundaries are tested as split points.',
+    tuning:'Default 256 is rarely changed. Reduce to 64–128 for faster iteration during hyperparameter search. Increase to 512 for final model if accuracy matters.',
+    badges:[]
+  },
+  {
+    cat:'speed', name:'cache_opt', default:'True', short:'Enable cache-aware data access',
+    range:'True / False',
+    effect:'Ensures column block data is stored and accessed in cache-friendly memory layout.',
+    explain:'XGBoost pre-sorts feature columns and stores them in contiguous column blocks. cache_opt=True ensures sequential memory access patterns — CPU cache loads data speculatively, so each access finds data already in L1/L2 cache (~100× faster than RAM). Disabling degrades performance significantly on large datasets.',
+    tuning:'Always keep True. Only disable for debugging memory issues.',
+    badges:[]
+  },
+];
+
+const catColors = {
+  tree:'#2dd4a0', reg:'#a594f9', learn:'#f5a623',
+  sample:'#7ec8e3', task:'#f07060', speed:'#5cb85c'
+};
+const catLabels = {
+  tree:'Tree structure', reg:'Regularisation', learn:'Learning',
+  sample:'Sampling', task:'Task / loss', speed:'Speed'
+};
+const catDescs = {
+  tree:'Controls tree shape and complexity',
+  reg:'Penalties on splits and leaf values',
+  learn:'Controls learning pace and iterations',
+  sample:'Row and feature subsampling',
+  task:'Loss function, metrics, class handling',
+  speed:'Hardware and algorithm selection'
+};
+
+let currentFilter = 'all';
+let currentSearch = '';
+
+function render(){
+  const container = document.getElementById('hp-container');
+  const cats = ['tree','reg','learn','sample','task','speed'];
+  let html = '';
+  let totalShown = 0;
+
+  cats.forEach(cat => {
+    if(currentFilter !== 'all' && currentFilter !== cat) return;
+    const items = params.filter(p => {
+      if(p.cat !== cat) return false;
+      if(!currentSearch) return true;
+      const q = currentSearch.toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.short.toLowerCase().includes(q) || p.explain.toLowerCase().includes(q);
+    });
+    if(!items.length) return;
+    totalShown += items.length;
+
+    html += `<div class="cat-section" data-cat="${cat}">
+      <div class="cat-header">
+        <div class="cat-dot" style="background:${catColors[cat]}"></div>
+        <span class="cat-name">${catLabels[cat]}</span>
+        <span class="cat-count">${items.length} params</span>
+        <span class="cat-desc">${catDescs[cat]}</span>
+      </div>`;
+
+    items.forEach((p,i) => {
+      const id = `hp-${p.name.replace(/[^a-z0-9]/gi,'-')}`;
+      const badgeHtml = p.badges.map(b => `<span class="badge ${b}">${b==='new'?'new in XGBoost':b==='key'?'key lever':b==='trap'?'interview trap':b==='coupled'?'coupled param':b}</span>`).join('');
+
+      html += `<div class="hp-card" data-cat="${p.cat}">
+        <div class="hp-head" onclick="toggleHP('${id}')">
+          <span class="hp-name">${p.name}</span>
+          <span class="hp-default">default: ${p.default}</span>
+          <span class="hp-short">${p.short}</span>
+          <div class="hp-badges">${badgeHtml}</div>
+          <span class="hp-chevron" id="chev-${id}">+</span>
+        </div>
+        <div class="hp-body" id="${id}">
+          <div class="hp-grid">
+            <div class="hp-meta">
+              <div class="hp-meta-label">Range / values</div>
+              <div class="hp-meta-val">${p.range}</div>
+            </div>
+            <div class="hp-meta">
+              <div class="hp-meta-label">Primary effect</div>
+              <div style="font-size:12px;color:var(--text2)">${p.effect}</div>
+            </div>
+          </div>
+          <div class="hp-explain">${p.explain}</div>
+          <div class="hp-tuning"><div class="hp-tuning-label">Tuning guidance</div>${p.tuning}</div>
+          ${p.trap ? `<div class="hp-trap"><div class="hp-trap-label">⚠ Interview trap</div>${p.trap}</div>` : ''}
+        </div>
+      </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  if(!totalShown){
+    html = `<div class="empty">no parameters match "${currentSearch}"</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function toggleHP(id){
+  const body = document.getElementById(id);
+  const chev = document.getElementById('chev-'+id);
+  const open = body.classList.toggle('open');
+  chev.textContent = open ? '−' : '+';
+}
+
+function filter(cat, btn){
+  currentFilter = cat;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function search(val){
+  currentSearch = val;
+  render();
+}
+
+render();
+</script>

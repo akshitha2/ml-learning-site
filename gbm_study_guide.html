@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradient Boosting Machines — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #252a38;
+    --accent: #e8c547;
+    --accent2: #5b8af0;
+    --accent3: #e05c5c;
+    --accent4: #4ecb8d;
+    --text: #e2e6f0;
+    --muted: #7a8299;
+    --code-bg: #0a0c10;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(232,197,71,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 560px;
+    font-style: italic;
+  }
+  .progress-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .prog-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .prog-item.done { border-color: var(--accent4); color: var(--accent4); background: rgba(78,203,141,0.07); }
+  .prog-item.current { border-color: var(--accent); color: var(--accent); background: rgba(232,197,71,0.1); }
+
+  /* LAYOUT */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+
+  /* SECTION */
+  .section {
+    padding: 56px 0 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    min-width: 28px;
+  }
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+
+  /* PROSE */
+  p { margin-bottom: 16px; color: #c8cdd8; }
+  p:last-child { margin-bottom: 0; }
+
+  /* CALLOUT */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(232,197,71,0.05);
+    padding: 16px 20px;
+    margin: 24px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.blue { border-color: var(--accent2); background: rgba(91,138,240,0.06); }
+  .callout.green { border-color: var(--accent4); background: rgba(78,203,141,0.06); }
+  .callout.red { border-color: var(--accent3); background: rgba(224,92,92,0.06); }
+  .callout-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .callout.blue .callout-label { color: var(--accent2); }
+  .callout.green .callout-label { color: var(--accent4); }
+  .callout.red .callout-label { color: var(--accent3); }
+  .callout p { color: var(--text); margin: 0; }
+
+  /* CODE */
+  pre, code {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #a8c6e8;
+    margin: 20px 0;
+  }
+  code {
+    background: rgba(255,255,255,0.07);
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; margin: 24px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(37,42,56,0.6);
+    color: #c8cdd8;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td strong { color: var(--text); }
+
+  /* ALGO STEPS */
+  .algo-steps { margin: 24px 0; }
+  .algo-step {
+    display: flex;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(37,42,56,0.5);
+    align-items: flex-start;
+  }
+  .algo-step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(232,197,71,0.1);
+    border: 1px solid rgba(232,197,71,0.3);
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-content strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    color: #fff;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .step-content p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  /* NUMERICAL EXAMPLE */
+  .example-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .example-box h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* INTERVIEW QUESTIONS */
+  .iq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+  .iq-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .iq-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(91,138,240,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(91,138,240,0.3);
+    flex-shrink: 0;
+  }
+  .iq-q {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+  }
+  .iq-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .iq-body {
+    padding: 20px;
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+  .iq-body.open { display: block; }
+  .iq-body h5 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent4);
+    margin-bottom: 10px;
+  }
+  .iq-body ul {
+    list-style: none;
+    padding: 0;
+  }
+  .iq-body ul li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    font-size: 14px;
+    color: #c8cdd8;
+    border-bottom: 1px solid rgba(37,42,56,0.4);
+  }
+  .iq-body ul li:last-child { border-bottom: none; }
+  .iq-body ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent4);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .trap {
+    background: rgba(224,92,92,0.08);
+    border: 1px solid rgba(224,92,92,0.25);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #e8a0a0;
+  }
+  .trap strong { color: var(--accent3); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+  /* FORMULA BLOCK */
+  .formula {
+    background: var(--code-bg);
+    border: 1px solid rgba(232,197,71,0.2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #e8d88a;
+    line-height: 2;
+  }
+
+  /* GRID */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  @media(max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .grid-card h5 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .grid-card p { font-size: 13px; margin: 0; color: var(--muted); }
+
+  /* LEVER CARD */
+  .lever-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .lever-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .lever-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .lever-card.ensemble::before { background: var(--accent); }
+  .lever-card.tree::before { background: var(--accent2); }
+  .lever-card.leaf::before { background: var(--accent4); }
+  .lever-level {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .lever-card h5 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .lever-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  /* SUMMARY CHECKLIST */
+  .checklist { margin: 20px 0; }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(37,42,56,0.4);
+    font-size: 14px;
+    color: #c8cdd8;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-icon { color: var(--accent4); font-size: 14px; margin-top: 2px; flex-shrink: 0; }
+
+  /* NAV */
+  .toc {
+    position: sticky;
+    top: 20px;
+  }
+  .page-nav {
+    display: flex;
+    gap: 8px;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    background: rgba(13,15,20,0.9);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-link:hover { color: var(--accent); border-color: rgba(232,197,71,0.3); }
+
+  /* FOOTER */
+  footer {
+    padding: 40px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin: 28px 0 12px;
+  }
+  h3:first-child { margin-top: 0; }
+
+  .highlight { color: var(--accent); font-weight: 600; }
+  .blue-hl { color: var(--accent2); }
+  .green-hl { color: var(--accent4); }
+  .red-hl { color: var(--accent3); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-tag">Tree-Based Models — Session 05</div>
+    <h1>Gradient<br><span>Boosting</span><br>Machines</h1>
+    <p class="hero-sub">Complete study guide — intuition, algorithm, math, failure modes, and interview prep.</p>
+    <div class="progress-bar">
+      <div class="prog-item done">✓ Decision Trees</div>
+      <div class="prog-item done">✓ Bagging vs Boosting</div>
+      <div class="prog-item done">✓ Random Forest</div>
+      <div class="prog-item done">✓ AdaBoost</div>
+      <div class="prog-item current">● GBM</div>
+      <div class="prog-item">⬜ XGBoost</div>
+      <div class="prog-item">⬜ LightGBM + CatBoost</div>
+    </div>
+  </div>
+</div>
+
+<nav class="page-nav">
+  <a href="#core" class="nav-link">Core Idea</a>
+  <a href="#algorithm" class="nav-link">Algorithm</a>
+  <a href="#gradient" class="nav-link">Gradient Math</a>
+  <a href="#regularisation" class="nav-link">Regularisation</a>
+  <a href="#classification" class="nav-link">Classification</a>
+  <a href="#interpretability" class="nav-link">Interpretability</a>
+  <a href="#failures" class="nav-link">Failure Modes</a>
+  <a href="#vs" class="nav-link">GBM vs RF vs ADA</a>
+  <a href="#xgboost-bridge" class="nav-link">→ XGBoost</a>
+  <a href="#interview" class="nav-link">Interview Qs</a>
+</nav>
+
+<!-- SECTION 1: CORE IDEA -->
+<div class="section" id="core">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>The Core Idea</h2>
+    </div>
+
+    <p>AdaBoost corrects mistakes by <strong>reweighting samples</strong> — forcing the next stump to focus on misclassified points. GBM replaces this entirely with something more powerful.</p>
+
+    <div class="callout">
+      <div class="callout-label">Core Insight</div>
+      <p>Instead of reweighting samples, compute the <strong>difference between actuals and predictions</strong> (the residual) and train the next tree directly on those residuals. Each tree models what the current ensemble got wrong.</p>
+    </div>
+
+    <p>The three core ingredients of GBM:</p>
+
+    <div class="grid-2">
+      <div class="grid-card">
+        <h5>① Residual Fitting</h5>
+        <p>Each tree is trained on the residuals of the current ensemble — the remaining error, not the original target.</p>
+      </div>
+      <div class="grid-card">
+        <h5>② Learning Rate (η)</h5>
+        <p>Only a fraction η of each tree's prediction is added. Prevents overfitting to noisy residuals.</p>
+      </div>
+      <div class="grid-card">
+        <h5>③ Row Subsampling</h5>
+        <p>Each tree trains on a random subset of rows (without replacement), reducing variance and correlation between trees.</p>
+      </div>
+      <div class="grid-card">
+        <h5>④ Shallow Trees</h5>
+        <p>Depth 3–6 trees (not stumps) to capture interaction effects while controlling overfitting.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: ALGORITHM -->
+<div class="section" id="algorithm">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>The Training Algorithm</h2>
+    </div>
+
+    <div class="algo-steps">
+      <div class="algo-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Initialise with the mean</strong>
+          <p>F₀(x) = mean(y). One number, same prediction for every point. No tree yet.</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Compute residuals</strong>
+          <p>rᵢ = yᵢ − F_{m-1}(xᵢ). The difference between actual and current ensemble's prediction.</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Fit a tree on residuals</strong>
+          <p>Train a shallow regression tree with residuals as the target. Each leaf predicts the mean residual of its points (optimal under squared error loss).</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Update the ensemble</strong>
+          <p>Fₘ(x) = F_{m-1}(x) + η × hₘ(x). Add only a fraction η of the tree's prediction.</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>Repeat until stopping</strong>
+          <p>Go back to step 2. Stop when n_estimators is reached or early stopping fires.</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <strong>Final prediction</strong>
+          <p>F_M(x) = F₀ + η·h₁(x) + η·h₂(x) + ... + η·h_M(x)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula">
+F₀(x) = mean(y)
+rᵢ⁽ᵐ⁾ = yᵢ − F_{m-1}(xᵢ)          ← residuals at step m
+hₘ    = tree fitted on {xᵢ, rᵢ⁽ᵐ⁾}  ← m-th tree
+Fₘ(x) = F_{m-1}(x) + η · hₘ(x)     ← ensemble update
+    </div>
+
+    <div class="example-box">
+      <h4>Numerical Example — House Prices</h4>
+      <p style="font-size:14px; color: var(--muted); margin-bottom:16px;">Actuals: 100, 80, 120, 90, 110 &nbsp;|&nbsp; η = 0.1</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Point</th><th>Actual (y)</th><th>F₀</th><th>Residual r</th><th>h₁ (tree pred)</th><th>F₁ = F₀ + 0.1·h₁</th><th>New Residual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>100</td><td>100</td><td>0</td><td>0</td><td>100</td><td>0</td></tr>
+            <tr><td>B</td><td>80</td><td>100</td><td style="color:var(--accent3)">−20</td><td>−15</td><td><strong>98.5</strong></td><td style="color:var(--accent3)">−18.5</td></tr>
+            <tr><td>C</td><td>120</td><td>100</td><td style="color:var(--accent4)">+20</td><td>+15</td><td><strong>101.5</strong></td><td style="color:var(--accent4)">+18.5</td></tr>
+            <tr><td>D</td><td>90</td><td>100</td><td style="color:var(--accent3)">−10</td><td>−15</td><td><strong>98.5</strong></td><td style="color:var(--accent3)">−8.5</td></tr>
+            <tr><td>E</td><td>110</td><td>100</td><td style="color:var(--accent4)">+10</td><td>+10</td><td><strong>101</strong></td><td style="color:var(--accent4)">+9</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-top:12px;">With η = 0.1, we only close 10% of the gap each step. Point B was 20 off, now 18.5 off. Slow and deliberate. The tree h₁ is trained on the residuals column — it finds splits on features (e.g. house size) and predicts the mean residual in each leaf.</p>
+    </div>
+
+    <h3>Learning Rate Tradeoff</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>High η (0.9)</th><th>Low η (0.01)</th></tr></thead>
+        <tbody>
+          <tr><td>Step size</td><td>Large</td><td>Small</td></tr>
+          <tr><td>Trees needed</td><td>Few</td><td>Many</td></tr>
+          <tr><td>Convergence</td><td>Fast</td><td>Slow</td></tr>
+          <tr><td>Overfit risk</td><td style="color:var(--accent3)">High</td><td style="color:var(--accent4)">Low</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout green">
+      <div class="callout-label">Practical Rule</div>
+      <p><strong>η and n_estimators are always tuned together.</strong> Low η + more trees is almost always better than high η + few trees. In practice: set η = 0.05–0.1, use a large n_estimators, and let early stopping decide when to stop.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: GRADIENT MATH -->
+<div class="section" id="gradient">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>The Gradient — Why It's Called GBM</h2>
+    </div>
+
+    <p>Fitting trees to residuals is the <em>special case</em> for squared error loss. The general principle is deeper.</p>
+
+    <div class="callout blue">
+      <div class="callout-label">Key Insight</div>
+      <p><strong>GBM fits each tree to the negative gradient of the loss function.</strong> Residuals are just what the negative gradient equals under squared error loss. This is gradient descent — but in function space instead of parameter space.</p>
+    </div>
+
+    <p>Gradient descent updates a parameter θ:</p>
+    <div class="formula">θ = θ − η · ∂L/∂θ</div>
+
+    <p>GBM updates a function F(x):</p>
+    <div class="formula">Fₘ(x) = F_{m-1}(x) + η · hₘ(x)
+where hₘ is fitted to: rᵢ = −∂L/∂F(xᵢ)   ← negative gradient</div>
+
+    <h3>Loss Functions and Their Gradients</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Loss Function</th><th>Use Case</th><th>Negative Gradient (= "residual")</th><th>Leaf Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Squared Error</strong></td><td>Regression</td><td>yᵢ − F(xᵢ)</td><td>Mean of residuals</td></tr>
+          <tr><td><strong>Absolute Error</strong></td><td>Regression, outliers</td><td>sign(yᵢ − F(xᵢ))</td><td><strong>Median</strong> of residuals</td></tr>
+          <tr><td><strong>Huber</strong></td><td>Regression, heavy tails</td><td>Squared for small errors, absolute for large</td><td>Weighted median</td></tr>
+          <tr><td><strong>Log Loss</strong></td><td>Classification</td><td>yᵢ − pᵢ (where p = sigmoid(F))</td><td>Optimised per leaf</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout red">
+      <div class="callout-label">Outlier Rule</div>
+      <p>Dataset with extreme outliers in the target? Use <strong>absolute error or Huber loss</strong>. Median leaf values are robust to outliers; mean leaf values get pulled toward extremes.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Interview Line</div>
+      <p>"GBM isn't just fitting trees to residuals — that's the squared error special case. The general statement is: <strong>fit each tree to the negative gradient of the loss function.</strong> This is gradient descent in function space, which is why you can plug in any differentiable loss."</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: REGULARISATION -->
+<div class="section" id="regularisation">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Regularisation — All Five Levers</h2>
+    </div>
+
+    <p>GBM operates at three levels. Each lever acts at a different level of the model:</p>
+
+    <div class="lever-grid">
+      <div class="lever-card ensemble">
+        <div class="lever-level">Ensemble Level</div>
+        <h5>learning_rate (η)</h5>
+        <p>Shrinks each tree's contribution. Lower = less overfitting, more trees needed. Primary convergence control.</p>
+      </div>
+      <div class="lever-card ensemble">
+        <div class="lever-level">Ensemble Level</div>
+        <h5>n_estimators</h5>
+        <p>Number of trees. Always tuned with learning_rate. Use early stopping to find the optimal value automatically.</p>
+      </div>
+      <div class="lever-card ensemble">
+        <div class="lever-level">Ensemble Level</div>
+        <h5>subsample</h5>
+        <p>Row sampling per tree (without replacement). Typical: 0.5–0.8. Reduces variance and correlation between trees.</p>
+      </div>
+      <div class="lever-card tree">
+        <div class="lever-level">Tree Level</div>
+        <h5>max_depth</h5>
+        <p>Controls interaction complexity. Depth 3–6 typical. Deeper = more interactions captured, more overfitting risk.</p>
+      </div>
+      <div class="lever-card tree">
+        <div class="lever-level">Tree Level</div>
+        <h5>max_features</h5>
+        <p>Column sampling per split. Borrowed from RF. Decorrelates trees, forces diverse feature usage.</p>
+      </div>
+      <div class="lever-card leaf">
+        <div class="lever-level">Leaf Level</div>
+        <h5>min_samples_leaf</h5>
+        <p>Minimum points per leaf. Prevents splits that explain only 1–2 noisy points. Direct variance reducer.</p>
+      </div>
+    </div>
+
+    <h3>Tuning Order</h3>
+
+    <div class="callout blue">
+      <div class="callout-label">High Variance Problem</div>
+      <p>max_depth → min_samples_leaf → subsample → max_features → n_estimators → learning_rate</p>
+    </div>
+    <div class="callout">
+      <div class="callout-label">High Bias Problem</div>
+      <p>Increase max_depth → increase n_estimators → increase learning_rate</p>
+    </div>
+    <div class="callout green">
+      <div class="callout-label">General Best Practice</div>
+      <p>Fix max_depth first (biggest impact on complexity). Then n_estimators with early stopping. Learning_rate last — it's coupled with n_estimators, so tune together.</p>
+    </div>
+
+    <h3>Early Stopping</h3>
+    <pre><code>GradientBoostingClassifier(
+    n_estimators=1000,          # upper bound — early stopping decides actual
+    validation_fraction=0.1,    # 10% of training data held out
+    n_iter_no_change=10,        # stop if no improvement for 10 rounds
+    tol=1e-4                    # minimum improvement threshold
+)</code></pre>
+    <div class="callout red">
+      <div class="callout-label">Small Dataset Warning</div>
+      <p>validation_fraction carves data from your training set. With small datasets (&lt;1000 rows): less training data hurts model quality, and a small validation set makes the stopping point noisy and unreliable. Use a proper held-out validation set from your data pipeline instead.</p>
+    </div>
+
+    <h3>Stochastic GBM</h3>
+    <p>Friedman's 2002 extension — adds random row sampling <strong>without replacement</strong> before each tree. Three benefits:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Benefit</th><th>Mechanism</th></tr></thead>
+        <tbody>
+          <tr><td>Variance reduction</td><td>Trees see different subsets → less correlated errors → better ensemble</td></tr>
+          <tr><td>Regularisation</td><td>Randomness prevents memorising specific training points</td></tr>
+          <tr><td>OOB error estimation</td><td>Rows not sampled for a tree can estimate generalisation error — free validation signal</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout blue">
+      <div class="callout-label">Without vs With Replacement</div>
+      <p>GBM uses <strong>without replacement</strong> — repeated rows would distort the residual signal by effectively upweighting certain gradients. RF uses <strong>with replacement</strong> deliberately — duplication creates diversity between independent trees. Different goals, different sampling strategy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: CLASSIFICATION -->
+<div class="section" id="classification">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>GBM for Classification</h2>
+    </div>
+
+    <p>The loop is identical — three things change:</p>
+
+    <div class="grid-2">
+      <div class="grid-card">
+        <h5>Change 1 — Initial Prediction</h5>
+        <p>Not the mean of y. Instead: <strong>log-odds</strong> of the positive class.</p>
+      </div>
+      <div class="grid-card">
+        <h5>Change 2 — Residuals</h5>
+        <p>Convert F(x) to probability via sigmoid, then residual = y − p. Looks like a residual but it's a gradient of log loss.</p>
+      </div>
+      <div class="grid-card">
+        <h5>Change 3 — Output</h5>
+        <p>Raw output F_M(x) is log-odds. Apply sigmoid to get final probability. Threshold at 0.5 for class prediction.</p>
+      </div>
+      <div class="grid-card">
+        <h5>The Loop</h5>
+        <p>Fit tree → multiply by η → add to previous. Completely identical to regression.</p>
+      </div>
+    </div>
+
+    <div class="formula">
+F₀ = log(p / (1-p))       ← log-odds of positive class proportion
+pᵢ = sigmoid(F_{m-1}(xᵢ)) ← convert to probability at each step
+rᵢ = yᵢ − pᵢ              ← gradient of log loss
+Fₘ = F_{m-1} + η · hₘ     ← same update rule
+
+Final: P(y=1|x) = sigmoid(F_M(x))
+    </div>
+
+    <div class="example-box">
+      <h4>Special Case: Balanced Classes</h4>
+      <p style="font-size:14px; color:var(--muted)">If training data is 50% positive, 50% negative:</p>
+      <div class="formula">F₀ = log(50/50) = log(1) = 0</div>
+      <p style="font-size:14px; color:var(--muted)">Initial prediction of 0 log-odds = 0.5 probability. No bias toward either class. The trees build up signal from there.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: INTERPRETABILITY -->
+<div class="section" id="interpretability">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Interpretability</h2>
+    </div>
+
+    <p>GBM is a black box — 200 trees can't be reasoned about directly. Three tools:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tool</th><th>What it shows</th><th>Key Limitation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Feature Importance</strong></td>
+            <td>Global importance: sum of loss reduction across all splits for each feature</td>
+            <td>Biased toward high-cardinality features (more split opportunities). No direction — doesn't tell you if higher values help or hurt.</td>
+          </tr>
+          <tr>
+            <td><strong>Partial Dependence Plot (PDP)</strong></td>
+            <td>Marginal effect of one feature: vary it across its range, average predictions</td>
+            <td>Creates impossible data points when features are correlated. Evaluates model in regions it was never trained on.</td>
+          </tr>
+          <tr>
+            <td><strong>SHAP Values</strong></td>
+            <td>Individual prediction explanation: contribution of each feature for each prediction</td>
+            <td>Computationally expensive. Accounts for feature correlations — the modern standard.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout red">
+      <div class="callout-label">PDP Correlation Trap</div>
+      <p>House size and number of rooms are correlated. PDP for house size varies it across its range while keeping rooms at actual values — creating impossible combinations like "tiny house, 10 rooms." The model predicts in regions it was never trained on, giving misleading marginal effects. <strong>SHAP accounts for this by averaging over realistic feature combinations.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: FAILURE MODES -->
+<div class="section" id="failures">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>When GBM Fails</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Scenario</th><th>Why GBM Fails</th><th>Better Choice</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Noisy data</strong></td>
+            <td>Compounds noise through residuals — each tree bakes noise into the ensemble permanently</td>
+            <td>Random Forest (dilutes noise through averaging)</td>
+          </tr>
+          <tr>
+            <td><strong>High-dim sparse data</strong></td>
+            <td>Trees struggle to find meaningful splits when most values are zero (text, one-hot encoded categoricals)</td>
+            <td>Linear models, neural networks</td>
+          </tr>
+          <tr>
+            <td><strong>Very small datasets</strong></td>
+            <td>Residual estimates are unreliable. Overfits from tree 1. Less than ~1000 rows is risky.</td>
+            <td>RF, single decision tree, regularised linear models</td>
+          </tr>
+          <tr>
+            <td><strong>Extrapolation needed</strong></td>
+            <td>Trees can only predict within the range of training targets. Caps at training min/max.</td>
+            <td>Linear models (extrapolate naturally)</td>
+          </tr>
+          <tr>
+            <td><strong>Online / streaming learning</strong></td>
+            <td>Requires full dataset at each iteration to compute residuals. Can't update incrementally.</td>
+            <td>Online gradient descent, SGD-based models</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Interview Framework</div>
+      <p>When asked "when would you not use GBM?" — structure by: <strong>data size</strong> (too small → RF), <strong>data type</strong> (sparse/high-dim → linear/NN), <strong>prediction range</strong> (extrapolation → linear), <strong>training regime</strong> (online/streaming → different algorithm).</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8: COMPARISONS -->
+<div class="section" id="vs">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>GBM vs Random Forest vs AdaBoost</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>GBM</th><th>Random Forest</th><th>AdaBoost</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Correction mechanism</strong></td><td>Fit residuals (negative gradient)</td><td>Independent averaging</td><td>Reweight samples</td></tr>
+          <tr><td><strong>Tree type</strong></td><td>Shallow trees (depth 3–6)</td><td>Deep trees (full depth)</td><td>Stumps (depth 1)</td></tr>
+          <tr><td><strong>Sequential?</strong></td><td>Yes — fully sequential</td><td>No — embarrassingly parallel</td><td>Yes — sequential</td></tr>
+          <tr><td><strong>Loss function</strong></td><td>Any differentiable loss</td><td>MSE / Gini (fixed)</td><td>Exponential only</td></tr>
+          <tr><td><strong>Noise sensitivity</strong></td><td style="color:var(--accent3)">High — compounds</td><td style="color:var(--accent4)">Low — dilutes</td><td style="color:var(--accent3)">High — amplifies</td></tr>
+          <tr><td><strong>Regularisation</strong></td><td>5 levers</td><td>2–3 levers</td><td>Minimal</td></tr>
+          <tr><td><strong>Training speed</strong></td><td>Slow (sequential)</td><td>Fast (parallel)</td><td>Medium</td></tr>
+          <tr><td><strong>Performance ceiling</strong></td><td style="color:var(--accent4)">Highest</td><td>High</td><td>Medium</td></tr>
+          <tr><td><strong>Robustness floor</strong></td><td>Medium</td><td style="color:var(--accent4)">Highest</td><td>Low</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout green">
+      <div class="callout-label">The Canonical Interview Line</div>
+      <p>"GBM has a <strong>higher ceiling</strong> on clean, structured data. RF has a <strong>higher floor</strong> — more robust to noisy, real-world conditions. AdaBoost is a special case of GBM with exponential loss — the sample reweighting is mathematically equivalent to gradient steps under that loss."</p>
+    </div>
+
+    <div class="callout blue">
+      <div class="callout-label">AdaBoost as Special Case of GBM</div>
+      <p>AdaBoost = GBM with exponential loss L = exp(−y·F(x)). The sample reweighting mechanism is mathematically equivalent to computing the negative gradient of this loss. This is why GBM is the more general framework.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 9: XGBOOST BRIDGE -->
+<div class="section" id="xgboost-bridge">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>Bridge to XGBoost</h2>
+    </div>
+
+    <p>XGBoost was built specifically to fix vanilla GBM's weaknesses. Understanding <em>what it fixes</em> is a common interview question.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>GBM Problem</th><th>XGBoost Fix</th></tr></thead>
+        <tbody>
+          <tr><td>No regularisation on leaf values</td><td><strong>L1 + L2 penalties</strong> added directly to the loss function (λ for L2, α for L1)</td></tr>
+          <tr><td>Slow split finding (re-sorts at every split)</td><td><strong>Approximate quantile-based splits</strong> + pre-sorted column blocks reused across trees</td></tr>
+          <tr><td>No parallelisation</td><td><strong>Parallel split finding within trees</strong> across features</td></tr>
+          <tr><td>No missing value handling</td><td><strong>Sparsity-aware split finding</strong> — learns optimal direction for missing values automatically</td></tr>
+          <tr><td>Memory inefficient</td><td><strong>Cache-aware data access</strong> patterns</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="formula">
+XGBoost Loss = Σ loss(yᵢ, ŷᵢ) + λ||leaf weights||² + α||leaf weights||₁
+                ↑ same as GBM      ↑ L2 Ridge          ↑ L1 Lasso
+
+λ penalises large leaf values (like Ridge regression)
+α drives leaf values to zero (like Lasso regression)
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Why XGBoost Can't Parallelise Across Trees</div>
+      <p>Tree M's residuals can't be computed until Tree M-1 finishes predicting. This dependency is fundamental to the sequential correction mechanism — it can't be broken. XGBoost parallelises <em>within</em> trees (finding each feature's best split simultaneously) but not across trees.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 10: INTERVIEW QUESTIONS -->
+<div class="section" id="interview">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2>Interview Questions</h2>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom:24px; font-size:14px;">Click each question to reveal must-cover points.</p>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">Explain how Gradient Boosting works. Walk me through the algorithm and what makes it different from AdaBoost.</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Start from F₀ = mean(y). Then fit trees to residuals sequentially.</li>
+          <li>Each tree predicts what the current ensemble got wrong</li>
+          <li>Learning rate η shrinks each tree's contribution to prevent overfitting to noise</li>
+          <li><strong>The key line:</strong> "Each tree is fit to the negative gradient of the loss — residuals are the special case under squared error. This is gradient descent in function space."</li>
+          <li>AdaBoost comparison: reweighting vs residual fitting, stumps vs shallow trees, exponential loss only vs any differentiable loss</li>
+          <li>AdaBoost is a special case of GBM with exponential loss</li>
+        </ul>
+        <div class="trap"><strong>Common Miss</strong> Answering only the algorithm and forgetting the AdaBoost comparison when explicitly asked. Answer every part of the question.</div>
+      </div>
+    </div>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">What is the effect of a very low learning rate? Is lower always better? What's the tradeoff?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Low η → smaller steps → slower convergence → more trees needed</li>
+          <li>Low η → each tree's noise contribution is shrunk → lower overfitting risk</li>
+          <li>η and n_estimators are always tuned together — they're coupled</li>
+          <li>Compute cost: low η + many trees = significantly slower training</li>
+          <li><strong>Practical answer:</strong> fix a small η early, use early stopping to find n_estimators automatically. Don't grid search them independently.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">"GBM is strictly better than RF — we should always use GBM." Do you agree?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover — 4 Scenarios Where RF Wins</h5>
+        <ul>
+          <li><strong>Noisy data:</strong> GBM compounds noise through residuals; RF dilutes through averaging</li>
+          <li><strong>Training time:</strong> RF is embarrassingly parallelisable; GBM is sequential</li>
+          <li><strong>Tuning effort:</strong> RF is robust out of the box; GBM requires careful hyperparameter tuning</li>
+          <li><strong>Small datasets:</strong> GBM overfits quickly on small data; RF is more robust</li>
+          <li><strong>Closing line:</strong> "GBM has a higher ceiling on clean structured data. RF has a higher floor — more robust to real-world messiness."</li>
+        </ul>
+        <div class="trap"><strong>Common Miss</strong> Only mentioning noise. A strong answer gives 3–4 distinct scenarios across different dimensions.</div>
+      </div>
+    </div>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">Your GBM model is overfitting. Walk me through how you'd diagnose and fix it.</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>High variance → fix tree-level first: reduce max_depth, increase min_samples_leaf</li>
+          <li>Then sampling levers: reduce subsample (row sampling), reduce max_features (column sampling)</li>
+          <li>Then ensemble level: reduce learning_rate, use early stopping on validation loss</li>
+          <li>Distinguish: high variance (model too complex per tree) vs too many trees (early stopping fixes this)</li>
+          <li>Check for noisy labels — GBM will compound label noise into residuals at every step</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">Why does GBM use trees of depth 3–6 while AdaBoost uses stumps?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>AdaBoost's reweighting mechanism does the heavy lifting — many stumps, each correcting one simple pattern</li>
+          <li>GBM needs each tree to capture <strong>interaction effects</strong> in the residuals — a stump can only use one feature at a time</li>
+          <li>Depth-2+ tree: "if feature A > x AND feature B > y" — stump can't express this</li>
+          <li>But trees are kept shallow deliberately — deep trees overfit the residuals</li>
+          <li>Typical sweet spot: depth 3–6 balances interaction capture vs overfitting risk</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">How does GBM handle classification? What changes from the regression algorithm?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Three changes: initial prediction, residual computation, final output</li>
+          <li>F₀ = log-odds of positive class (not mean of y)</li>
+          <li>At each step: convert F(x) to probability via sigmoid, residual = y − p (gradient of log loss)</li>
+          <li>Final output: apply sigmoid to raw log-odds output → probability → threshold at 0.5</li>
+          <li>The loop itself is identical — fit tree to residuals, multiply by η, add to ensemble</li>
+          <li>Balanced classes → F₀ = log(1) = 0 → initial probability = 0.5</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Big Tech</span>
+        <span class="iq-q">What does XGBoost improve over vanilla GBM?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>L1 + L2 regularisation on leaf values — borrowed from linear models, added to the loss function</li>
+          <li>Approximate split finding with quantile binning — avoids re-sorting at every split</li>
+          <li>Parallelisation within trees (across features) — not across trees (still sequential by design)</li>
+          <li>Built-in missing value handling — learns optimal direction for NaN at each split</li>
+          <li>Cache-aware data access — memory efficiency for large datasets</li>
+          <li>Why still can't parallelise across trees: residuals for tree M require tree M-1's predictions</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">Why is GBM called "gradient" boosting? What exactly is the gradient and what is it a gradient of?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>The gradient is −∂L/∂F(xᵢ) — the negative partial derivative of the loss with respect to the current prediction F(xᵢ)</li>
+          <li>Each tree is fit to this negative gradient — pointing in the direction that reduces loss most</li>
+          <li>This is gradient descent, but instead of updating parameters θ, we're updating a function F(x) — "gradient descent in function space"</li>
+          <li>Under squared error loss: −∂L/∂F = yᵢ − F(xᵢ), which is just the residual. So residuals ARE the gradient for MSE.</li>
+          <li>For other loss functions the gradient takes a different form — this generality is the power of GBM</li>
+        </ul>
+        <div class="trap"><strong>Common Miss</strong> Saying "we use gradients to update the trees." The gradient updates the ensemble prediction, not the tree parameters. Trees are just the mechanism for approximating the gradient step.</div>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">What is the optimal leaf value in a GBM tree, and why does it change depending on the loss function?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Leaf value γ is chosen to minimise the loss for all points in that leaf: γ* = argmin Σ L(yᵢ, F_{m-1}(xᵢ) + γ)</li>
+          <li>Squared error loss → optimal leaf = <strong>mean</strong> of residuals (minimises sum of squared deviations)</li>
+          <li>Absolute error loss → optimal leaf = <strong>median</strong> of residuals (minimises sum of absolute deviations)</li>
+          <li>Huber loss → weighted median (hybrid — squared for small errors, absolute for large)</li>
+          <li>Log loss → requires a Newton step approximation (this is what XGBoost uses second-order gradients for)</li>
+          <li>Mean is not arbitrary — it's the mathematical solution to minimising squared error within the leaf</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">You're training a GBM on a regression task where the target has heavy-tailed outliers. What loss function do you choose and why?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Avoid squared error — mean leaf values get pulled toward extreme outliers, distorting every tree</li>
+          <li>Absolute error (MAE loss) → median leaf values → robust to outliers by construction</li>
+          <li>Huber loss is often the best choice: squared error for small residuals (smooth gradient), absolute for large (ignores outliers). Controlled by a δ threshold.</li>
+          <li>Practical consideration: absolute error has a non-smooth gradient (sign function) which can make convergence slower — Huber avoids this</li>
+          <li>Could also consider log-transforming the target if it's right-skewed, then using MSE</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">How would you implement early stopping in GBM in practice? What are the gotchas?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Set large n_estimators as upper bound. Use validation_fraction + n_iter_no_change to auto-stop.</li>
+          <li>Mechanism: hold out validation_fraction of training data, monitor validation loss after each tree, stop if no improvement by tol for n_iter_no_change consecutive rounds</li>
+          <li><strong>Gotcha 1 — Small datasets:</strong> validation_fraction eats into training data. With &lt;1000 rows, small validation set = noisy stopping signal</li>
+          <li><strong>Gotcha 2 — Data leakage:</strong> the held-out validation set should come from your pipeline, not be auto-carved — otherwise your "test set" has already influenced training</li>
+          <li><strong>Gotcha 3 — Plateau detection:</strong> tol threshold matters. Too tight = stops too early; too loose = keeps training unnecessarily</li>
+          <li>Better practice for small datasets: use a proper pre-split validation set or CV-based early stopping (XGBoost supports this natively)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">What is Stochastic GBM? How does its row sampling differ from Random Forest's bootstrap sampling, and why?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Stochastic GBM (Friedman 2002): randomly sample a fraction of rows <strong>without replacement</strong> before fitting each tree</li>
+          <li>RF uses bootstrap sampling <strong>with replacement</strong> — ~63% unique rows, ~37% duplicates per tree</li>
+          <li>GBM uses without replacement because repeated rows would effectively upweight those points' residuals, distorting the gradient signal</li>
+          <li>RF uses with replacement deliberately — duplication creates diversity between independent trees, which is the entire point</li>
+          <li>Three benefits of stochastic GBM: variance reduction, regularisation, OOB error estimation (rows not sampled = free validation signal)</li>
+          <li>OOB in stochastic GBM can replace the validation_fraction approach and avoids eating into training data</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">Your GBM is underfitting — training and validation loss are both high. What do you change?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Underfitting = high bias. Need to increase model capacity.</li>
+          <li>Increase max_depth — allow trees to capture more complex interactions</li>
+          <li>Increase n_estimators — more trees to accumulate signal</li>
+          <li>Increase learning_rate slightly — larger steps per tree (but watch overfitting)</li>
+          <li>Reduce min_samples_leaf — allow finer splits</li>
+          <li>Check: is the feature set sufficient? GBM can't learn patterns from features that don't exist.</li>
+          <li>Check: is subsample too aggressive? Very low subsample (e.g. 0.3) can hurt convergence, not just variance</li>
+        </ul>
+        <div class="trap"><strong>Common Miss</strong> Only thinking about overfitting levers. Always diagnose first — train loss high = underfitting, train loss low + val loss high = overfitting. Different levers for each.</div>
+      </div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Adversarial</span>
+        <span class="iq-q">You have a fraud detection dataset with 1% positive class. You train GBM and get 99% accuracy. Is this a good model?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>No — a model that predicts "not fraud" for everything gets 99% accuracy trivially</li>
+          <li>Accuracy is the wrong metric for imbalanced classification. Use precision, recall, F1, AUC-PR, or AUC-ROC</li>
+          <li>GBM-specific issue: initial prediction F₀ = log-odds. With 1% positives, F₀ = log(0.01/0.99) ≈ −4.6. Model starts strongly biased toward negative class.</li>
+          <li>Fixes: use class_weight or scale_pos_weight, oversample positives (SMOTE), use a threshold other than 0.5, optimise for the right metric during training</li>
+          <li>Evaluate on AUC-PR (precision-recall curve) not AUC-ROC for highly imbalanced data — ROC can be misleadingly optimistic</li>
+        </ul>
+        <div class="trap"><strong>Interview Trap</strong> The question is designed to test whether you know that accuracy is meaningless for imbalanced classes. Always identify this immediately.</div>
+      </div>
+    </div>
+
+    <!-- Q15 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">Can GBM be parallelised? Explain fully — what can and cannot be parallelised and why.</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>Cannot parallelise across trees</strong> — tree M's residuals depend on tree M-1's predictions. This is a fundamental sequential dependency, not an implementation choice.</li>
+          <li><strong>Can parallelise within a tree</strong> — finding the best split for each feature is independent. XGBoost exploits this: all features search for their best split simultaneously.</li>
+          <li><strong>Can parallelise data loading</strong> — pre-sorting columns into blocks (XGBoost's approach) is done once before training begins</li>
+          <li>Contrast with RF: trees are fully independent → embarrassingly parallelisable → can train N trees on N cores simultaneously</li>
+          <li>Practical implication: GBM is inherently slower than RF on large datasets even with identical hardware</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q16 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">How do you interpret a GBM model? What are the limitations of feature importance?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Feature importance = sum of loss reduction at each split using that feature, across all trees</li>
+          <li><strong>Limitation 1 — High cardinality bias:</strong> continuous features and high-cardinality categoricals get more split opportunities → artificially inflated importance</li>
+          <li><strong>Limitation 2 — No direction:</strong> importance tells you a feature matters, not whether higher values help or hurt</li>
+          <li><strong>Limitation 3 — Correlated features split importance:</strong> if two features are correlated, importance gets split between them arbitrarily</li>
+          <li>PDP shows marginal effect but breaks under feature correlation (evaluates impossible data combinations)</li>
+          <li>SHAP is the modern standard: per-prediction explanations, accounts for feature correlations, has a solid theoretical basis (Shapley values from game theory)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Adversarial</span>
+        <span class="iq-q">You have mislabelled training data — about 5% of labels are wrong. Would you use GBM or RF? Why?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>RF is better here.</strong> Mislabelled points = noise in labels. RF averages over many independent trees → mislabelled points have diluted, bounded influence.</li>
+          <li>GBM compounds noise: a mislabelled point generates a large residual → next tree focuses on it → bakes that error in → each iteration amplifies it further</li>
+          <li>The more trees in GBM, the worse the effect of label noise — unlike RF where more trees helps</li>
+          <li>GBM with Huber loss partially mitigates this (treats large residuals as absolute error, not squared), but doesn't fully solve it</li>
+          <li>Practical fix if you must use GBM: use label smoothing, increase min_samples_leaf to prevent trees from fitting individual noisy points, use robust loss functions</li>
+        </ul>
+        <div class="trap"><strong>Interview Trap</strong> This is the exact scenario from your AdaBoost session — same logic applies. GBM compounds, RF dilutes. Don't get confused by the different mechanism.</div>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">Walk me through how you would tune a GBM from scratch on a new dataset.</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>Step 1:</strong> Fix learning_rate = 0.1, n_estimators = 500 with early stopping. Find a good baseline tree count.</li>
+          <li><strong>Step 2:</strong> Tune max_depth (try 3, 4, 5, 6). This has the biggest impact on model complexity.</li>
+          <li><strong>Step 3:</strong> Tune min_samples_leaf and subsample together — both control variance. Try subsample in [0.6, 0.8, 1.0].</li>
+          <li><strong>Step 4:</strong> Tune max_features — try sqrt(features), 0.5, 0.8</li>
+          <li><strong>Step 5:</strong> Lower learning_rate to 0.05, re-run early stopping to find new optimal n_estimators. Usually improves generalisation.</li>
+          <li>Use cross-validation throughout, not a single train/val split</li>
+          <li>Always check: are train and val loss both improving? If train improves but val plateaus = overfitting. Both plateau = underfitting.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q19 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">What happens to GBM's bias and variance as you increase the number of trees? How does this differ from Random Forest?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>GBM — bias:</strong> decreases monotonically as trees are added (each tree reduces the residual error)</li>
+          <li><strong>GBM — variance:</strong> initially decreases, then increases as the model starts fitting noise in residuals. Risk of overfitting with too many trees.</li>
+          <li><strong>RF — bias:</strong> stays roughly constant (each tree is equally complex, adding more doesn't reduce bias)</li>
+          <li><strong>RF — variance:</strong> decreases monotonically as trees are added (averaging more independent trees → variance → 0). RF does NOT overfit with more trees — it asymptotes.</li>
+          <li>Key difference: GBM can overfit with too many trees (especially with high η). RF asymptotically improves — more trees never hurts RF.</li>
+          <li>This is why early stopping matters for GBM but is irrelevant for RF</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Adversarial</span>
+        <span class="iq-q">Can GBM extrapolate beyond the range of training targets? Give an example of when this would be a problem.</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>No — GBM cannot extrapolate.</strong> Trees partition the feature space and assign leaf values. Predictions are bounded by the range of values seen in training.</li>
+          <li>Example: train on house prices 50L–500L. A test house worth 800L gets capped at ~500L — the model has no mechanism to predict beyond its training range.</li>
+          <li>Real-world problem: stock price prediction, demand forecasting during unprecedented events (COVID), predicting for new market segments</li>
+          <li>Linear models extrapolate naturally (they extend the learned linear relationship beyond training range)</li>
+          <li>Workaround: log-transform the target to compress range, add domain knowledge features, or use GBM predictions as one input into a model that can extrapolate</li>
+          <li>This is a fundamental limitation of all tree-based models, not just GBM</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q21 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">How does GBM handle missing values in features? What about sklearn vs XGBoost?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>Sklearn GBM:</strong> does NOT handle missing values natively. Will throw an error. You must impute before training.</li>
+          <li><strong>XGBoost:</strong> handles missing values natively via sparsity-aware split finding. At each split, it tries sending missing values both left and right, and learns the optimal default direction from data.</li>
+          <li>This matters because imputation can introduce bias — you're replacing unknowns with assumptions</li>
+          <li>XGBoost's approach is powerful: "missingness itself can be informative" — e.g. a missing income field might indicate unemployment</li>
+          <li>At inference time: XGBoost sends missing values in the learned default direction — no imputation needed</li>
+        </ul>
+        <div class="trap"><strong>Common Miss</strong> Saying "GBM handles missing values" — sklearn's implementation does not. XGBoost does. Know the distinction.</div>
+      </div>
+    </div>
+
+    <!-- Q22 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">You need to deploy a GBM model that retrains daily on new data. What challenges do you anticipate?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li><strong>Training time:</strong> GBM is sequential and slow. Daily retraining on large datasets may not complete in time. Consider incremental approaches or warm-starting.</li>
+          <li><strong>Hyperparameter stability:</strong> optimal hyperparameters may shift as data distribution changes. Need to monitor or periodically re-tune.</li>
+          <li><strong>Data drift:</strong> residuals from day 1 might not be meaningful by day 30 if the underlying distribution shifts. Monitor feature distributions and prediction distributions.</li>
+          <li><strong>Cold start:</strong> GBM can't be updated incrementally — you retrain from scratch each time. This wastes compute vs models that support online updates.</li>
+          <li><strong>Validation strategy:</strong> time-series data requires temporal train/val splits — random CV will leak future data into training</li>
+          <li>Consider LightGBM for faster retraining — same GBM logic, significantly faster on large datasets</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q23 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Conceptual</span>
+        <span class="iq-q">AdaBoost is a special case of GBM. Explain the mathematical connection.</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>GBM with exponential loss L = exp(−yᵢ · F(xᵢ)) produces AdaBoost</li>
+          <li>The negative gradient of exponential loss is: −∂L/∂F = yᵢ · exp(−yᵢ · F(xᵢ))</li>
+          <li>This is equivalent to the sample weights wᵢ in AdaBoost — reweighting samples is mathematically identical to gradient steps under exponential loss</li>
+          <li>So AdaBoost's seemingly different mechanism (reweighting) is actually just GBM gradient descent with a specific loss function</li>
+          <li>Why this matters: AdaBoost is limited to exponential loss → brittle to outliers (exponential loss blows up for large errors). GBM lets you swap the loss.</li>
+          <li>This insight — due to Friedman, Hastie, Tibshirani (2000) — unified boosting under the gradient descent framework</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q24 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Practical</span>
+        <span class="iq-q">What is the computational complexity of training a GBM? What are the dominant cost factors?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Total complexity: O(M × n × d × F) — M trees, n samples, d depth, F features</li>
+          <li>Per split: must evaluate all features × all possible thresholds to find the best split → O(n × F) per node</li>
+          <li>Per tree: O(n × F × 2^d) nodes to evaluate → dominated by depth and feature count</li>
+          <li>Sklearn's bottleneck: re-sorts feature values at every split — O(n log n) per feature per node</li>
+          <li>XGBoost fix: pre-sort once into compressed column blocks, reuse across all trees → huge constant factor reduction</li>
+          <li>Practical dominant cost: n_estimators × max_depth. Doubling depth costs ~2× per tree. Doubling trees costs exactly 2×.</li>
+          <li>Memory: must hold entire dataset in memory for residual computation at each step</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q25 -->
+    <div class="iq-card">
+      <div class="iq-header" onclick="toggleIQ(this)">
+        <span class="iq-badge">Adversarial</span>
+        <span class="iq-q">A colleague says "I'll just use a very deep tree with max_depth=20 and compensate with a tiny learning rate." What's wrong with this reasoning?</span>
+        <span class="iq-toggle">+</span>
+      </div>
+      <div class="iq-body">
+        <h5>Must Cover</h5>
+        <ul>
+          <li>Learning rate shrinks the <strong>contribution</strong> of each tree, but doesn't change the tree's internal complexity</li>
+          <li>A depth-20 tree can still memorise training data in its leaves — η = 0.01 just means you add 1% of that memorised tree to the ensemble each step</li>
+          <li>After enough iterations, you're still accumulating deeply overfit trees — just slowly</li>
+          <li>The right fix: control complexity at the tree level (max_depth, min_samples_leaf) AND at the ensemble level (η, n_estimators)</li>
+          <li>Deep trees also interact badly with subsampling — a depth-20 tree can have 2²⁰ = 1M leaves, many with only 1 sample when trained on a subsample</li>
+          <li>Computational cost: depth-20 trees are ~1000× more expensive per tree than depth-3. The compute cost is unjustified.</li>
+        </ul>
+        <div class="trap"><strong>Key Insight</strong> Learning rate and tree depth are orthogonal regularisation axes. Low η does NOT compensate for high max_depth. They control different things.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  GBM Study Guide &nbsp;·&nbsp; Tree-Based Models Series &nbsp;·&nbsp; Next: XGBoost
+</footer>
+
+<script>
+  function toggleIQ(header) {
+    const body = header.nextElementSibling;
+    const toggle = header.querySelector('.iq-toggle');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    toggle.textContent = isOpen ? '+' : '−';
+    toggle.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(0deg)';
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Decision Trees — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e29;
+    --border: #252a38;
+    --purple: #7c6af7;
+    --purple-dim: #3d3580;
+    --teal: #2dd4b0;
+    --teal-dim: #164f44;
+    --amber: #f5a623;
+    --amber-dim: #5a3d0a;
+    --coral: #f06060;
+    --coral-dim: #5a1a1a;
+    --green: #4caf7d;
+    --green-dim: #1a4030;
+    --text: #e8eaf0;
+    --text-dim: #7a8099;
+    --text-mid: #b0b8cc;
+    --code-bg: #0a0c11;
+    --accent: #7c6af7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 0 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 200px;
+    background: radial-gradient(ellipse, rgba(124,106,247,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header .tag {
+    display: inline-block;
+    background: var(--purple-dim);
+    color: var(--purple);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  header p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 14px 16px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  nav a:hover { color: var(--text); border-color: var(--purple); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 72px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--purple);
+    background: var(--purple-dim);
+    padding: 4px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 32px 0 12px;
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 24px 0 8px;
+  }
+  p { color: var(--text-mid); margin-bottom: 14px; }
+  strong { color: var(--text); font-weight: 500; }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #c8d0e8;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  pre .c { color: var(--text-dim); }
+  pre .k { color: var(--purple); }
+  pre .n { color: var(--teal); }
+  pre .v { color: var(--amber); }
+  pre .h { color: var(--coral); }
+  pre .g { color: var(--green); }
+
+  /* ── FORMULA BLOCKS ── */
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--teal);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--teal);
+    margin: 16px 0;
+    line-height: 2;
+  }
+  .formula .label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .callout.insight {
+    background: rgba(124,106,247,0.08);
+    border: 1px solid rgba(124,106,247,0.25);
+    color: var(--text-mid);
+  }
+  .callout.insight::before { content: '💡 '; }
+  .callout.warning {
+    background: rgba(240,96,96,0.08);
+    border: 1px solid rgba(240,96,96,0.25);
+    color: var(--text-mid);
+  }
+  .callout.warning::before { content: '⚠️ '; }
+  .callout.interview {
+    background: rgba(45,212,176,0.08);
+    border: 1px solid rgba(45,212,176,0.25);
+    color: var(--text-mid);
+  }
+  .callout.interview::before { content: '🎯 Interview: '; font-weight: 600; color: var(--teal); }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-mid);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  td strong { color: var(--text); }
+
+  /* ── WORKED EXAMPLE BOXES ── */
+  .example-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .example-box .ex-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .example-box .ex-title::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+  .step {
+    display: flex;
+    gap: 16px;
+    margin: 12px 0;
+    align-items: flex-start;
+  }
+  .step-num {
+    background: var(--purple-dim);
+    color: var(--purple);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-content p { margin-bottom: 6px; }
+
+  /* ── TREE DIAGRAM ── */
+  .tree-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .tree-diagram .node-root { color: var(--purple); }
+  .tree-diagram .node-internal { color: var(--teal); }
+  .tree-diagram .node-leaf-yes { color: var(--green); }
+  .tree-diagram .node-leaf-no { color: var(--coral); }
+  .tree-diagram .branch { color: var(--text-dim); }
+
+  /* ── TAG BADGES ── */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px;
+  }
+  .badge.purple { background: var(--purple-dim); color: var(--purple); }
+  .badge.teal { background: var(--teal-dim); color: var(--teal); }
+  .badge.amber { background: var(--amber-dim); color: var(--amber); }
+  .badge.coral { background: var(--coral-dim); color: var(--coral); }
+  .badge.green { background: var(--green-dim); color: var(--green); }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media(max-width:600px){ .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .card h4 { margin-top: 0; }
+
+  /* ── HYPERPARAMETER TABLE ── */
+  .param-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 120px;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .param-row:last-child { border-bottom: none; }
+  .param-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--purple);
+  }
+  .param-desc { color: var(--text-mid); font-size: 14px; }
+  .param-default {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    text-align: right;
+  }
+  @media(max-width:600px){
+    .param-row { grid-template-columns: 1fr; }
+    .param-default { text-align: left; }
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 32px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* ── HIGHLIGHT ── */
+  mark {
+    background: rgba(124,106,247,0.2);
+    color: var(--purple);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* ── LIST ── */
+  ul, ol { padding-left: 20px; color: var(--text-mid); margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    color: var(--teal);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── INTERVIEW QUESTION CARDS ── */
+  .iq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .iq-card:hover { border-color: var(--purple-dim); }
+  .iq-card[open] { border-color: var(--purple); }
+
+  .iq-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .iq-summary::-webkit-details-marker { display: none; }
+  .iq-summary:hover { background: var(--surface2); }
+
+  .iq-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--purple);
+    background: var(--purple-dim);
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .iq-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .iq-toggle {
+    color: var(--text-dim);
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  details[open] .iq-toggle { transform: rotate(180deg); }
+
+  .iq-body {
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .iq-must {
+    background: rgba(124,106,247,0.06);
+    border: 1px solid rgba(124,106,247,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 16px 0 12px;
+  }
+  .iq-must-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--purple);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px;
+  }
+  .iq-must ul { margin-bottom: 0; }
+  .iq-must li { font-size: 14px; margin-bottom: 6px; color: var(--text-mid); }
+
+  .iq-answer {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--teal);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 12px;
+  }
+  .iq-answer-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--teal);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px;
+  }
+  .iq-answer p { font-size: 14px; margin-bottom: 0; color: var(--text-mid); }
+  .iq-answer pre {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  /* Feature importance bar */
+  .fi-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  .fi-label {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-mid);
+    width: 130px;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .fi-bar-bg {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .fi-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--purple), var(--teal));
+  }
+  .fi-val {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--amber);
+    font-size: 12px;
+    width: 50px;
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">ML Interview Guide</div>
+  <h1>Decision Trees</h1>
+  <p>Everything from splits to pruning to feature importance — with worked numerical examples throughout.</p>
+</header>
+
+<nav>
+  <a href="#foundation">Foundation</a>
+  <a href="#splits">Split Criteria</a>
+  <a href="#building">Building</a>
+  <a href="#overfitting">Overfitting</a>
+  <a href="#pruning">Pruning</a>
+  <a href="#regression">Regression</a>
+  <a href="#hyperparams">Hyperparameters</a>
+  <a href="#feature-importance">Feature Importance</a>
+  <a href="#summary">Summary</a>
+  <a href="#interview-qs">Interview Q&A</a>
+</nav>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 1: FOUNDATION -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="foundation">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Foundation — What is a Decision Tree?</h2>
+  </div>
+
+  <p>A decision tree is a flowchart of yes/no questions. Each <strong>internal node</strong> asks one question about one feature. Each <strong>branch</strong> is the answer. Each <strong>leaf node</strong> gives the final prediction.</p>
+
+  <div class="tree-diagram">
+<span class="node-root">Root: Credit Score &gt; 700?</span>
+<span class="branch">
+├── No (40 samples) ──▶ </span><span class="node-internal">Income &gt; 40k?</span>
+<span class="branch">│                        ├── No  ──▶ </span><span class="node-leaf-no">❌ Deny  (Leaf A)</span>
+<span class="branch">│                        └── Yes ──▶ </span><span class="node-leaf-yes">✅ Approve (Leaf B)</span>
+<span class="branch">│
+└── Yes (60 samples) ──▶ </span><span class="node-internal">Age &gt; 30?</span>
+<span class="branch">                         ├── No  ──▶ </span><span class="node-leaf-yes">✅ Approve (Leaf C)</span>
+<span class="branch">                         └── Yes ──▶ </span><span class="node-leaf-no">❌ Deny  (Leaf D)</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>Internal Node</h4>
+      <p>Asks one question on one feature. Stores: feature name, threshold, pointers to children. <strong>Never stores a prediction.</strong></p>
+    </div>
+    <div class="card">
+      <h4>Leaf Node</h4>
+      <p>Terminal node — no children. Stores: <strong>majority class</strong> (classification) or <strong>mean of targets</strong> (regression). This is the prediction.</p>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    A new sample travels from root to leaf by answering each question. It always reaches a leaf — never stops at an internal node.
+  </div>
+
+  <h3>The Fundamental Problem</h3>
+  <p>At each node, you have a mixed group of samples. You want to ask a question that separates them as <strong>cleanly as possible</strong>. "Clean" means each child group is as pure as possible — ideally all one class.</p>
+  <p>Two formulas measure purity: <strong>Gini Impurity</strong> and <strong>Entropy</strong>.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 2: SPLIT CRITERIA -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="splits">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Split Criteria — Gini, Entropy, Information Gain</h2>
+  </div>
+
+  <h3>Gini Impurity</h3>
+  <p>Asks: <em>"If I randomly picked two samples from this node, what is the probability they belong to different classes?"</em></p>
+
+  <div class="formula">
+    <span class="label">Formula</span>
+    Gini = 1 − Σ(pᵢ²)
+    <br/>where pᵢ = proportion of class i in the node
+  </div>
+
+  <div class="example-box">
+    <div class="ex-title">Worked Example — Gini Impurity</div>
+    <p>A node has <strong>4 cats</strong> and <strong>6 dogs</strong> (10 samples total).</p>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p>Calculate class proportions:</p>
+        <pre>p(cat) = 4/10 = 0.4
+p(dog) = 6/10 = 0.6</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p>Apply Gini formula:</p>
+        <pre>Gini = 1 − (0.4² + 0.6²)
+     = 1 − (0.16 + 0.36)
+     = 1 − 0.52
+     = <span class="g">0.48</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p>Pure node (all 10 dogs):</p>
+        <pre>Gini = 1 − (1.0²) = <span class="g">0.0</span>   ← perfectly pure</pre>
+      </div>
+    </div>
+    <div class="callout insight" style="margin-top:12px">Gini = 0 means perfectly pure. Gini = 0.5 means maximally mixed (50/50). <strong>Lower is better.</strong></div>
+  </div>
+
+  <h3>Entropy</h3>
+  <p>From information theory. Asks: <em>"How much uncertainty or disorder is in this node?"</em></p>
+
+  <div class="formula">
+    <span class="label">Formula</span>
+    Entropy = −Σ(pᵢ × log₂(pᵢ))
+  </div>
+
+  <div class="example-box">
+    <div class="ex-title">Worked Example — Entropy</div>
+    <p>Same node: 4 cats, 6 dogs.</p>
+    <pre>Entropy = −(0.4 × log₂(0.4)) − (0.6 × log₂(0.6))
+        = −(0.4 × −1.322) − (0.6 × −0.737)
+        = 0.529 + 0.442
+        = <span class="g">0.971</span>
+
+Pure node (all dogs):
+Entropy = −(1.0 × log₂(1.0)) = −(1.0 × 0) = <span class="g">0.0</span></pre>
+  </div>
+
+  <h3>Information Gain — How Splits are Chosen</h3>
+  <p>Information Gain measures how much a split reduced impurity. The tree picks the split with the <strong>highest gain</strong>.</p>
+
+  <div class="formula">
+    <span class="label">Formula</span>
+    Gain = Impurity(parent) − weighted avg Impurity(children)
+    <br/><br/>
+    Weighted Impurity = (n_left / n_total) × Impurity(left)
+                      + (n_right / n_total) × Impurity(right)
+  </div>
+
+  <div class="callout insight">
+    The <strong>weight</strong> is simply the proportion of samples in each child. A large impure child hurts more than a small impure child — which is exactly what you want.
+  </div>
+
+  <div class="example-box">
+    <div class="ex-title">Worked Example — Information Gain</div>
+    <p><strong>Parent:</strong> 5A + 5B = 10 samples. Gini = 0.5</p>
+    <p><strong>After split:</strong> Left = 4A+1B (5 samples). Right = 1A+4B (5 samples).</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p>Gini of each child:</p>
+        <pre>Gini(left)  = 1 − ((4/5)² + (1/5)²)
+            = 1 − (0.64 + 0.04) = <span class="n">0.32</span>
+
+Gini(right) = 1 − ((1/5)² + (4/5)²)
+            = 1 − (0.04 + 0.64) = <span class="n">0.32</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p>Weighted Gini of children:</p>
+        <pre>Weighted = (5/10) × 0.32 + (5/10) × 0.32
+         = 0.16 + 0.16
+         = <span class="n">0.32</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p>Information Gain:</p>
+        <pre>Gain = 0.50 − 0.32 = <span class="g">0.18</span>   ← 36% reduction in impurity</pre>
+      </div>
+    </div>
+  </div>
+
+  <h3>Gini vs Entropy — Which to Use?</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>Gini</th><th>Entropy</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Computation</strong></td><td>Faster (no log)</td><td>Slightly slower</td></tr>
+        <tr><td><strong>Behaviour</strong></td><td>Isolates largest class</td><td>More balanced splits</td></tr>
+        <tr><td><strong>sklearn default</strong></td><td>Yes — <code>criterion="gini"</code></td><td><code>criterion="entropy"</code></td></tr>
+        <tr><td><strong>Practical difference</strong></td><td colspan="2">Usually negligible — treat as a hyperparameter to tune</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout interview">Gini and Entropy are different rulers for measuring impurity. Information Gain is the decision made using whichever ruler you chose. They are not alternatives — Gini/Entropy measure impurity, Gain decides which split to make.</div>
+
+  <h3>How the Algorithm Searches for the Best Split</h3>
+  <p>At every node, the algorithm runs an exhaustive search:</p>
+  <pre><span class="c"># Pseudocode</span>
+best_gain = 0
+best_split = None
+
+<span class="k">for</span> feature <span class="k">in</span> all_features:
+    <span class="k">for</span> threshold <span class="k">in</span> unique_values(feature):
+        left, right = split(data, feature, threshold)
+        gain = impurity(parent) − weighted_impurity(left, right)
+        <span class="k">if</span> gain > best_gain:
+            best_gain = gain
+            best_split = (feature, threshold)
+
+<span class="c"># Pick best_split for this node</span></pre>
+
+  <div class="callout warning">Each split uses exactly ONE feature and ONE threshold. The tree never combines features in a single split (e.g. "Age > 30 AND Income > 50k" is two splits, not one). This keeps trees fast and interpretable but limits them to axis-aligned decision boundaries.</div>
+
+  <p><strong>Can a feature appear multiple times?</strong> Yes — the same feature can appear on multiple nodes in a path, as long as thresholds are different. Example: <code>Credit Score &gt; 700</code> at depth 1 and <code>Credit Score &gt; 750</code> at depth 3 is valid — each split further refines the range. The gain would be zero for a redundant threshold, so the tree naturally avoids it.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 3: BUILDING -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="building">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">How a Tree is Built — The Greedy Algorithm</h2>
+  </div>
+
+  <p>The tree is built by one recursive function:</p>
+  <pre><span class="k">function</span> <span class="n">build</span>(node, data):
+    <span class="k">if</span> stopping_condition_met(data):
+        make this a <span class="g">leaf</span> → store majority class / mean
+        <span class="k">return</span>
+
+    find best_split = (feature, threshold) with highest gain
+    left_data, right_data = split(data, best_split)
+
+    node.left  = <span class="n">build</span>(left_data)
+    node.right = <span class="n">build</span>(right_data)</pre>
+
+  <h3>Stopping Conditions</h3>
+  <p>The tree stops splitting at a node when <strong>any one</strong> of these is triggered:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Condition</th><th>What it checks</th><th>sklearn param</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Max depth reached</strong></td><td>Current depth == max_depth</td><td><code>max_depth</code></td></tr>
+        <tr><td><strong>Too few samples</strong></td><td>Node has &lt; N samples</td><td><code>min_samples_split</code></td></tr>
+        <tr><td><strong>Tiny leaf</strong></td><td>Split would create child with &lt; N samples</td><td><code>min_samples_leaf</code></td></tr>
+        <tr><td><strong>Gain too small</strong></td><td>Best gain &lt; threshold</td><td><code>min_impurity_decrease</code></td></tr>
+        <tr><td><strong>Already pure</strong></td><td>Gini = 0 or Entropy = 0</td><td>Automatic</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Why "Greedy"?</h3>
+  <p>At each node, the algorithm picks the <strong>best split right now</strong> with no lookahead. It has no idea whether a slightly worse split today might enable a much better split two levels down.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4 style="color:var(--coral)">Greedy picks this</h4>
+      <pre style="font-size:12px">Split A
+Gain = 0.30 (higher ✓)
+
+Children: Gini 0.4 / 0.4
+→ still needs more splits
+→ needs depth 4 to finish</pre>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--green)">Better global choice</h4>
+      <pre style="font-size:12px">Split B
+Gain = 0.20 (lower ✗)
+
+Children: Gini 0.0 / 0.2
+→ one child already pure
+→ finishes at depth 2</pre>
+    </div>
+  </div>
+
+  <div class="callout insight">This greedy limitation is exactly why Random Forest and Boosting exist — they compensate by building many trees and combining them.</div>
+
+  <h3>min_samples_split vs min_samples_leaf</h3>
+  <pre><span class="c"># min_samples_split — checks the PARENT</span>
+<span class="c"># "Don't attempt a split if this node has fewer than N samples"</span>
+min_samples_split = 20
+<span class="c"># → only gates whether to try splitting</span>
+
+<span class="c"># min_samples_leaf — checks BOTH CHILDREN after every candidate split</span>
+<span class="c"># "Reject this split if it would create a child with fewer than N samples"</span>
+min_samples_leaf = 5
+<span class="c"># → guarantees EVERY node in the entire tree has at least 5 samples</span>
+<span class="c"># → more direct, more useful in practice</span></pre>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 4: OVERFITTING -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="overfitting">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Overfitting — High Variance, Low Bias</h2>
+  </div>
+
+  <p>A fully grown tree (no stopping conditions) splits until every leaf has exactly one sample or is pure. Training accuracy = 100%. But it has <strong>memorised</strong> the training data, not learned the pattern.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tree depth</th><th>Train acc</th><th>Test acc</th><th>Problem</th></tr></thead>
+      <tbody>
+        <tr><td>depth = 1</td><td>65%</td><td>63%</td><td>Underfit — misses pattern</td></tr>
+        <tr><td>depth = 4</td><td>88%</td><td>85%</td><td style="color:var(--green)">Good generalisation</td></tr>
+        <tr><td>depth = 20</td><td>100%</td><td>61%</td><td>Overfit — memorised noise</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Bias vs Variance — Precise Definitions</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4 style="color:var(--coral)">High Bias</h4>
+      <p><strong>Too simple.</strong> Model is systematically wrong — misses the real pattern regardless of which training data you use. Underfitting.</p>
+      <p>Example: depth=1 stump trying to solve a complex problem.</p>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--purple)">High Variance</h4>
+      <p><strong>Too sensitive.</strong> Model's predictions change dramatically when trained on slightly different data. Overfitting.</p>
+      <p>Example: depth=20 tree — small data changes produce completely different trees.</p>
+    </div>
+  </div>
+
+  <div class="formula">
+    <span class="label">The Tradeoff for Decision Trees</span>
+    Shallow tree  →  High Bias,    Low Variance   (underfits)
+    Deep tree     →  Low Bias,     High Variance  (overfits)
+    Tuned tree    →  Balanced Bias, Balanced Variance  ✓
+  </div>
+
+  <div class="callout interview">Random Forest fixes high variance by averaging many deep trees — errors cancel out. Boosting (GBM, XGBoost) fixes high bias by sequentially adding shallow trees — each one reduces bias a little.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 5: PRUNING -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="pruning">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Pruning — Pre and Post</h2>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>Pre-Pruning</h4>
+      <p>Stop the tree from growing too large <strong>during construction</strong> using stopping conditions.</p>
+      <p>Fast but blind — stops splits without knowing if they'd be useful deeper down.</p>
+      <p>Params: <code>max_depth</code>, <code>min_samples_leaf</code>, <code>min_impurity_decrease</code></p>
+    </div>
+    <div class="card">
+      <h4>Post-Pruning</h4>
+      <p>Grow the <strong>full tree first</strong>, then remove branches that don't add real value.</p>
+      <p>More principled — you can see the whole tree before deciding what to cut.</p>
+      <p>Params: <code>ccp_alpha</code></p>
+    </div>
+  </div>
+
+  <h3>Cost-Complexity Pruning — Full Worked Example</h3>
+  <p>Post-pruning uses a penalty parameter <strong>alpha (α)</strong> — also called <code>ccp_alpha</code> in sklearn.</p>
+
+  <div class="formula">
+    <span class="label">Cost Formula</span>
+    Cost(subtree)  = weighted impurity of its leaves  +  α × number of leaves
+    Cost(as leaf)  = impurity of the node itself      +  α × 1
+
+    Prune when:  Cost(as leaf) ≤ Cost(subtree)
+  </div>
+
+  <p>Let's use our loan approval tree. Full tree has 4 leaves:</p>
+
+  <div class="tree-diagram">
+<span class="node-root">Root (100 samples, Gini=0.50)</span>
+<span class="branch">├── </span><span class="node-internal">Income &gt; 40k?  (40 samples, Gini=0.42)</span>
+<span class="branch">│   ├── No  →  </span><span class="node-leaf-no">Leaf A: 20 Deny, 5 Approve  — Gini=0.32  (25 samples)</span>
+<span class="branch">│   └── Yes →  </span><span class="node-leaf-yes">Leaf B: 14 Approve, 1 Deny  — Gini=0.12  (15 samples)</span>
+<span class="branch">└── </span><span class="node-internal">Age &gt; 30?     (60 samples, Gini=0.44)</span>
+<span class="branch">    ├── No  →  </span><span class="node-leaf-yes">Leaf C: 18 Approve, 2 Deny  — Gini=0.16  (20 samples)</span>
+<span class="branch">    └── Yes →  </span><span class="node-leaf-no">Leaf D: 28 Deny, 12 Approve — Gini=0.41  (40 samples)</span>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-title">Should we prune the LEFT subtree (Income &gt; 40k)?</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p>Cost of keeping the subtree (2 leaves):</p>
+        <pre>Weighted impurity = (25/40)×0.32 + (15/40)×0.12
+                 = 0.200 + 0.045 = 0.245
+
+Cost(subtree) = 0.245 + α × 2</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p>Cost if we collapse into one leaf (40 samples: 34 Deny, 6 Approve):</p>
+        <pre>Gini(collapsed) = 1 − ((34/40)² + (6/40)²)
+               = 1 − (0.722 + 0.023) = 0.256
+
+Cost(collapsed) = 0.256 + α × 1</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p>Find the alpha threshold for pruning:</p>
+        <pre>Prune when: Cost(collapsed) ≤ Cost(subtree)
+0.256 + α  ≤  0.245 + 2α
+0.256 − 0.245  ≤  2α − α
+<span class="g">0.011  ≤  α</span>
+
+→ If α ≥ 0.011, prune the left subtree</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <p>Effective alpha (the exact pruning threshold):</p>
+        <pre>Effective α = (impurity increase) / (leaves removed)
+           = (0.256 − 0.245) / (2 − 1)
+           = 0.011 / 1
+           = <span class="g">0.011</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-title">Should we prune the RIGHT subtree (Age &gt; 30)?</div>
+    <pre>Weighted impurity = (20/60)×0.16 + (40/60)×0.41
+                 = 0.053 + 0.273 = 0.326
+
+Collapsed leaf (46 Deny, 14 Approve, 60 samples):
+Gini = 1 − ((46/60)² + (14/60)²) = 1 − (0.588 + 0.054) = 0.358
+
+Effective α = (0.358 − 0.326) / (2 − 1) = <span class="g">0.032</span>
+→ If α ≥ 0.032, prune the right subtree too</pre>
+  </div>
+
+  <h3>Full Pruning Story</h3>
+  <div class="formula">
+    α = 0.000  →  no pruning — full tree (4 leaves)
+    α = 0.011  →  left subtree pruned (3 leaves)
+    α = 0.032  →  right subtree pruned (2 leaves)
+    α = large  →  everything pruned — single leaf (predict majority class always)
+  </div>
+
+  <div class="callout warning">Very large ccp_alpha collapses the tree to a single leaf that always predicts the majority class. Completely underfit — useless model.</div>
+
+  <div class="callout insight">XGBoost's γ (gamma) parameter does the exact same thing — it is the effective alpha threshold. Any leaf whose gain &lt; γ gets pruned. This is why XGBoost's pruning is mathematically principled rather than just a crude depth limit.</div>
+
+  <h3>Finding the Right Alpha in Practice</h3>
+  <pre><span class="k">from</span> sklearn.tree <span class="k">import</span> DecisionTreeClassifier
+<span class="k">from</span> sklearn.model_selection <span class="k">import</span> cross_val_score
+
+clf = DecisionTreeClassifier()
+path = clf.cost_complexity_pruning_path(X_train, y_train)
+alphas = path.ccp_alphas  <span class="c"># All candidate alpha values</span>
+
+best_alpha, best_score = <span class="v">0</span>, <span class="v">0</span>
+<span class="k">for</span> alpha <span class="k">in</span> alphas:
+    clf = DecisionTreeClassifier(ccp_alpha=alpha)
+    score = cross_val_score(clf, X_train, y_train, cv=<span class="v">5</span>).mean()
+    <span class="k">if</span> score > best_score:
+        best_score, best_alpha = score, alpha
+
+final_tree = DecisionTreeClassifier(ccp_alpha=best_alpha)</pre>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 6: REGRESSION TREES -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="regression">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">Regression Trees</h2>
+  </div>
+
+  <p>Classification trees predict a class. Regression trees predict a <strong>number</strong>. One change — three consequences.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>Classification Tree</th><th>Regression Tree</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Leaf stores</strong></td><td>Majority class</td><td>Mean of target values</td></tr>
+        <tr><td><strong>Split criterion</strong></td><td>Gini / Entropy</td><td>MSE (or MAE)</td></tr>
+        <tr><td><strong>Error metric</strong></td><td>Accuracy, F1</td><td>RMSE, MAE, R²</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>MSE Split Criterion</h3>
+
+  <div class="formula">
+    <span class="label">Mean Squared Error</span>
+    MSE = (1/n) × Σ(yᵢ − ȳ)²
+    where ȳ = mean of target values in the node
+
+    Gain = MSE(parent) − weighted MSE(children)
+  </div>
+
+  <div class="example-box">
+    <div class="ex-title">Worked Example — House Price Prediction</div>
+    <p>A node has 6 houses:</p>
+    <pre>Size (sqft):  800   1000  1200  1500  1800  2000
+Price (lakh):  40     50    55    80    85    90</pre>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p>Current node MSE:</p>
+        <pre>Mean = (40+50+55+80+85+90)/6 = 66.67
+
+MSE = ((40−66.67)² + (50−66.67)² + (55−66.67)²
+     + (80−66.67)² + (85−66.67)² + (90−66.67)²) / 6
+    = (711 + 278 + 136 + 178 + 336 + 544) / 6
+    = <span class="n">363.8</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p>Try split: <strong>Size &gt; 1200</strong></p>
+        <pre>Left  (≤1200): [40, 50, 55]  →  mean = 48.3
+Right (>1200): [80, 85, 90]  →  mean = 85.0
+
+MSE(left)  = ((40−48.3)² + (50−48.3)² + (55−48.3)²) / 3
+           = (68.9 + 2.9 + 44.9) / 3 = <span class="n">38.9</span>
+
+MSE(right) = ((80−85)² + (85−85)² + (90−85)²) / 3
+           = (25 + 0 + 25) / 3 = <span class="n">16.7</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p>Weighted MSE and Gain:</p>
+        <pre>Weighted MSE = (3/6)×38.9 + (3/6)×16.7
+            = 19.45 + 8.35 = 27.8
+
+Gain = 363.8 − 27.8 = <span class="g">336.0</span></pre>
+      </div>
+    </div>
+    <div class="callout insight" style="margin-top:12px">The tree tries every feature and threshold, picks Size &gt; 1200 if this is the highest gain. Left leaf predicts <strong>48.3</strong>, right leaf predicts <strong>85.0</strong>.</div>
+  </div>
+
+  <h3>Why XGBoost Always Uses Regression Trees</h3>
+  <p>XGBoost uses regression trees internally even for classification problems. Why?</p>
+  <pre><span class="c"># In Gradient Boosting, each tree fits RESIDUALS</span>
+Residuals = actual − predicted_probability
+         = [+0.40, −0.60, +0.40, ...]   ← continuous numbers!
+
+<span class="c"># You can't fit continuous numbers with a classification tree</span>
+<span class="c"># So every internal tree in GBM/XGBoost is a REGRESSION tree</span>
+<span class="c"># Even when predicting Approve/Deny</span></pre>
+
+  <div class="callout interview">XGBoost uses regression trees internally even for classification — because each tree fits residuals (continuous values), not class labels. This is a strong interview answer that most candidates miss.</div>
+
+  <h3>Regression Trees Approximate Curves as Staircases</h3>
+  <p>A regression tree always produces a staircase — constant predictions within each leaf region. More depth = more steps = closer to the true curve. Too many steps = overfitting noise.</p>
+  <pre>True curve: smooth continuous function y = f(x)
+
+Depth 1 (2 leaves):   ─────┐
+                            └─────────       rough staircase
+
+Depth 3 (8 leaves):   ──┐
+                         └──┐
+                             └──┐
+                                 └──────     closer approximation
+
+Depth ∞:              perfect fit of training data → overfits</pre>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 7: HYPERPARAMETERS -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="hyperparams">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Key Hyperparameters</h2>
+  </div>
+
+  <h3>Group 1 — Tree Size (most important)</h3>
+  <div class="param-row">
+    <div class="param-name">max_depth</div>
+    <div class="param-desc">Maximum number of levels in the tree. Single biggest lever against overfitting. Try 3, 5, 7 with cross-validation. Every extra level doubles potential leaves.</div>
+    <div class="param-default">default: None</div>
+  </div>
+  <div class="param-row">
+    <div class="param-name">min_samples_split</div>
+    <div class="param-desc">Minimum samples in a node before attempting a split. Checks the parent. Gates whether to try splitting at all.</div>
+    <div class="param-default">default: 2</div>
+  </div>
+  <div class="param-row">
+    <div class="param-name">min_samples_leaf</div>
+    <div class="param-desc">Minimum samples that must land in each child after a split. More powerful than min_samples_split — guarantees every node in the entire tree has at least N samples. Tune this before min_samples_split.</div>
+    <div class="param-default">default: 1</div>
+  </div>
+
+  <h3>Group 2 — Split Quality</h3>
+  <div class="param-row">
+    <div class="param-name">criterion</div>
+    <div class="param-desc">Which impurity measure to use. Classification: "gini" (default) or "entropy". Regression: "squared_error" (default) or "absolute_error" (robust to outliers). Practical difference is usually small.</div>
+    <div class="param-default">default: "gini"</div>
+  </div>
+  <div class="param-row">
+    <div class="param-name">min_impurity_decrease</div>
+    <div class="param-desc">Only split if gain ≥ this value. Filters out technically positive but meaningless splits. Directly controls the noise threshold for splitting.</div>
+    <div class="param-default">default: 0.0</div>
+  </div>
+  <div class="param-row">
+    <div class="param-name">max_leaf_nodes</div>
+    <div class="param-desc">Hard cap on total number of leaves. sklearn grows the best leaves first (highest gain) until limit hit. Alternative way to control complexity instead of max_depth.</div>
+    <div class="param-default">default: None</div>
+  </div>
+
+  <h3>Group 3 — Post-Pruning</h3>
+  <div class="param-row">
+    <div class="param-name">ccp_alpha</div>
+    <div class="param-desc">Complexity penalty α for cost-complexity pruning. 0 = no pruning (full tree). Large = aggressive pruning (single leaf). Find optimal value using cross-validation over pruning path.</div>
+    <div class="param-default">default: 0.0</div>
+  </div>
+
+  <h3>Tuning Order for Interviews</h3>
+  <pre><span class="n">1st</span>  max_depth          → biggest single lever, start here, try [3, 5, 7, 10]
+<span class="n">2nd</span>  min_samples_leaf   → prevents fragile tiny leaves, try [5, 10, 20]
+<span class="n">3rd</span>  criterion          → gini vs entropy, quick test, rarely matters
+<span class="n">4th</span>  ccp_alpha          → best results, needs full cross-validation sweep</pre>
+
+  <h3>Carries Forward into Ensembles</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Decision Tree param</th><th>Random Forest</th><th>XGBoost equivalent</th></tr></thead>
+      <tbody>
+        <tr><td><code>max_depth</code></td><td><code>max_depth</code></td><td><code>max_depth</code></td></tr>
+        <tr><td><code>min_samples_leaf</code></td><td><code>min_samples_leaf</code></td><td><code>min_child_weight</code></td></tr>
+        <tr><td><code>criterion</code></td><td><code>criterion</code></td><td><code>objective</code></td></tr>
+        <tr><td><code>ccp_alpha</code></td><td><code>ccp_alpha</code></td><td><code>gamma (γ)</code></td></tr>
+        <tr><td><code>min_impurity_decrease</code></td><td><code>min_impurity_decrease</code></td><td><code>gamma (γ)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 8: FEATURE IMPORTANCE -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="feature-importance">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2 class="section-title">Feature Importance</h2>
+  </div>
+
+  <p>Training a decision tree automatically tells you which features mattered most. sklearn calls this <strong>Mean Decrease in Impurity (MDI)</strong> — also known as Gini importance.</p>
+
+  <h3>How it's Calculated</h3>
+  <p>For each feature, sum up the weighted impurity decrease across every node where that feature was used as the split:</p>
+
+  <div class="formula">
+    <span class="label">Formula</span>
+    Importance(feature f) = Σ (nₜ/N) × (impurity(t) − (n_left/nₜ)×impurity(left) − (n_right/nₜ)×impurity(right))
+                            for every node t where feature f was used
+
+    Then normalise so all importances sum to 1.0
+  </div>
+
+  <p>Breaking it down: <code>(nₜ/N)</code> is the proportion of samples reaching node t. The rest is the impurity reduction from the split. <strong>More samples × bigger impurity reduction = higher importance.</strong></p>
+
+  <div class="example-box">
+    <div class="ex-title">Worked Example — Feature Importance Calculation</div>
+    <p>Our loan approval tree (100 total samples):</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p><strong>Root node</strong> — Credit Score &gt; 700 (100 samples, Gini=0.50):</p>
+        <pre>Left child:  40 samples, Gini = 0.42
+Right child: 60 samples, Gini = 0.44
+
+Weighted child impurity = (40/100)×0.42 + (60/100)×0.44
+                       = 0.168 + 0.264 = 0.432
+
+Impurity reduction = 0.50 − 0.432 = 0.068
+Weighted by samples = (100/100) × 0.068 = <span class="n">0.068</span>
+
+Credit Score gets += 0.068</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p><strong>Left node</strong> — Income &gt; 40k (40 samples, Gini=0.42):</p>
+        <pre>Left child:  25 samples, Gini = 0.32
+Right child: 15 samples, Gini = 0.12
+
+Weighted child impurity = (25/40)×0.32 + (15/40)×0.12
+                       = 0.200 + 0.045 = 0.245
+
+Impurity reduction = 0.42 − 0.245 = 0.175
+Weighted by samples = (40/100) × 0.175 = <span class="n">0.070</span>
+
+Income gets += 0.070</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p><strong>Right node</strong> — Age &gt; 30 (60 samples, Gini=0.44):</p>
+        <pre>Left child:  20 samples, Gini = 0.16
+Right child: 40 samples, Gini = 0.41
+
+Weighted child impurity = (20/60)×0.16 + (40/60)×0.41
+                       = 0.053 + 0.273 = 0.326
+
+Impurity reduction = 0.44 − 0.326 = 0.114
+Weighted by samples = (60/100) × 0.114 = <span class="n">0.068</span>
+
+Age gets += 0.068</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <p>Raw importances before normalisation:</p>
+        <pre>Credit Score:  0.068
+Income:        0.070
+Age:           0.068
+               ─────
+Total:         0.206</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <p>Normalise to sum to 1.0:</p>
+        <pre>Credit Score:  0.068 / 0.206 = <span class="g">0.330</span>  (33.0%)
+Income:        0.070 / 0.206 = <span class="g">0.340</span>  (34.0%)
+Age:           0.068 / 0.206 = <span class="g">0.330</span>  (33.0%)
+                               ─────
+                               1.000  ✓</pre>
+      </div>
+    </div>
+  </div>
+
+  <p>Visualised:</p>
+  <div class="example-box" style="padding:20px 24px">
+    <div class="fi-bar-row">
+      <div class="fi-label">Income</div>
+      <div class="fi-bar-bg"><div class="fi-bar-fill" style="width:34%"></div></div>
+      <div class="fi-val">0.340</div>
+    </div>
+    <div class="fi-bar-row">
+      <div class="fi-label">Credit Score</div>
+      <div class="fi-bar-bg"><div class="fi-bar-fill" style="width:33%"></div></div>
+      <div class="fi-val">0.330</div>
+    </div>
+    <div class="fi-bar-row">
+      <div class="fi-label">Age</div>
+      <div class="fi-bar-bg"><div class="fi-bar-fill" style="width:33%"></div></div>
+      <div class="fi-val">0.330</div>
+    </div>
+  </div>
+
+  <h3>How to Get Feature Importances in sklearn</h3>
+  <pre><span class="k">from</span> sklearn.tree <span class="k">import</span> DecisionTreeClassifier
+<span class="k">import</span> pandas <span class="k">as</span> pd
+
+clf = DecisionTreeClassifier()
+clf.fit(X_train, y_train)
+
+<span class="c"># Raw importances</span>
+importances = clf.feature_importances_  <span class="c"># array, sums to 1.0</span>
+
+<span class="c"># As a sorted DataFrame</span>
+fi = pd.DataFrame({
+    <span class="v">'feature'</span>: X_train.columns,
+    <span class="v">'importance'</span>: importances
+}).sort_values(<span class="v">'importance'</span>, ascending=<span class="k">False</span>)
+
+print(fi)</pre>
+
+  <h3>Important Caveats</h3>
+  <div class="callout warning">MDI feature importance has a known bias toward <strong>high-cardinality features</strong> — features with many unique values (like IDs or zip codes) get artificially high importance because they have more thresholds to try. Use <strong>permutation importance</strong> for a more reliable estimate.</div>
+
+  <div class="callout warning">A single tree's feature importances are <strong>noisy and unstable</strong> — a slightly different training set can give very different importances. Always prefer Random Forest's feature importances (averaged over hundreds of trees) for reliable feature selection.</div>
+
+  <h3>Permutation Importance — More Reliable Alternative</h3>
+  <p>Randomly shuffle one feature's values and measure how much the model's accuracy drops. Big drop = important feature.</p>
+  <pre><span class="k">from</span> sklearn.inspection <span class="k">import</span> permutation_importance
+
+result = permutation_importance(clf, X_test, y_test, n_repeats=<span class="v">30</span>)
+<span class="c"># Uses TEST data → measures real predictive value, not just training split gain</span></pre>
+
+  <div class="callout interview">Feature importance is a free byproduct of training a decision tree. But for real feature selection, use Random Forest importances (averaged) or permutation importance (unbiased). Single tree importances are unreliable due to high variance.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 9: SUMMARY -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="summary">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2 class="section-title">Complete Summary</h2>
+  </div>
+
+  <h3>Advantages vs Disadvantages</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4 style="color:var(--green)">Advantages</h4>
+      <ul>
+        <li>Interpretable — every prediction is a path of rules</li>
+        <li>Handles non-linear relationships</li>
+        <li>Works for classification and regression</li>
+        <li>No normalisation needed — splits are threshold-based</li>
+        <li>Handles mixed feature types (numerical + categorical)</li>
+        <li>Feature importance for free</li>
+        <li>Handles missing values better than most models</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--coral)">Disadvantages</h4>
+      <ul>
+        <li>Overfits easily without pruning</li>
+        <li>High variance — small data changes = different tree</li>
+        <li>Feature dominance — one strong feature overshadows others</li>
+        <li>Axis-aligned splits only — diagonal boundaries need many splits</li>
+        <li>Poor at simple linear relationships</li>
+        <li>Unstable feature importances from a single tree</li>
+        <li>Almost always beaten by ensembles in practice</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Key Formulas at a Glance</h3>
+  <div class="formula">
+    <span class="label">Gini Impurity</span>
+    Gini = 1 − Σ(pᵢ²)                           range: [0, 0.5]
+
+    <span class="label">Entropy</span>
+    Entropy = −Σ(pᵢ × log₂(pᵢ))                 range: [0, 1]
+
+    <span class="label">Information Gain</span>
+    Gain = Impurity(parent) − weighted Impurity(children)
+    Weighted = (n_left/n) × Impurity(left) + (n_right/n) × Impurity(right)
+
+    <span class="label">MSE (Regression)</span>
+    MSE = (1/n) × Σ(yᵢ − ȳ)²
+
+    <span class="label">Feature Importance (MDI)</span>
+    Importance(f) = Σ (nₜ/N) × ImpurityReduction(t)   [normalised to sum 1]
+
+    <span class="label">Cost-Complexity Pruning</span>
+    Cost(subtree) = weighted leaf impurity + α × num_leaves
+    Effective α   = impurity increase / leaves removed
+  </div>
+
+  <h3>The One-Line Interview Answers</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Question</th><th>One-line answer</th></tr></thead>
+      <tbody>
+        <tr><td>How does a decision tree split?</td><td>Exhaustive search over all features and thresholds, picks the split with highest Information Gain.</td></tr>
+        <tr><td>Gini vs Entropy?</td><td>Different impurity rulers. Gini is faster (no log). Practical difference is negligible.</td></tr>
+        <tr><td>Why does a deep tree overfit?</td><td>It memorises training data — each leaf has too few samples to represent a real pattern.</td></tr>
+        <tr><td>Pre vs post pruning?</td><td>Pre-pruning stops early using hyperparameters. Post-pruning grows full tree then removes low-value branches using ccp_alpha.</td></tr>
+        <tr><td>Why are regression trees used in XGBoost?</td><td>Each tree fits residuals, which are continuous values — not classes.</td></tr>
+        <tr><td>What is feature importance?</td><td>Weighted sum of impurity reductions across all nodes where each feature was used as a split.</td></tr>
+        <tr><td>Decision tree vs Random Forest?</td><td>Decision trees are rarely used alone — Random Forest fixes variance by averaging many diverse trees.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout interview">Decision trees are rarely used alone in practice — their real value is as the building block for Random Forest and XGBoost, which fix most disadvantages while keeping the core strengths of interpretability and non-linearity.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 10: INTERVIEW QUESTIONS -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="section" id="interview-qs">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2 class="section-title">Interview Questions — 30 Questions Across 3 Levels</h2>
+  </div>
+
+  <p>Each question includes the <strong>must-have points</strong> an interviewer expects. Expand each answer only after you've attempted it yourself.</p>
+
+  <!-- ── EASY ── -->
+  <h3 style="color:var(--green); margin-bottom:20px;">🟢 Easy — Expect These in Every Interview</h3>
+
+  <!-- Q1 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q1</span>
+      <span class="iq-text">What is a decision tree and how does it make predictions?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Flowchart of yes/no questions — each internal node splits on one feature and one threshold</li>
+          <li>New sample is routed from root to leaf by answering each question</li>
+          <li>Leaf stores <strong>majority class</strong> (classification) or <strong>mean of targets</strong> (regression)</li>
+          <li>Internal nodes never store predictions — only routing logic</li>
+          <li>Always reaches exactly one leaf per prediction</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"A decision tree is a flowchart of yes/no questions. Each internal node asks one question about one feature — e.g. 'Credit Score > 700?' — and routes the sample left or right. This continues until the sample reaches a leaf node, which stores the prediction: majority class for classification or mean of target values for regression. Internal nodes contain only the split condition — no prediction is made until a leaf is reached."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q2 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q2</span>
+      <span class="iq-text">What is Gini impurity? How is it calculated?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Formula: <code>Gini = 1 − Σ(pᵢ²)</code></li>
+          <li>Measures probability that two randomly picked samples belong to different classes</li>
+          <li>Range: 0 (perfectly pure) to 0.5 (maximally mixed, 50/50)</li>
+          <li>Lower is better — purer node</li>
+          <li>Numerical example: 4 cats, 6 dogs → Gini = 1 − (0.4² + 0.6²) = 0.48</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <pre>Node with 4 cats, 6 dogs (10 samples):
+p(cat) = 0.4,  p(dog) = 0.6
+
+Gini = 1 − (0.4² + 0.6²)
+     = 1 − (0.16 + 0.36) = 0.48
+
+Pure node (all dogs):
+Gini = 1 − (1.0²) = 0.0   ← perfectly pure</pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q3 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q3</span>
+      <span class="iq-text">What is Information Gain and how does the tree use it?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Formula: <code>Gain = Impurity(parent) − weighted Impurity(children)</code></li>
+          <li>Weighted by proportion of samples: <code>(n_left/n) × Impurity(left) + (n_right/n) × Impurity(right)</code></li>
+          <li>Tree tries every feature and every threshold, picks the split with <strong>highest gain</strong></li>
+          <li>Gini and Entropy are just different rulers for measuring impurity — both used to compute gain</li>
+          <li>Weights ensure a large impure child hurts more than a small impure child</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Information Gain measures how much a split reduced impurity. The tree computes it for every (feature, threshold) combination and picks the highest. The children's impurity is weighted by sample proportion — a large impure child hurts the gain more than a small impure child, which is the right behavior. Gini and Entropy are just different formulas for measuring the impurity — Information Gain is the decision on top of whichever you choose."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q4 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q4</span>
+      <span class="iq-text">What is the difference between Gini impurity and Entropy?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Both measure node impurity — they are different rulers, not alternatives to Information Gain</li>
+          <li>Gini is faster — no logarithm calculation</li>
+          <li>Entropy tends to give more balanced splits; Gini tends to isolate the largest class</li>
+          <li>Practical difference is usually negligible — treat as a hyperparameter</li>
+          <li>sklearn default is Gini; set <code>criterion="entropy"</code> for entropy</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Both measure how mixed a node is. Gini is computationally cheaper since it avoids a log calculation. Entropy comes from information theory and can produce slightly more balanced splits. In practice the difference is negligible — I'd treat criterion as a hyperparameter and do a quick cross-validation comparison. The default Gini is a fine starting point."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q5 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q5</span>
+      <span class="iq-text">What is overfitting in decision trees and how do you fix it?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>A fully grown tree (max_depth=None) memorises training data — 100% train accuracy, poor test accuracy</li>
+          <li>Deep trees have <strong>low bias, high variance</strong></li>
+          <li>Fix with pre-pruning: <code>max_depth</code>, <code>min_samples_leaf</code>, <code>min_impurity_decrease</code></li>
+          <li>Fix with post-pruning: <code>ccp_alpha</code> (cost-complexity pruning)</li>
+          <li>Tuning order: max_depth first, then min_samples_leaf, then ccp_alpha</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"A deep tree splits until every leaf is pure or has one sample — it memorises noise in the training data. I'd fix it in order: first reduce max_depth (biggest single lever), then increase min_samples_leaf to prevent fragile tiny leaves, then use ccp_alpha with cross-validation for cost-complexity pruning if I need the best possible generalization."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q6 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q6</span>
+      <span class="iq-text">What is the difference between min_samples_split and min_samples_leaf?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li><code>min_samples_split</code> — checks the parent: "don't attempt a split if fewer than N samples in this node"</li>
+          <li><code>min_samples_leaf</code> — checks both children: "reject this split if it would create a child with fewer than N samples"</li>
+          <li>min_samples_leaf is more powerful — guarantees every single node in the entire tree has at least N samples</li>
+          <li>min_samples_leaf is checked at every node at every depth, not just the final leaves</li>
+          <li>In practice: tune min_samples_leaf first — it's more direct and reliable</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"min_samples_split gates whether to attempt a split on the parent node. min_samples_leaf rejects any split that would create a child node smaller than N — it's checked at every level, not just final leaves. min_samples_leaf is more useful in practice because it gives a global guarantee: no node anywhere in the tree will have fewer than N samples, making every prediction more statistically reliable."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q7 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q7</span>
+      <span class="iq-text">What does max_depth=None mean? Why is it usually a bad idea?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>max_depth=None means no limit — tree grows until all leaves are pure or have fewer than min_samples_split samples</li>
+          <li>Can result in leaves with a single sample — memorising noise</li>
+          <li>Training accuracy = 100% but test accuracy collapses</li>
+          <li>High variance — the tree has fit to specific quirks of the training data</li>
+          <li>Good starting range: max_depth = 3 to 7 for most problems</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"max_depth=None lets the tree grow until every leaf is pure or too small to split further. This almost always produces a tree that memorises the training data — 100% train accuracy and poor test accuracy. Each level doubles the potential number of leaves, so depth 20 can have over a million leaves on a small dataset. I'd always set a max_depth as a starting point and tune from there."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q8 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q8</span>
+      <span class="iq-text">What is a decision stump and when would you use one?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Decision stump = decision tree with max_depth=1 — one split, two leaves</li>
+          <li>Extremely weak learner — barely better than random guessing</li>
+          <li>Very high bias, very low variance</li>
+          <li>Used deliberately in <strong>AdaBoost</strong> — hundreds of stumps, each focusing on samples previous stumps got wrong</li>
+          <li>Each stump captures one small signal — hundreds together form a strong model</li>
+          <li>This is the formal definition of a "weak learner" in boosting theory</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"A decision stump has max_depth=1 — one question, two answers. Alone it's nearly useless — high bias, can only draw one axis-aligned boundary. But it's the canonical weak learner in AdaBoost. AdaBoost chains hundreds of stumps, each one focusing on the mistakes of the previous ones. Individually weak, collectively strong. The low variance of each stump means the ensemble doesn't overfit even with hundreds of them."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- ── MEDIUM ── -->
+  <h3 style="color:var(--amber); margin-top:48px; margin-bottom:20px;">🟡 Medium — Expect These for Most ML Roles</h3>
+
+  <!-- Q9 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q9</span>
+      <span class="iq-text">Why is the decision tree algorithm called "greedy"? What is the consequence?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>At each node, picks the split with highest Information Gain right now — no lookahead</li>
+          <li>Has no idea whether a lower-gain split today enables better splits two levels down</li>
+          <li>Result: the tree is locally optimal at each node but may not be globally optimal overall</li>
+          <li>Consequence: different splits can lead to shallower, cleaner trees that the greedy algorithm misses</li>
+          <li>This is a core reason ensembles (Random Forest, Boosting) outperform single trees</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Greedy means the algorithm picks the best split available right now without considering future consequences. A split with gain 0.30 is chosen over one with gain 0.20 — but the 0.20 split might immediately create a pure child and finish in depth 2, while the 0.30 split needs depth 4 to get the same result. The tree can't know this without exhaustive lookahead, which is computationally infeasible. This is why Random Forest and Boosting exist — they compensate for this limitation."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q10 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q10</span>
+      <span class="iq-text">Explain bias vs variance tradeoff in the context of decision trees.</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li><strong>Bias</strong> = how systematically wrong the model is — misses the real pattern (underfitting)</li>
+          <li><strong>Variance</strong> = how much predictions change when trained on different data (overfitting)</li>
+          <li>Shallow tree → high bias, low variance (too simple, misses pattern)</li>
+          <li>Deep tree → low bias, high variance (flexible but memorises noise)</li>
+          <li>Connection to ensembles: Random Forest reduces variance by averaging; Boosting reduces bias by adding weak learners</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"A shallow tree has high bias — it's too rigid to capture the real pattern, making systematic errors regardless of which training data it sees. A deep tree has low bias but high variance — it's flexible enough to fit any pattern but so flexible it also fits the noise, so small changes in training data produce very different trees. This is why Random Forest averages many deep low-bias trees to reduce variance, while Boosting chains many shallow high-bias trees to reduce bias."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q11 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q11</span>
+      <span class="iq-text">What is cost-complexity pruning? How does ccp_alpha work?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Post-pruning — grow full tree first, then remove low-value branches</li>
+          <li>Formula: <code>Cost = weighted leaf impurity + α × number of leaves</code></li>
+          <li>Prune a subtree when collapsing it to one leaf reduces or equals the cost</li>
+          <li>Effective alpha = impurity increase / leaves removed — the exact α at which a subtree gets pruned</li>
+          <li>α=0 → no pruning; large α → collapses to single leaf (predict majority always)</li>
+          <li>Find best α using cross-validation over the pruning path</li>
+          <li>Same concept as XGBoost's gamma (γ) parameter</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Cost-complexity pruning grows the full tree first, then iteratively removes the weakest subtree — the one where pruning causes the smallest impurity increase per leaf removed. The alpha parameter controls how aggressively to penalize extra leaves. Each subtree has an 'effective alpha' — the exact threshold at which pruning becomes worthwhile. You find the best alpha via cross-validation. This is also what XGBoost's gamma does — any leaf whose gain is below gamma gets pruned."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q12 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q12</span>
+      <span class="iq-text">How does a regression tree differ from a classification tree?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Leaf stores <strong>mean of target values</strong> (not majority class)</li>
+          <li>Split criterion is <strong>MSE</strong> not Gini/Entropy — minimises <code>(1/n)×Σ(yᵢ−ȳ)²</code></li>
+          <li>Gain = MSE(parent) − weighted MSE(children)</li>
+          <li>Output is always a staircase — constant prediction per leaf region</li>
+          <li>More depth = more steps = closer approximation of true curve</li>
+          <li>Gini/Entropy can't be used — they require class probabilities, not continuous values</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Three differences: the leaf stores the mean of targets instead of majority class; splits minimize MSE reduction instead of Gini/Entropy (since there are no class probabilities for continuous targets); and the error metric is RMSE/MAE instead of accuracy. The prediction is always a staircase — constant within each leaf region. More depth means more steps and a closer approximation of the true function, but too many steps overfits noise."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q13 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q13</span>
+      <span class="iq-text">What are the advantages and disadvantages of decision trees?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li><strong>Advantages:</strong> interpretable (each prediction is a path of rules), handles non-linear relationships, no normalisation needed, works for both classification and regression, handles mixed feature types, provides feature importance</li>
+          <li><strong>Disadvantages:</strong> overfits easily, high variance (unstable — small data changes = different tree), feature dominance, axis-aligned splits only (staircase approximation of diagonal boundaries), poor at simple linear relationships</li>
+          <li>Key insight: decision trees are rarely used alone — their value is as a building block for ensembles</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Main advantages: interpretable (you can trace any prediction as a sequence of if-else rules), handles non-linearity without feature engineering, no need to normalise features, works for both classification and regression. Main disadvantages: overfits easily needing careful pruning, high variance (small data changes produce very different trees), can't draw diagonal boundaries without many splits, and tends to be dominated by the strongest feature. In practice, I'd almost always use Random Forest or XGBoost over a single tree."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q14 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q14</span>
+      <span class="iq-text">How is feature importance calculated in a decision tree?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Method is called Mean Decrease in Impurity (MDI) or Gini importance</li>
+          <li>Formula: for each feature, sum <code>(nₜ/N) × ImpurityReduction(t)</code> across all nodes where that feature was used</li>
+          <li>Weighted by proportion of samples reaching each node — nodes deeper in tree with fewer samples contribute less</li>
+          <li>Normalised to sum to 1.0</li>
+          <li>Caveat: biased toward high-cardinality features (many unique values)</li>
+          <li>Single tree importances are noisy — prefer Random Forest importances or permutation importance</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"For each feature, sum the weighted impurity reduction across every node where that feature was used as the split. Weighted by the proportion of samples reaching that node — so a root-level split matters more than a deep split on few samples. Normalise to sum to 1. The caveat is MDI is biased toward high-cardinality features and is noisy from a single tree. For real feature selection I'd use Random Forest importances averaged over hundreds of trees, or permutation importance which measures actual predictive value on test data."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q15 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q15</span>
+      <span class="iq-text">Can the same feature appear multiple times in one root-to-leaf path? Does it make sense?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Yes — a feature can appear multiple times in the same path</li>
+          <li>Only makes sense if the threshold is different each time (further refinement)</li>
+          <li>Redundant threshold (e.g. Credit Score > 600 after Credit Score > 700) would have gain = 0, so the tree never actually does it</li>
+          <li>Consequence: a dominant feature can appear at every level, overshadowing others</li>
+          <li>Random Forest's max_features solves this by randomly excluding features at each node</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Yes — a feature can appear at depth 1 as 'Credit Score > 700' and at depth 3 as 'Credit Score > 750'. Each split further refines the range — meaningful. But a redundant threshold like 'Credit Score > 600' after 'Credit Score > 700' has zero gain so the tree never actually does it. The real problem is feature dominance — a single strong feature can appear at every level, drowning out other signals. Random Forest fixes this with max_features — randomly excluding features at each node, forcing others to contribute."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q16 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q16</span>
+      <span class="iq-text">Why can't decision trees draw diagonal decision boundaries?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Every split is on one feature with one threshold — always parallel to a feature axis</li>
+          <li>This means boundaries are always horizontal or vertical lines (axis-aligned)</li>
+          <li>A diagonal boundary requires both features simultaneously — not possible in one split</li>
+          <li>The tree approximates a diagonal with a staircase — needs many splits</li>
+          <li>More depth needed = higher risk of overfitting for diagonally-separable data</li>
+          <li>SVMs with linear kernel, logistic regression can draw diagonal boundaries in one step</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Each split uses exactly one feature — so every boundary is parallel to one axis (horizontal or vertical). A diagonal boundary like 'approve if Age + Income > threshold' requires both features together, which no single split can express. The tree approximates it with a staircase of many axis-aligned cuts, which needs more depth and therefore more risk of overfitting. This is a fundamental limitation compared to SVMs or logistic regression which can draw diagonal boundaries directly."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q17 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q17</span>
+      <span class="iq-text">You have a dataset with 500 features. What problems do you expect training a decision tree and how do you fix them?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li><strong>Computation cost</strong> — 500 features × N thresholds per node → use max_features to subsample</li>
+          <li><strong>Overfitting</strong> — default settings with 500 features will produce deeply overfit tree → tune max_depth, min_samples_leaf, ccp_alpha</li>
+          <li><strong>Curse of dimensionality</strong> — data is sparse in 500D space, splits become unreliable → dimensionality reduction (PCA) before training</li>
+          <li><strong>Spurious splits</strong> — with 500 features, some will look predictive by chance → feature selection</li>
+          <li><strong>Unreliable feature importances</strong> — noisy from single tree → use Random Forest</li>
+          <li>Bonus: suggest Random Forest from the start for 500 features</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Five problems: first, computation — 500 features means millions of gain calculations per node, fix with max_features=sqrt. Second, severe overfitting — fix with max_depth and min_samples_leaf. Third, curse of dimensionality — 500D space is very sparse so splits become unreliable, fix with PCA or feature selection. Fourth, spurious correlations — some of 500 features will look predictive by chance. Fifth, unreliable feature importances from a single tree. Honestly for 500 features I'd use Random Forest from the start."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- ── HARD ── -->
+  <h3 style="color:var(--coral); margin-top:48px; margin-bottom:20px;">🔴 Hard — Senior Roles, Research, and Deep Dive Interviews</h3>
+
+  <!-- Q18 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q18</span>
+      <span class="iq-text">Why does XGBoost always use regression trees internally, even for classification?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>GBM/XGBoost fits <strong>residuals</strong> at each step — residuals are continuous numbers, not class labels</li>
+          <li>Residuals for classification: <code>actual(1/0) − predicted_probability</code> → continuous values like +0.4, −0.6</li>
+          <li>Classification trees predict discrete classes — can't predict continuous residuals</li>
+          <li>So regression trees are used at every step regardless of the final output type</li>
+          <li>Class labels are only used once — when computing residuals (actual − predicted probability)</li>
+          <li>Final classification: if final probability > 0.5 → class 1, else class 0</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"In gradient boosting, every tree after the first is trained to predict the residuals — the difference between the actual value and the current ensemble's prediction. Even for classification, the residual is computed as actual(1/0) minus predicted probability — a continuous number like +0.4 or -0.6. A classification tree can only predict discrete classes, not continuous residuals. So every internal tree in GBM and XGBoost must be a regression tree. The class labels only appear once: when computing residuals. The final prediction converts the summed log-odds back to a probability via sigmoid."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q19 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q19</span>
+      <span class="iq-text">What is the effective alpha in cost-complexity pruning? Walk through a numerical example.</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Effective alpha = the exact α value at which pruning a specific subtree becomes worthwhile</li>
+          <li>Formula: <code>Effective α = (impurity increase from pruning) / (number of leaves removed)</code></li>
+          <li>Impurity increase = Gini(collapsed leaf) − weighted Gini(subtree leaves)</li>
+          <li>Algorithm finds the subtree with the lowest effective alpha and prunes it first</li>
+          <li>Repeats until tree is a single root — generates a sequence of alpha thresholds</li>
+          <li>You pick the best alpha from this sequence using cross-validation</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <pre>Left subtree (Income > 40k), 40 samples:
+  Weighted impurity of 2 leaves = 0.245
+  Collapsed leaf impurity        = 0.256
+
+Effective α = (0.256 − 0.245) / (2 − 1) = 0.011
+
+→ If α ≥ 0.011, pruning this subtree is cheaper than keeping it.
+  The complexity saving (1 fewer leaf) outweighs the impurity increase.
+
+The algorithm prunes the subtree with the lowest effective α first,
+then recalculates for remaining subtrees. Cross-validation picks
+the best α from the resulting sequence.</pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q20 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q20</span>
+      <span class="iq-text">How does GBM handle classification using residuals? Walk through the steps.</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Step 1: Initial prediction = log-odds of positive class in training data, converted to probability via sigmoid</li>
+          <li>Step 2: Residuals = actual (1 or 0) − predicted probability → continuous values</li>
+          <li>Step 3: Fit a regression tree to residuals — leaf stores mean residual</li>
+          <li>Step 4: Update: <code>new log-odds = old log-odds + η × tree output</code></li>
+          <li>Step 5: Convert back to probability via sigmoid. Compute new residuals. Repeat.</li>
+          <li>Everything happens in probability/log-odds space — class labels only used once for residual calculation</li>
+          <li>This is why it's called "Gradient" Boosting — residuals are the gradient of the log loss</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <pre>Step 1: Base prediction
+  60/100 samples Approve → log-odds = log(0.6/0.4) = 0.405
+  sigmoid(0.405) = 0.60 → initial P(Approve) = 0.60 for all samples
+
+Step 2: Residuals
+  Approved sample: 1 − 0.60 = +0.40 (underestimated)
+  Denied sample:   0 − 0.60 = −0.60 (overestimated)
+
+Step 3: Fit regression tree to [+0.40, −0.60, +0.40 ...]
+  Each leaf stores mean residual of its samples
+
+Step 4: Update log-odds += η × tree_prediction
+  Then sigmoid(new log-odds) → new probability
+
+Step 5: Recompute residuals using new probabilities. Repeat N times.
+
+The name "gradient" boosting: residuals ARE the gradient of log loss.</pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q21 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q21</span>
+      <span class="iq-text">What is the MDI feature importance bias and how do you fix it?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>MDI is biased toward <strong>high-cardinality features</strong> — features with many unique values have more thresholds to try, so they have more chances to "win" a split by luck</li>
+          <li>Example: a random ID column with 10,000 unique values will appear important even though it has no real predictive power</li>
+          <li>Fix 1: <strong>Permutation importance</strong> — shuffle one feature's values, measure accuracy drop on test data. Unbiased, uses actual predictive value</li>
+          <li>Fix 2: Use Random Forest importances averaged over many trees — more stable but still has cardinality bias</li>
+          <li>Fix 3: SHAP values — most principled, game-theory based, accounts for feature interactions</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"MDI is biased toward high-cardinality features — a feature with 10,000 unique values has 10,000 thresholds to try at each node, so it's more likely to produce a high gain split by chance on training data. A random ID column would look important. The fix is permutation importance: shuffle one feature's values, measure how much test accuracy drops. Big drop = genuinely important feature. This is unbiased because it uses test data and measures actual predictive value. SHAP values are even more principled for production feature analysis."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q22 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q22</span>
+      <span class="iq-text">What happens to a decision tree when you have highly imbalanced classes (e.g. 95% negative, 5% positive)?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Gini impurity is biased toward the majority class — the tree achieves low Gini by predicting majority class everywhere</li>
+          <li>Result: tree learns to always predict "negative" — high accuracy (95%) but useless for detecting positives</li>
+          <li>Fix 1: <code>class_weight="balanced"</code> in sklearn — weights minority class samples more heavily in gain calculation</li>
+          <li>Fix 2: Oversample minority class (SMOTE) or undersample majority class before training</li>
+          <li>Fix 3: Use F1 score or AUC instead of accuracy to evaluate — accuracy is misleading on imbalanced data</li>
+          <li>Fix 4: Adjust decision threshold (predict positive if probability > 0.2 instead of 0.5)</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"With 95% negatives, the tree can achieve Gini ≈ 0 by simply predicting 'negative' for everything — the splits look clean because the majority class dominates. The tree learns a biased shortcut. Accuracy is 95% but recall on the positive class is 0%. I'd fix it with class_weight='balanced' in sklearn, which reweights each sample's contribution to the gain calculation inversely proportional to class frequency. I'd also switch to F1/AUC as my evaluation metric and potentially adjust the classification threshold."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q23 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q23</span>
+      <span class="iq-text">How does a decision tree handle missing values? How does XGBoost handle it differently?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>sklearn's DecisionTree — does NOT handle missing values natively, requires imputation beforehand</li>
+          <li>XGBoost — learns the best default direction for missing values at each split during training</li>
+          <li>XGBoost tries sending missing values both left and right, picks whichever gives better gain, stores that direction</li>
+          <li>At prediction time, if a feature is missing, the sample automatically goes in the learned direction</li>
+          <li>This means XGBoost can use missing-value patterns as predictive information</li>
+          <li>No preprocessing needed for XGBoost — missingness itself is informative</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"sklearn's decision tree requires imputation before training — it breaks on NaN values. XGBoost is fundamentally different: during training, for each split, it tries routing missing values both left and right, whichever gives higher gain becomes the 'default direction' for that node. At prediction time, missing values are automatically routed the learned way. This means XGBoost treats missingness as potentially informative — 'this feature is missing' is itself a signal that can be exploited. No preprocessing needed."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q24 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q24</span>
+      <span class="iq-text">What is the time complexity of training a decision tree? What makes it expensive?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>At each node: sort each feature O(N log N), evaluate N thresholds per feature → O(N × F) per node where F = features</li>
+          <li>Total nodes in a balanced tree of depth d: O(2^d)</li>
+          <li>Overall training complexity: roughly <strong>O(N × F × N × log N)</strong> = O(N² F log N) for full tree</li>
+          <li>Expensive because: feature sorting at every node, exhaustive threshold search, deep trees have exponentially many nodes</li>
+          <li>Fixes: max_features reduces F, max_depth reduces depth, XGBoost pre-sorts into column blocks once</li>
+          <li>Prediction complexity: O(depth) per sample — very fast</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Training is expensive because at every node the algorithm sorts each feature and evaluates N thresholds per feature — roughly O(N×F) gain calculations per node. With 2^d nodes in a full tree, total complexity is approximately O(N² F log N). The bottleneck is the exhaustive threshold search. XGBoost addresses this by pre-sorting features into compressed column blocks once at the start, then reusing the sorted order at every node — this is the main reason XGBoost trains much faster than naive gradient boosting. Prediction is fast — just O(depth) per sample."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q25 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q25</span>
+      <span class="iq-text">Why is a single decision tree's feature importance unreliable? What's the better alternative?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Single tree has high variance — different training sets produce different trees with different importances</li>
+          <li>MDI biased toward high-cardinality features</li>
+          <li>The greedy splits mean important features near the root dominate, obscuring features deeper in the tree</li>
+          <li>Random Forest importances: averaged over hundreds of trees → much more stable, still has cardinality bias</li>
+          <li>Permutation importance: shuffle one feature, measure test accuracy drop → unbiased, uses actual predictive power</li>
+          <li>SHAP values: game-theory based, accounts for feature interactions, most principled — gold standard</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"A single tree's importances are unreliable for two reasons: high variance (small data changes produce different trees with different importances) and MDI's bias toward high-cardinality features. Random Forest importances are far more stable because they're averaged over hundreds of trees, though the cardinality bias remains. Permutation importance fixes the bias by measuring actual predictive value on held-out test data — shuffle a feature, measure accuracy drop. SHAP values are the gold standard for production work: they're game-theory based, handle feature interactions properly, and give per-sample explanations."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q26 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q26</span>
+      <span class="iq-text">Two splits have the same Information Gain. How does the tree break the tie? Does it matter?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>sklearn breaks ties by returning the first one found in the search order (implementation-dependent)</li>
+          <li>The tie-break is essentially arbitrary — not mathematically principled</li>
+          <li>It can matter in small datasets where ties are more common — leads to instability</li>
+          <li>For large datasets, exact ties are rare for continuous features</li>
+          <li>One alternative: break ties by choosing the split that creates more balanced children (more robust)</li>
+          <li>This is another source of the high variance of decision trees — arbitrary tie-breaking propagates through the whole tree</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"sklearn's implementation picks the first one found in the search order — essentially arbitrary. For continuous features exact ties are rare in large datasets. But in small datasets or with categorical features with few values, ties are common and arbitrary tie-breaking is a real source of instability. One principled approach is to break ties by choosing the split creating more balanced children — though sklearn doesn't do this by default. This tie-sensitivity is another reason single decision trees have high variance and why ensemble methods that build many trees are more robust."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q27 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q27</span>
+      <span class="iq-text">How would you use a decision tree to detect feature interactions?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>A path from root to leaf implicitly encodes a feature interaction — e.g. "if Age > 30 AND Income > 50k → Approve" uses two features together</li>
+          <li>Features appearing together on the same root-to-leaf path are interacting</li>
+          <li>Shallow tree (depth 2-3) is best for interaction discovery — deeper trees become noise</li>
+          <li>Can extract all root-to-leaf paths as interaction rules</li>
+          <li>Limitation: only captures sequential interactions (first A then B), not arbitrary combinations</li>
+          <li>Better alternatives for interaction detection: SHAP interaction values, H-statistic</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"A root-to-leaf path implicitly encodes interactions — if the path is 'Age > 30, then Income > 50k, then Approve,' the tree has discovered that age and income interact to determine approval. I'd train a shallow tree (depth 2-3) to find the strongest interactions without noise. Extract all paths programmatically and look for features appearing together. The limitation is trees only capture sequential, axis-aligned interactions. For richer interaction detection, SHAP interaction values are more powerful — they quantify the joint contribution of every feature pair."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q28 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q28</span>
+      <span class="iq-text">What is the relationship between decision trees and XGBoost's gamma (γ) parameter?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>XGBoost's gamma (γ) is the minimum gain required to make a split — exactly like <code>min_impurity_decrease</code> in sklearn</li>
+          <li>XGBoost grows the full tree first, then prunes leaves where gain &lt; γ — this is post-pruning, exactly like <code>ccp_alpha</code></li>
+          <li>Effective alpha in cost-complexity pruning = effective gamma in XGBoost — same concept, different name</li>
+          <li>γ = 0 means no pruning; larger γ means more aggressive pruning</li>
+          <li>Combined with L1/L2 regularization in the loss function, XGBoost's pruning is more mathematically principled than sklearn's</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"XGBoost's gamma is the minimum gain required to keep a split — any leaf with gain below gamma is pruned. This is the same concept as sklearn's ccp_alpha in cost-complexity pruning: both compare the value of a split against a complexity penalty. The difference is XGBoost also has L1 and L2 regularization built directly into the objective function, which penalises leaf weights themselves in addition to the gamma pruning. So XGBoost does post-pruning (gamma) plus regularization of leaf scores (lambda/alpha) — a more complete approach than ccp_alpha alone."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q29 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q29</span>
+      <span class="iq-text">A decision tree achieves 100% training accuracy. Is this always a problem?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Not always — if training data is very clean and the tree is shallow, 100% train accuracy with good test accuracy is fine</li>
+          <li>The real signal is the <strong>gap between train and test accuracy</strong> — not train accuracy alone</li>
+          <li>100% train + 60% test = overfitting → problem</li>
+          <li>100% train + 99% test = may be fine if data is genuinely linearly separable</li>
+          <li>Edge case: if classes are perfectly separable in the feature space, a tree can achieve 100% train and 100% test — no overfitting</li>
+          <li>Context matters: small dataset + deep tree + 100% train = almost certainly overfitting</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"Not always. 100% training accuracy is only a problem if test accuracy is significantly lower — the gap is what matters. If data is genuinely separable (e.g. two classes perfectly separated by one feature), a tree can achieve 100% train and 100% test without overfitting. The concern is 100% train with poor test performance — which signals the tree memorised noise. I'd always look at train-test gap, cross-validation variance, and whether the tree depth is proportional to dataset size before concluding there's a problem."</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- Q30 -->
+  <details class="iq-card">
+    <summary class="iq-summary">
+      <span class="iq-num">Q30</span>
+      <span class="iq-text">How would you explain a single prediction from a decision tree to a non-technical stakeholder?</span>
+      <span class="iq-toggle">▼</span>
+    </summary>
+    <div class="iq-body">
+      <div class="iq-must">
+        <div class="iq-must-title">Must-have points</div>
+        <ul>
+          <li>Decision trees are uniquely interpretable — every prediction is a path of if-else rules</li>
+          <li>Extract the root-to-leaf path for the specific sample</li>
+          <li>Express each split as a plain-English condition</li>
+          <li>Show the leaf statistics — e.g. "of all past customers with similar profile, 87% were approved"</li>
+          <li>This is one of the biggest advantages over black-box models like neural networks</li>
+          <li>Mention: sklearn's export_graphviz or plot_tree for visual explanation</li>
+        </ul>
+      </div>
+      <div class="iq-answer">
+        <div class="iq-answer-title">Strong answer</div>
+        <p>"This is where decision trees shine over neural networks. For any prediction I can trace the exact path: 'This customer was denied because: their credit score was below 700, AND their income was below 40k. Of all past customers with those two conditions, 89% were denied loans.' I'd visualise the path using plot_tree or export_graphviz and highlight the nodes that were traversed. A stakeholder can verify whether the logic makes business sense and challenge it — that's not possible with a neural network. This explainability is the main reason to use a decision tree even when ensembles would be more accurate."</p>
+      </div>
+    </div>
+  </details>
+
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  Decision Trees Complete Guide &nbsp;·&nbsp; Splits · Building · Overfitting · Pruning · Regression · Hyperparameters · Feature Importance · 30 Interview Questions
+</footer>
+
+</body>
+</html>

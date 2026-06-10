@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LightGBM — Complete Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #16161f;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent2: #4ecdc4;
+    --accent3: #f7c948;
+    --accent4: #f76c6c;
+    --text: #e8e6f0;
+    --text-dim: #8884a8;
+    --text-faint: #3d3b52;
+    --glow: rgba(124, 106, 247, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(124,106,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+  }
+
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-tag::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--text);
+    letter-spacing: -1px;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    color: var(--text-dim);
+    font-size: 18px;
+    font-style: italic;
+    max-width: 560px;
+  }
+
+  .progress-bar {
+    margin-top: 32px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .progress-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .pill-done {
+    background: rgba(78, 205, 196, 0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(78, 205, 196, 0.2);
+  }
+
+  .pill-current {
+    background: rgba(124, 106, 247, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(124, 106, 247, 0.3);
+  }
+
+  /* Navigation */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    margin: 0 -32px 48px;
+  }
+
+  nav ul {
+    display: flex;
+    list-style: none;
+    overflow-x: auto;
+    padding: 0 32px;
+    scrollbar-width: none;
+  }
+
+  nav ul::-webkit-scrollbar { display: none; }
+
+  nav a {
+    display: block;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  nav a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 72px;
+    scroll-margin-top: 60px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin: 28px 0 12px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  /* Concept cards */
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .concept-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  .concept-card.green::before { background: var(--accent2); }
+  .concept-card.yellow::before { background: var(--accent3); }
+  .concept-card.red::before { background: var(--accent4); }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  /* Code blocks */
+  pre, code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 16px 0;
+    color: #c9c7e8;
+  }
+
+  code {
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--accent2);
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  /* Numerical examples */
+  .example-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px 28px;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .example-label {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--accent3);
+    color: #0a0a0f;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 2px 10px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  .example-label.green {
+    background: var(--accent2);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  th {
+    background: rgba(124, 106, 247, 0.1);
+    color: var(--accent);
+    padding: 8px 14px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+  }
+
+  td {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:nth-child(even) td {
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* Formula */
+  .formula {
+    background: rgba(124, 106, 247, 0.06);
+    border: 1px solid rgba(124, 106, 247, 0.2);
+    border-radius: 4px;
+    padding: 16px 24px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    text-align: center;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* Interview questions */
+  .interview-q {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .q-header {
+    padding: 16px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: background 0.2s;
+    user-select: none;
+  }
+
+  .q-header:hover {
+    background: rgba(124, 106, 247, 0.05);
+  }
+
+  .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 28px;
+    padding-top: 2px;
+  }
+
+  .q-tier {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .tier-startup { background: rgba(78,205,196,0.1); color: var(--accent2); border: 1px solid rgba(78,205,196,0.2); }
+  .tier-bigtech { background: rgba(124,106,247,0.1); color: var(--accent); border: 1px solid rgba(124,106,247,0.2); }
+  .tier-research { background: rgba(247,201,72,0.1); color: var(--accent3); border: 1px solid rgba(247,201,72,0.2); }
+
+  .q-text {
+    flex: 1;
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .q-toggle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    color: var(--text-dim);
+    transition: transform 0.2s, color 0.2s;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .q-body {
+    display: none;
+    padding: 0 24px 20px 66px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+
+  .q-body.open { display: block; }
+  .q-toggle.open { transform: rotate(45deg); color: var(--accent); }
+
+  .answer-section {
+    margin-bottom: 14px;
+  }
+
+  .answer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .key-insight {
+    background: rgba(247, 201, 72, 0.06);
+    border-left: 3px solid var(--accent3);
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  /* Comparison table */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .cmp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .cmp-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmp-card:nth-child(1) .cmp-title { color: var(--accent2); }
+  .cmp-card:nth-child(2) .cmp-title { color: var(--accent); }
+  .cmp-card:nth-child(3) .cmp-title { color: var(--accent3); }
+
+  .cmp-item {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 4px 0;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+
+  .cmp-item::before {
+    content: '→';
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* Hyperparameter table */
+  .param-grid {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .param-row {
+    display: grid;
+    grid-template-columns: 200px 80px 1fr;
+    gap: 16px;
+    align-items: start;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 14px;
+  }
+
+  .param-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  .param-priority {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-align: center;
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .p1 { background: rgba(247,108,108,0.1); color: var(--accent4); border: 1px solid rgba(247,108,108,0.2); }
+  .p2 { background: rgba(247,201,72,0.1); color: var(--accent3); border: 1px solid rgba(247,201,72,0.2); }
+  .p3 { background: rgba(124,106,247,0.1); color: var(--accent); border: 1px solid rgba(124,106,247,0.2); }
+
+  .param-desc { color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+
+  /* Gap warnings */
+  .gap-box {
+    background: rgba(247, 108, 108, 0.05);
+    border: 1px solid rgba(247, 108, 108, 0.2);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+
+  .gap-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent4);
+    margin-bottom: 6px;
+  }
+
+  ul {
+    padding-left: 20px;
+    margin-bottom: 14px;
+  }
+
+  li { margin-bottom: 6px; color: var(--text); }
+
+  .highlight { color: var(--accent3); font-weight: 600; }
+  .accent { color: var(--accent); }
+  .green { color: var(--accent2); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+    margin-top: 80px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .filter-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 6px 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(124,106,247,0.15); border-color: var(--accent); color: var(--accent); }
+
+  .q-group-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 20px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    margin-top: 8px;
+  }
+
+  .interview-q.hidden { display: none; }
+
+  @media (max-width: 640px) {
+    .comparison-grid { grid-template-columns: 1fr; }
+    .param-row { grid-template-columns: 1fr; }
+    h1 { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-tag">Tree-Based Models Series · Session 07</div>
+    <h1>Light<span>GBM</span></h1>
+    <p class="subtitle">A complete study guide covering core algorithms, numerical examples, and interview preparation.</p>
+    <div class="progress-bar">
+      <span class="progress-pill pill-done">✓ Decision Trees</span>
+      <span class="progress-pill pill-done">✓ Bagging vs Boosting</span>
+      <span class="progress-pill pill-done">✓ Random Forest</span>
+      <span class="progress-pill pill-done">✓ AdaBoost</span>
+      <span class="progress-pill pill-done">✓ GBM</span>
+      <span class="progress-pill pill-done">✓ XGBoost</span>
+      <span class="progress-pill pill-current">● LightGBM</span>
+      <span class="progress-pill" style="background:rgba(255,255,255,0.03);color:var(--text-faint);border:1px solid var(--text-faint)">⬜ CatBoost</span>
+    </div>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#motivation">Motivation</a></li>
+      <li><a href="#goss">GOSS</a></li>
+      <li><a href="#efb">EFB</a></li>
+      <li><a href="#histogram">Histograms</a></li>
+      <li><a href="#leafwise">Leaf-wise</a></li>
+      <li><a href="#categorical">Categorical</a></li>
+      <li><a href="#vs-xgb">vs XGBoost</a></li>
+      <li><a href="#hyperparams">Hyperparams</a></li>
+      <li><a href="#dart">DART</a></li>
+      <li><a href="#rf-mode">RF Mode</a></li>
+      <li><a href="#interview">Interview Qs</a></li>
+    </ul>
+  </nav>
+
+  <!-- MOTIVATION -->
+  <section id="motivation">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Why LightGBM Exists</h2>
+    </div>
+
+    <p>XGBoost's bottleneck on large datasets isn't re-sorting — it pre-sorts feature values once into column blocks. The real cost is that at <em>every node</em>, XGBoost must scan through all data points to evaluate candidate splits.</p>
+
+    <div class="example-box">
+      <div class="example-label">Scale Problem</div>
+      <p style="margin-top:8px">At a single node:</p>
+      <pre>Cost = n_node_instances × n_features × candidate_thresholds
+
+With n=10M rows, 500 features, depth-6 tree (64 nodes):
+→ Enormous number of floating-point comparisons per boosting round
+→ Memory bandwidth becomes the bottleneck, not compute</pre>
+    </div>
+
+    <p>LightGBM attacks this from two directions: <span class="highlight">reduce the number of rows</span> scanned (GOSS) and <span class="highlight">reduce the number of features</span> scanned (EFB), while also changing how data is stored in memory (histograms).</p>
+  </section>
+
+  <!-- GOSS -->
+  <section id="goss">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>GOSS — Gradient-based One-Sided Sampling</h2>
+    </div>
+
+    <div class="concept-card">
+      <div class="card-title">Core Insight</div>
+      <p>A data point with a <strong>small gradient</strong> means the current model already fits it well — it contributes little signal to the next split. We don't need all of them.</p>
+    </div>
+
+    <h3>The Algorithm</h3>
+    <pre>1. Sort all instances by |gradient| descending
+2. Keep top-a% (large gradient) instances — always
+3. Randomly sample b% from remaining (small gradient) instances
+4. Scale up each sampled small-gradient instance by (1-a)/b
+   → This corrects the bias so gradient sums remain accurate</pre>
+
+    <h3>Why the Scaling Factor?</h3>
+    <p>If you drop 80% of small-gradient rows, the gradient sums in histogram bins become underestimated. Each retained small-gradient instance is multiplied by:</p>
+
+    <div class="formula">weight = (total small-gradient instances) / (sampled small-gradient instances)</div>
+
+    <p>This is <strong>not</strong> a weighted average — it's scaling up the total sum so it reflects the full population.</p>
+
+    <div class="example-box">
+      <div class="example-label">Numerical Example</div>
+      <table>
+        <tr><th>Instance</th><th>Gradient</th><th>Category</th><th>Kept?</th><th>Weight</th></tr>
+        <tr><td>A</td><td>-0.95</td><td>Large</td><td>✓</td><td>1.0</td></tr>
+        <tr><td>B</td><td>-0.87</td><td>Large</td><td>✓</td><td>1.0</td></tr>
+        <tr><td>C</td><td>0.82</td><td>Large</td><td>✓</td><td>1.0</td></tr>
+        <tr><td>D</td><td>0.04</td><td>Small</td><td>✓ (sampled)</td><td>4.0×</td></tr>
+        <tr><td>E</td><td>-0.02</td><td>Small</td><td>✗ dropped</td><td>—</td></tr>
+        <tr><td>F</td><td>0.01</td><td>Small</td><td>✗ dropped</td><td>—</td></tr>
+        <tr><td>G</td><td>-0.03</td><td>Small</td><td>✗ dropped</td><td>—</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:14px;color:var(--text-dim)">4 small-gradient instances total, 1 sampled → weight = 4/1 = 4×. Instance D's gradient is counted as 4 × 0.04 = 0.16 in the histogram, representing all 4 small-gradient instances.</p>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-title">⚠ Common Mistake</div>
+      <p style="font-size:14px">GOSS does <strong>not eliminate</strong> low-gradient rows — it <em>samples and reweights</em> them. The distinction matters: no information is discarded, only approximated cheaply.</p>
+    </div>
+  </section>
+
+  <!-- EFB -->
+  <section id="efb">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>EFB — Exclusive Feature Bundling</h2>
+    </div>
+
+    <div class="concept-card green">
+      <div class="card-title">Core Insight</div>
+      <p>In high-dimensional sparse data (one-hot encoded categoricals, NLP features), many features are never non-zero simultaneously. These <strong>mutually exclusive</strong> features can be bundled into a single feature without information loss.</p>
+    </div>
+
+    <h3>How Bundling Works</h3>
+    <pre>Features A and B are mutually exclusive:
+  Row 1: A=3.2,  B=0    → Bundle = 3.2 + 0 = 3.2
+  Row 2: A=0,    B=1.7  → Bundle = 0 + 1.7 = 1.7
+  Row 3: A=0,    B=0    → Bundle = 0
+  Row 4: A=5.1,  B=0    → Bundle = 5.1
+
+Information preserved perfectly: when Bundle=1.7, we know A=0, B=1.7
+Result: 2 histogram computations → 1</pre>
+
+    <h3>Finding Bundles — The Conflict Graph</h3>
+    <pre>1. Build conflict graph:
+   - Each feature = node
+   - Edge between features if they are non-zero simultaneously (conflict)
+   - Edge weight = number of conflicting rows
+
+2. Sort features by degree (most conflicts first)
+
+3. Greedy assignment:
+   - For each feature, assign to existing bundle if conflicts < threshold
+   - Otherwise, start new bundle
+
+4. max_conflict_rate controls tolerance for imperfect exclusivity</pre>
+
+    <div class="example-box">
+      <div class="example-label">Numerical Example</div>
+      <table>
+        <tr><th>Row</th><th>City_Mumbai</th><th>City_Delhi</th><th>City_Bangalore</th><th>Bundle</th></tr>
+        <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1 (Mumbai bin)</td></tr>
+        <tr><td>2</td><td>0</td><td>1</td><td>0</td><td>2 (Delhi bin)</td></tr>
+        <tr><td>3</td><td>0</td><td>0</td><td>1</td><td>3 (Bangalore bin)</td></tr>
+        <tr><td>4</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:14px;color:var(--text-dim)">3 one-hot features bundled into 1. Histograms computed once instead of 3 times. This scales dramatically: 1000 city features → 1 bundle.</p>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-title">⚠ Common Mistake</div>
+      <p style="font-size:14px">EFB does <strong>not reduce features "used for splitting"</strong> — it <em>bundles mutually exclusive features into fewer features while preserving all information</em>. It's compression, not selection.</p>
+    </div>
+  </section>
+
+  <!-- HISTOGRAM -->
+  <section id="histogram">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Histogram-based Split Finding</h2>
+    </div>
+
+    <h3>XGBoost Approximate vs LightGBM Histograms</h3>
+
+    <div class="example-box">
+      <div class="example-label">Dataset: Age feature</div>
+      <pre>Raw values: [7, 15, 18, 24, 31, 35, 42, 55, 67, 89]</pre>
+
+      <p style="margin-top:16px"><strong style="color:var(--accent)">XGBoost Approximate (Quantile Sketching):</strong></p>
+      <pre>Quantile boundaries (k=3): [18, 42, 89]
+Candidate splits evaluated: Age &lt; 18, Age &lt; 42, Age &lt; 89
+
+Data stored as: [7, 15, 18, 24, 31, 35, 42, 55, 67, 89]  ← raw floats preserved
+Reduces: candidate thresholds (fewer splits to evaluate)
+Does NOT change: data representation</pre>
+
+      <p style="margin-top:16px"><strong style="color:var(--accent2)">LightGBM Histogram:</strong></p>
+      <pre>Bin boundaries: [0-20]→bin 0, [21-50]→bin 1, [51-100]→bin 2
+
+Raw:    [7,  15,  18,  24,  31,  35,  42,  55,  67,  89]
+Bin ID: [0,   0,   0,   1,   1,   1,   1,   2,   2,   2]  ← uint8, not float
+
+Raw values DISCARDED. Only bin IDs stored.
+
+Histogram per bin:
+  Bin 0: g_sum = g₇+g₁₅+g₁₈,        count = 3
+  Bin 1: g_sum = g₂₄+g₃₁+g₃₅+g₄₂,  count = 4
+  Bin 2: g_sum = g₅₅+g₆₇+g₈₉,       count = 3</pre>
+    </div>
+
+    <table>
+      <tr><th></th><th>XGBoost Approximate</th><th>LightGBM Histogram</th></tr>
+      <tr><td>Raw data kept?</td><td>Yes</td><td>No — replaced by bin IDs</td></tr>
+      <tr><td>Data type</td><td>float64</td><td>uint8 (0–255)</td></tr>
+      <tr><td>Speed gain from</td><td>Fewer split evaluations</td><td>Fewer evaluations + cache-friendly integers</td></tr>
+      <tr><td>Memory</td><td>Higher</td><td>~8× smaller per feature value</td></tr>
+    </table>
+
+    <h3>Split Evaluation with Histograms</h3>
+
+    <div class="formula">Gain = ½ [ g²_L/h_L + g²_R/h_R − g²_P/h_P ] − γ</div>
+
+    <p>At each candidate split threshold k, you need g_L, h_L, g_R, h_R. The trick:</p>
+    <pre>Scan left→right accumulating g_L, h_L bin by bin.
+At each threshold: g_R = g_P − g_L,  h_R = h_P − h_L
+
+One pass through k bins evaluates all k−1 candidate splits.</pre>
+
+    <h3>Histogram Subtraction</h3>
+    <div class="concept-card">
+      <div class="card-title">The Trick</div>
+      <p>After splitting a node into left and right children, you need histograms for both children to find their next splits. You only need to <strong>scan the smaller child</strong>:</p>
+      <pre>histogram(larger child) = histogram(parent) − histogram(smaller child)
+
+Bin-by-bin subtraction. ~50% reduction in histogram construction cost across the tree.</pre>
+    </div>
+  </section>
+
+  <!-- LEAF-WISE -->
+  <section id="leafwise">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Leaf-wise vs Level-wise Growth</h2>
+    </div>
+
+    <div class="comparison-grid">
+      <div class="cmp-card">
+        <div class="cmp-title">XGBoost (Level-wise)</div>
+        <div class="cmp-item">Split all nodes at current depth before going deeper</div>
+        <div class="cmp-item">Symmetric, balanced trees</div>
+        <div class="cmp-item">Lower overfitting risk by default</div>
+        <div class="cmp-item">May waste splits on low-gain nodes</div>
+      </div>
+      <div class="cmp-card">
+        <div class="cmp-title">LightGBM (Leaf-wise)</div>
+        <div class="cmp-item">Always split the single leaf with highest gain</div>
+        <div class="cmp-item">Asymmetric, deep trees possible</div>
+        <div class="cmp-item">Lower loss per split — more efficient</div>
+        <div class="cmp-item">Risk: very deep single branch → overfitting</div>
+      </div>
+      <div class="cmp-card">
+        <div class="cmp-title">Controls</div>
+        <div class="cmp-item"><code>num_leaves</code> — primary cap (e.g. 31)</div>
+        <div class="cmp-item"><code>max_depth</code> — hard depth limit</div>
+        <div class="cmp-item"><code>min_data_in_leaf</code> — prevent tiny leaves</div>
+        <div class="cmp-item">Rule: num_leaves &lt;&lt; 2^max_depth</div>
+      </div>
+    </div>
+
+    <div class="key-insight">
+      Key insight: <code>num_leaves=64</code> with <code>max_depth=6</code> is NOT equivalent to a balanced depth-6 tree. Leaf-wise growth can reach 64 leaves with extreme asymmetry. Keep <code>num_leaves</code> well below 2^max_depth.
+    </div>
+  </section>
+
+  <!-- CATEGORICAL -->
+  <section id="categorical">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Categorical Feature Handling</h2>
+    </div>
+
+    <h3>Problem with One-Hot Encoding in Trees</h3>
+    <ul>
+      <li>k categories → k binary features (cardinality explosion)</li>
+      <li>Finding "categories {A, C, F, G} vs rest" requires 4 separate splits at different tree levels</li>
+      <li>Optimal groupings are often impossible within depth constraints</li>
+    </ul>
+
+    <h3>LightGBM's Native Approach</h3>
+    <p>For a feature with k categories, there are 2^k possible binary partitions — infeasible to enumerate. LightGBM reduces this to k−1 evaluations:</p>
+
+    <pre>1. Compute mean gradient per category
+2. Sort categories by mean gradient
+3. Treat sorted order as continuous — evaluate k−1 split points
+
+Result: optimal binary partition found in O(k log k) instead of O(2^k)</pre>
+
+    <div class="example-box">
+      <div class="example-label">Numerical Example</div>
+      <table>
+        <tr><th>City</th><th>Instances</th><th>Mean Gradient</th><th>Sorted Rank</th></tr>
+        <tr><td>Mumbai</td><td>450</td><td>−0.71</td><td>1st</td></tr>
+        <tr><td>Bangalore</td><td>380</td><td>+0.05</td><td>2nd</td></tr>
+        <tr><td>Delhi</td><td>420</td><td>+0.43</td><td>3rd</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:14px;color:var(--text-dim)">Candidate splits evaluated (only 2, not 2³−2=6):</p>
+      <pre>Split 1: {Mumbai} vs {Bangalore, Delhi}
+Split 2: {Mumbai, Bangalore} vs {Delhi}</pre>
+    </div>
+
+    <h3>The Leakage Problem</h3>
+    <div class="gap-box">
+      <div class="gap-title">⚠ Known Limitation</div>
+      <p style="font-size:14px">Mean gradients are computed on training data. For rare categories (few instances), the mean is unreliable — computed from noise, not signal. The model overfits to these categories.</p>
+      <p style="margin-top:8px;font-size:14px"><strong>Mitigation:</strong> <code>min_data_per_group</code> — rare categories are bundled into an "other" bin. Limits damage but doesn't fully solve leakage.</p>
+      <p style="margin-top:8px;font-size:14px"><em>This is exactly the problem CatBoost solves with ordered boosting — next session.</em></p>
+    </div>
+  </section>
+
+  <!-- VS XGBOOST -->
+  <section id="vs-xgb">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>LightGBM vs XGBoost</h2>
+    </div>
+
+    <table>
+      <tr><th>Scenario</th><th>Pick</th><th>Reason</th></tr>
+      <tr><td>Large dataset (&gt;1M rows)</td><td style="color:var(--accent2)">LightGBM</td><td>GOSS + histograms dominate</td></tr>
+      <tr><td>Many features (high-dim)</td><td style="color:var(--accent2)">LightGBM</td><td>EFB reduces feature scan cost</td></tr>
+      <tr><td>High-cardinality categoricals</td><td style="color:var(--accent2)">LightGBM</td><td>Native optimal split</td></tr>
+      <tr><td>Tight training time budget</td><td style="color:var(--accent2)">LightGBM</td><td>Consistently faster</td></tr>
+      <tr><td>Small dataset (&lt;100k rows)</td><td style="color:var(--accent)">XGBoost</td><td>Approximation error not worth it</td></tr>
+      <tr><td>Imbalanced data</td><td style="color:var(--accent)">XGBoost</td><td>GOSS may undersample minority signal</td></tr>
+      <tr><td>Exact reproducibility needed</td><td style="color:var(--accent)">XGBoost</td><td>GOSS has randomness</td></tr>
+      <tr><td>Medium dataset</td><td style="color:var(--accent3)">Benchmark both</td><td>No clear winner</td></tr>
+    </table>
+
+    <div class="key-insight">
+      Note: XGBoost added a <code>hist</code> tree method that uses proper histogram-based training, significantly narrowing the speed gap. For very large datasets LightGBM still tends to be faster, but the difference is smaller than it once was.
+    </div>
+  </section>
+
+  <!-- HYPERPARAMS -->
+  <section id="hyperparams">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>Hyperparameter Tuning Guide</h2>
+    </div>
+
+    <p>Overfitting scenario: tune in this order.</p>
+
+    <div class="param-grid">
+      <div class="param-row">
+        <span class="param-name">num_leaves</span>
+        <span class="param-priority p1">P1</span>
+        <span class="param-desc">Primary complexity control for leaf-wise growth. Default 31. Decrease to reduce overfitting. Keep well below 2^max_depth.</span>
+      </div>
+      <div class="param-row">
+        <span class="param-name">min_data_in_leaf</span>
+        <span class="param-priority p1">P1</span>
+        <span class="param-desc">Minimum instances per leaf. Critical for leaf-wise — prevents drilling into 1-2 instance leaves. Increase if overfitting.</span>
+      </div>
+      <div class="param-row">
+        <span class="param-name">max_depth</span>
+        <span class="param-priority p2">P2</span>
+        <span class="param-desc">Hard depth cap. Works alongside num_leaves. Less direct than num_leaves for leaf-wise trees.</span>
+      </div>
+      <div class="param-row">
+        <span class="param-name">feature_fraction</span>
+        <span class="param-priority p2">P2</span>
+        <span class="param-desc">Column subsampling per tree (= colsample_bytree in XGBoost). Introduces randomness, reduces overfitting.</span>
+      </div>
+      <div class="param-row">
+        <span class="param-name">bagging_fraction + bagging_freq</span>
+        <span class="param-priority p2">P2</span>
+        <span class="param-desc">Row subsampling. bagging_freq=1 resamples every tree. Note: random sampling without replacement, not true bootstrapping.</span>
+      </div>
+      <div class="param-row">
+        <span class="param-name">lambda / alpha</span>
+        <span class="param-priority p3">P3</span>
+        <span class="param-desc">L2/L1 regularization on leaf weights. Same as XGBoost. Reach for these after structural controls.</span>
+      </div>
+      <div class="param-row">
+        <span class="param-name">learning_rate + n_estimators</span>
+        <span class="param-priority p3">P3</span>
+        <span class="param-desc">Tune last, together. Lower LR → need more trees. Use early stopping: set LR low (0.01–0.05), n_estimators high (1000+), let early stopping find the right tree count.</span>
+      </div>
+    </div>
+
+    <h3>Bagging vs Bootstrapping</h3>
+    <pre>Bootstrapping:          Sample n rows WITH replacement → duplicates possible
+LightGBM bagging:       Sample fraction WITHOUT replacement → no duplicates
+Random Forest bagging:  True bootstrapping WITH replacement
+
+LightGBM calls it "bagging" loosely — it's random subsampling, not true bootstrapping.</pre>
+  </section>
+
+  <!-- DART -->
+  <section id="dart">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>DART Boosting</h2>
+    </div>
+
+    <div class="concept-card yellow">
+      <div class="card-title">Dropouts meet Multiple Additive Regression Trees</div>
+      <p>Applies the dropout concept from neural networks to gradient boosting. In standard GBM, later trees only fix small residuals left by earlier trees — they become overly specialized on tiny corrections and heavily co-adapted.</p>
+    </div>
+
+    <h3>Mechanism</h3>
+    <pre>Standard GBM:
+  Tree N fitted on residuals of Trees 1 + 2 + ... + (N-1)
+
+DART:
+  1. Randomly drop subset of existing trees
+  2. Fit new tree on residuals of REMAINING trees only
+  3. At inference: all trees active, scaled appropriately
+
+Effect: Each tree must be more self-sufficient — can't rely on dropped trees
+        covering certain patterns → better regularization</pre>
+
+    <h3>Tradeoffs</h3>
+    <table>
+      <tr><th>Advantage</th><th>Disadvantage</th></tr>
+      <tr><td>Better regularization than standard boosting</td><td>Cannot use early stopping reliably</td></tr>
+      <tr><td>Often better generalization when overfitting is severe</td><td>Must set n_estimators manually</td></tr>
+      <tr><td>Analogous to well-understood DL technique</td><td>Slower training per round</td></tr>
+      <tr><td></td><td>Validation loss fluctuates — hard to diagnose</td></tr>
+    </table>
+
+    <div class="key-insight">
+      Why early stopping fails with DART: validation loss is no longer monotonically decreasing — random dropped subsets cause fluctuations. Early stopping may trigger on a bad random draw, not the true optimum.
+    </div>
+  </section>
+
+  <!-- RF MODE -->
+  <section id="rf-mode">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2>LightGBM in Random Forest Mode</h2>
+    </div>
+
+    <p>LightGBM can mimic Random Forest behavior — independent trees with row and column sampling, no sequential boosting. This gives you RF's algorithm with LightGBM's computational infrastructure.</p>
+
+    <h3>Configuration</h3>
+    <pre>boosting_type = 'rf'        # or set parameters manually:
+bagging_fraction = 0.8      # row subsampling per tree
+bagging_freq = 1            # resample every tree
+feature_fraction = 0.8      # column subsampling per tree
+feature_fraction_bynode     # per-node subsampling (closer to true RF)
+learning_rate = 1.0         # no shrinkage — trees are independent
+num_iterations = 100        # number of trees</pre>
+
+    <h3>Why Use LightGBM RF Mode vs sklearn Random Forest?</h3>
+    <ul>
+      <li><strong>Histogram binning</strong> — cache-friendly uint8 storage vs sklearn's float64</li>
+      <li><strong>EFB</strong> — feature bundling still reduces histogram computations</li>
+      <li><strong>Native categorical handling</strong> — optimal splits without one-hot encoding</li>
+      <li><strong>GPU support</strong> — built-in acceleration</li>
+      <li><strong>Memory efficiency</strong> — significantly smaller footprint on large datasets</li>
+    </ul>
+
+    <div class="key-insight">
+      Note: gradient/hessian advantages do NOT apply in RF mode — there's no sequential residual fitting. The benefit is purely computational infrastructure.
+    </div>
+  </section>
+
+  <!-- INTERVIEW -->
+  <section id="interview">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2>Interview Questions</h2>
+    </div>
+
+    <p style="margin-bottom:8px;color:var(--text-dim)">Click any question to reveal the strong answer. Tier indicates expected depth.</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px">
+      <button class="filter-btn active" onclick="filterQ('all')">All (30)</button>
+      <button class="filter-btn" onclick="filterQ('startup')">Startup</button>
+      <button class="filter-btn" onclick="filterQ('bigtech')">Big Tech</button>
+      <button class="filter-btn" onclick="filterQ('research')">Research</button>
+    </div>
+
+    <div class="q-group-label">GOSS — Gradient-based One-Sided Sampling</div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q1</span><span class="q-tier tier-startup">Startup</span><span class="q-text">What problem does GOSS solve, and what is its core idea in one sentence?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>GOSS addresses the cost of scanning all rows at every node during split finding. Core idea: instances with small gradients are already well-fit by the current model, so we can <strong>sample</strong> them at random and <strong>scale up</strong> the retained ones to compensate — reducing data volume without discarding information.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q2</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Explain GOSS end-to-end: sampling strategy, reweighting formula, and what property of the gradient motivates it.</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Motivation:</strong> Gradient magnitude = how poorly the model currently fits an instance. Small gradient → already well-fit → low information for the next split.</p>
+        <p><strong>Sampling:</strong> Keep all top-a% instances by |gradient|. Randomly sample b% of remaining low-gradient instances. Discard the rest.</p>
+        <p><strong>Reweighting:</strong> Each retained low-gradient instance is multiplied by <code>(1−a)/b</code>. This ensures gradient sums in histogram bins are unbiased — the scaled samples represent the full low-gradient population.</p>
+        <div class="formula">weight = (total low-gradient instances) / (sampled low-gradient instances) = (1−a) / b</div>
+      </div>
+      <div class="key-insight">Common error: saying GOSS "eliminates" low-gradient rows. It samples and reweights — approximation, not elimination.</div>
+      </div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q3</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">GOSS drops most low-gradient instances. Why doesn't this create biased histogram statistics, and what exactly is the correction?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>Dropping instances without correction makes histogram bins undercount the gradient contribution of the low-gradient population. The fix: scale each retained low-gradient instance so its contribution represents the dropped ones too.</p>
+        <pre>100 low-gradient instances, 20 sampled → weight = 100/20 = 5×
+Each sampled instance's gradient counts as 5× in the histogram.
+Bin gradient sums now reflect all 100 instances, not just 20.</pre>
+        <p>This scales the total sum — not a weighted average. The gain formula uses gradient sums, so sum correctness is what matters.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="research">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q4</span><span class="q-tier tier-research">Research</span><span class="q-text">When does GOSS hurt accuracy the most? Give a concrete dataset scenario where you'd disable it.</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>GOSS assumes low-gradient = low-information. This breaks in <strong>highly imbalanced datasets</strong>: the minority class may have small gradients in early rounds (when the model predicts the majority class probability for everyone), meaning GOSS systematically undersamples minority signal.</p>
+        <p>Also problematic on <strong>small datasets</strong> where approximation error is a large fraction of total signal. On 10k rows, sampling 20% of low-gradient instances may drop critical examples.</p>
+        <p>For imbalanced cases: switch to XGBoost with <code>scale_pos_weight</code>. For small data: use XGBoost exact greedy entirely.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">EFB — Exclusive Feature Bundling</div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q5</span><span class="q-tier tier-startup">Startup</span><span class="q-text">What is EFB and what type of dataset makes it most effective?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>EFB bundles mutually exclusive features — features that are never non-zero simultaneously — into a single feature via addition. No information is lost since one feature is always zero, but histogram computations drop proportionally.</p>
+        <p>Most effective on <strong>high-dimensional sparse data</strong>: one-hot encoded categoricals, NLP bag-of-words, user-item interactions. In these settings most features are zero for most rows, creating abundant mutual exclusivity to exploit.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q6</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">How does LightGBM decide which features to bundle? Walk through the algorithm.</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>It's a graph problem. LightGBM builds a <strong>conflict graph</strong>: each feature is a node, edge added between features that are non-zero simultaneously (with weight = number of conflicting rows).</p>
+        <p>Optimal bundling = graph coloring (NP-hard), so LightGBM uses greedy approximation:</p>
+        <pre>1. Sort features by degree (most conflicted first)
+2. Assign each feature to an existing bundle if conflicts &lt; max_conflict_rate
+3. Otherwise start a new bundle</pre>
+        <p>Features in a bundle are combined by addition. <code>max_conflict_rate</code> controls tolerance for imperfect exclusivity — a small conflict rate is accepted for larger bundles.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q7</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Features A (range 0–10) and B (range 0–5) are mutually exclusive. How do you bundle them without ambiguity at split time?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>Simple addition creates ambiguity: bundle value 3 could mean A=3,B=0 or A=0,B=3. The fix: <strong>offset one feature's range</strong> before adding:</p>
+        <pre>Bundle = A           (if A is active)
+Bundle = B + 10      (offset B by A's max=10)
+
+Value 3  → A=3,  B=0
+Value 13 → A=0,  B=3</pre>
+        <p>Non-overlapping bin ranges in the histogram let you recover which feature contributed which value at split evaluation time. No information is lost.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="research">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q8</span><span class="q-tier tier-research">Research</span><span class="q-text">EFB is described as "nearly lossless." What's the source of the approximation error and how is it controlled?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>The approximation comes from the <code>max_conflict_rate</code> parameter. When two features conflict (both non-zero) for a small fraction of instances, EFB still bundles them despite the overlap.</p>
+        <p>For conflicting rows, the bundle value becomes A + B — which is neither A nor B. The split found on this combined value is slightly suboptimal for those rows.</p>
+        <p>The error is bounded: if conflict rate is ε, at most ε fraction of training instances have corrupted feature values. LightGBM default is <code>max_conflict_rate=0</code> (only perfectly exclusive features are bundled), but allowing small ε trades tiny accuracy loss for larger, more effective bundles in practice.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">Histogram Split Finding</div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q9</span><span class="q-tier tier-startup">Startup</span><span class="q-text">What is the key difference between XGBoost's approximate split finding and LightGBM's histogram approach?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>Both reduce candidate split thresholds. The difference is what they do to the data itself:</p>
+        <p><strong>XGBoost approximate:</strong> computes quantile boundaries to limit candidate thresholds. Raw float values remain in memory.</p>
+        <p><strong>LightGBM histogram:</strong> replaces raw values with integer bin IDs (uint8, 0–255) permanently. Raw floats are discarded. All operations run on compact integers.</p>
+        <p>LightGBM's speed advantage comes not just from fewer thresholds, but from <strong>cache-friendly integer operations</strong>: uint8 arrays fit in CPU L1/L2 cache, giving ~100× faster access than RAM-resident float64.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q10</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Write the split gain formula. Then explain how evaluating all k−1 thresholds requires only one left-to-right pass.</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <div class="formula">Gain = ½ [ g²_L/h_L + g²_R/h_R − g²_P/h_P ] − γ</div>
+        <p>To evaluate threshold k you need g_L, h_L and g_R, h_R. Accumulate g_L, h_L left-to-right bin by bin. At each step:</p>
+        <pre>g_R = g_P − g_L
+h_R = h_P − h_L</pre>
+        <p>Parent totals g_P, h_P are precomputed once. One left-to-right scan through k bins evaluates all k−1 candidate splits using only addition and subtraction — no extra scans over raw data.</p>
+      </div>
+      <div class="key-insight">Common error: g/h instead of g²/h. The squaring comes from substituting w* = −g/h back into the Taylor-expanded loss.</div>
+      </div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q11</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">What is histogram subtraction and why does it approximately halve tree-building cost?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>After splitting a node into left and right children, both need histograms. Since:</p>
+        <pre>histogram(parent) = histogram(left) + histogram(right)
+∴ histogram(larger child) = histogram(parent) − histogram(smaller child)</pre>
+        <p>Always build the histogram for the <strong>smaller child</strong> by scanning (fewer instances). Get the larger child free by bin-by-bin subtraction. Since the larger child always has more instances, you consistently save the majority of scan work — roughly halving histogram construction cost across the full tree.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="research">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q12</span><span class="q-tier tier-research">Research</span><span class="q-text">LightGBM uses 255 bins by default. What's the tradeoff in choosing more or fewer bins?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>255 = maximum value in uint8 (one byte). This is the most precision achievable while keeping each bin ID at 1 byte — maximally cache-friendly.</p>
+        <p><strong>Fewer bins (e.g. 63):</strong> faster split finding, less memory, more regularization (coarser splits). Risk: may miss optimal thresholds, slightly lower accuracy.</p>
+        <p><strong>More bins (e.g. 1023):</strong> finer splits, closer to exact greedy. Requires uint16 (2 bytes per value) — halves cache efficiency, more memory, slower.</p>
+        <p>255 is the sweet spot: max precision in one byte. In practice, feature values rarely have more than 255 meaningful distinct thresholds after binning.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">Leaf-wise Growth</div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q13</span><span class="q-tier tier-startup">Startup</span><span class="q-text">What is leaf-wise growth and how does it differ from XGBoost's level-wise growth?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Level-wise (XGBoost):</strong> split all nodes at current depth before going deeper. Produces symmetric, balanced trees.</p>
+        <p><strong>Leaf-wise (LightGBM):</strong> always find the single leaf across the entire tree with highest gain and split only that one. Produces asymmetric trees — one branch can go deep while others stay shallow.</p>
+        <p><strong>Advantage:</strong> every split maximally reduces loss — more efficient than level-wise which may waste splits on low-gain nodes. Same loss reduction with fewer splits.</p>
+        <p><strong>Risk:</strong> without constraints, one branch can grow arbitrarily deep, overfitting to noise in a small region of the data.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q14</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Why is num_leaves a better complexity control than max_depth for LightGBM? What's their relationship?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>For level-wise trees, depth and leaf count are equivalent: <code>max_depth=6</code> → at most 2^6=64 leaves. For leaf-wise trees they decouple: a depth-6 tree can have anywhere from 2 to 64 leaves.</p>
+        <p><code>num_leaves</code> directly caps the number of splits regardless of tree shape — the natural complexity measure for leaf-wise growth.</p>
+        <p><strong>The rule:</strong> set <code>num_leaves</code> well below <code>2^max_depth</code>. For <code>max_depth=6</code>, use <code>num_leaves=31</code> or fewer. Leaf-wise growth can reach high leaf counts with extreme asymmetry much faster than a balanced tree of the same depth.</p>
+      </div>
+      <div class="key-insight">Setting num_leaves=64 with max_depth=6 thinking they're equivalent is a common mistake. The resulting tree will be far more complex than a balanced depth-6 tree.</div>
+      </div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q15</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Why is min_data_in_leaf especially important for LightGBM compared to XGBoost?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>Leaf-wise growth always picks the highest-gain leaf to split next. This can result in one branch splitting repeatedly, eventually producing leaves with 1–2 instances that perfectly memorize training noise.</p>
+        <p><code>min_data_in_leaf</code> prevents any split that would create a leaf below that threshold — directly cutting off the "drill into noise" failure mode specific to leaf-wise growth.</p>
+        <p>In XGBoost's level-wise growth, all leaves at a given depth have roughly similar instance counts, so this failure mode is less acute. In LightGBM it's the primary overfitting mechanism, making <code>min_data_in_leaf</code> one of the first hyperparameters to tune — often before regularization.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">Categorical Feature Handling</div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q16</span><span class="q-tier tier-startup">Startup</span><span class="q-text">Why is one-hot encoding a bad fit for tree-based models with high-cardinality categoricals?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Cardinality explosion:</strong> 1000 categories → 1000 binary features → 1000 histograms per node.</p>
+        <p><strong>Optimal groupings require many splits:</strong> a split on a one-hot feature says only "is this specific category present?" Finding "categories {A, C, F, G} vs rest" requires 4 separate splits at different tree levels, consuming depth and potentially never being found within depth constraints.</p>
+        <p>What you want: one split partitioning the full category set into two optimal groups — which LightGBM's native handling provides in O(k log k).</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q17</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">How does LightGBM find the optimal binary partition of a categorical feature without evaluating all 2^k possibilities?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>A theorem guarantees that for regression and binary classification, the optimal binary partition can always be found by sorting categories on their <strong>mean target statistic</strong> and splitting on that sorted order.</p>
+        <pre>1. Compute mean gradient per category
+2. Sort categories by mean gradient ascending
+3. Evaluate k−1 split points on the sorted sequence
+   (each splits a prefix from the suffix)
+
+2^k partitions → k−1 evaluations, O(k log k) total</pre>
+        <p>The theorem guarantees this finds the optimal split — not just an approximation.</p>
+      </div>
+      <div class="key-insight">The theorem only holds for regression and binary classification. For multi-class, the optimal partition via sorting isn't guaranteed.</div>
+      </div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q18</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">LightGBM's native categorical handling has a leakage problem. What is it, and what's the mitigation?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>The problem:</strong> Mean gradients are computed on the same training data used for splitting. For rare categories (few instances), the mean is derived from noise — a single outlier can dominate. The model learns splits from unreliable estimates that don't generalize.</p>
+        <p>This is identical to naive target encoding's overfitting problem: using the target to encode a feature on the same data you're training on.</p>
+        <p><strong>Mitigation:</strong> <code>min_data_per_group</code> — rare categories with fewer than N instances are bundled into "other," preventing splits based on tiny samples. Limits damage but doesn't solve the fundamental leakage.</p>
+        <p><em>CatBoost solves this properly with ordered boosting — next session.</em></p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">LightGBM vs XGBoost</div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q19</span><span class="q-tier tier-startup">Startup</span><span class="q-text">5M rows, 300 features, high-cardinality categoricals, tight training budget. XGBoost or LightGBM?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>LightGBM</strong>, for four compounding reasons:</p>
+        <ul>
+          <li><strong>GOSS</strong> — 5M rows, most low-gradient. Samples them, dramatically reducing rows scanned per node.</li>
+          <li><strong>EFB</strong> — 300 features with one-hot categoricals → many mutually exclusive. EFB bundles them, reducing histograms proportionally.</li>
+          <li><strong>Histograms</strong> — uint8 bin storage, cache-friendly. Histogram subtraction halves construction cost.</li>
+          <li><strong>Native categoricals</strong> — avoids one-hot explosion entirely.</li>
+        </ul>
+      </div>
+      <div class="key-insight">Name the mechanisms. "LightGBM is faster" alone won't satisfy an interviewer.</div>
+      </div>
+    </div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q20</span><span class="q-tier tier-startup">Startup</span><span class="q-text">Name two scenarios where you'd choose XGBoost over LightGBM.</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Small datasets (&lt;100k rows):</strong> GOSS and EFB are approximations — error is a larger fraction of signal on small data. XGBoost exact greedy is affordable and more accurate.</p>
+        <p><strong>Highly imbalanced data:</strong> GOSS samples low-gradient instances. Minority class may have small gradients early in training → GOSS undersamples exactly the examples that matter most. XGBoost with <code>scale_pos_weight</code> handles this more reliably.</p>
+        <p>Bonus: when exact reproducibility is required — GOSS introduces randomness that can cause non-deterministic results.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q21</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">XGBoost now has a 'hist' tree method. Does this close the gap with LightGBM? What differences remain?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>XGBoost <code>tree_method='hist'</code> adopts proper histogram-based binning, significantly narrowing the speed gap. For moderate-scale dense data the performance is often comparable.</p>
+        <p><strong>Remaining differences:</strong></p>
+        <ul>
+          <li><strong>GOSS</strong> — XGBoost hist doesn't implement GOSS. All rows still scanned for histograms.</li>
+          <li><strong>EFB</strong> — XGBoost doesn't bundle features. Sparse high-dim data pays full cost.</li>
+          <li><strong>Native categoricals</strong> — XGBoost hist lacks gradient-mean sorting.</li>
+          <li><strong>Leaf-wise</strong> — XGBoost hist remains level-wise by default.</li>
+        </ul>
+        <p>On very large sparse high-cardinality datasets LightGBM still wins. For dense tabular at moderate scale: benchmark both.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">Hyperparameters &amp; Tuning</div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q22</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Your LightGBM model is overfitting. Walk through your tuning order and the reasoning for each step.</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <ol style="padding-left:20px">
+          <li style="margin-bottom:8px"><strong>num_leaves + min_data_in_leaf (P1):</strong> Address the leaf-wise overfitting mechanism directly. Decrease num_leaves; increase min_data_in_leaf. Primary controls.</li>
+          <li style="margin-bottom:8px"><strong>max_depth (P2):</strong> Hard cap. Ensure num_leaves &lt;&lt; 2^max_depth.</li>
+          <li style="margin-bottom:8px"><strong>feature_fraction + bagging_fraction (P2):</strong> Stochastic controls — introduce randomness, force trees to learn more independent patterns.</li>
+          <li style="margin-bottom:8px"><strong>lambda / alpha (P3):</strong> L2/L1 regularization on leaf weights. Reach here after structural controls haven't fully resolved it.</li>
+          <li><strong>learning_rate + n_estimators + early stopping (P3):</strong> Lower LR, higher n_estimators, use a validation set with early stopping to find the optimal tree count automatically.</li>
+        </ol>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q23</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">Why can't you tune learning_rate and n_estimators independently? What's the correct pattern?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>They're coupled: lower learning_rate = smaller step per tree = needs more trees to reach the same loss. Lowering LR without increasing n_estimators causes underfitting.</p>
+        <pre>1. Set learning_rate low (0.01–0.05) — fine-grained convergence
+2. Set n_estimators high (1000–5000) — upper bound only
+3. Use early stopping with held-out validation set:
+   stop after N rounds without improvement
+4. Early stopping finds the right n_estimators automatically</pre>
+        <p>Tune learning_rate for convergence quality; let early stopping determine tree count. No manual grid-searching n_estimators required.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="startup">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q24</span><span class="q-tier tier-startup">Startup</span><span class="q-text">What's the difference between feature_fraction and feature_fraction_bynode?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>feature_fraction:</strong> samples a random subset of features once per tree. All nodes in that tree use the same subset. Equivalent to <code>colsample_bytree</code> in XGBoost.</p>
+        <p><strong>feature_fraction_bynode:</strong> samples a random subset at each node independently. Different nodes within the same tree see different features. This is the close analog to Random Forest's per-split feature sampling.</p>
+        <p><strong>When to use:</strong> feature_fraction is the standard choice — less compute, effective regularization. feature_fraction_bynode provides stronger randomization (RF-like) at more computation cost. Use bynode when running LightGBM in RF mode.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q25</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">What's the difference between LightGBM's bagging and true bootstrapping? Does it matter in practice?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Bootstrapping:</strong> sample n rows with replacement. ~63% unique instances per sample, some duplicated. Used in Random Forest.</p>
+        <p><strong>LightGBM bagging:</strong> sample a fraction of rows without replacement. <code>bagging_fraction=0.8</code> → 80% of rows, no duplicates.</p>
+        <p><strong>In practice:</strong> both introduce randomness that decorrelates trees and reduces overfitting. The main practical difference is that bootstrapping enables OOB (out-of-bag) error estimation, which LightGBM bagging doesn't support. For pure regularization, the difference is usually small.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">DART Boosting</div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q26</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">What is DART boosting, what problem does it solve, and what's the tradeoff?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Problem:</strong> In standard GBM, later trees only fix small residuals from all previous trees combined. They become specialists on tiny corrections, heavily co-adapted with earlier trees — analogous to co-adaptation in neural networks that dropout prevents.</p>
+        <p><strong>Mechanism:</strong> When fitting tree N, randomly drop a subset of existing trees. Fit the new tree on residuals of the remaining trees only. Each tree must learn more self-sufficient patterns. At inference, all trees active and appropriately scaled.</p>
+        <p><strong>Tradeoff:</strong> Better regularization and generalization, but cannot use early stopping reliably. Validation loss fluctuates due to random dropped subsets — early stopping may trigger on a bad random draw. Must set n_estimators via cross-validation.</p>
+      </div></div>
+    </div>
+
+    <div class="interview-q" data-tier="research">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q27</span><span class="q-tier tier-research">Research</span><span class="q-text">How does DART handle inference scaling? Why is simple summation of all trees incorrect without adjustment?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>During DART training, each new tree is fit on residuals of a randomly reduced set of trees. Tree N was calibrated to correct the output of, say, 70% of previous trees — not 100%.</p>
+        <p>At inference, if all trees are summed equally, each DART tree overcorrects — it was fit assuming some trees would be absent.</p>
+        <p><strong>The fix:</strong> multiply each tree's contribution by <code>(1 − dropout_rate)</code> at inference. This ensures the expected prediction matches what each tree was trained to produce — analogous to the 1/(1−p) scaling in neural network dropout.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">Random Forest Mode &amp; Distributed Training</div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q28</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">How do you configure LightGBM to behave like Random Forest? Why choose this over sklearn's RF?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <pre>boosting_type = 'rf'
+bagging_fraction = 0.8          # row subsampling
+bagging_freq = 1                # resample every tree
+feature_fraction_bynode = 0.8   # per-node feature sampling
+learning_rate = 1.0             # no shrinkage — trees independent
+num_iterations = 100</pre>
+        <p><strong>Key:</strong> <code>learning_rate=1.0</code> is essential. In boosting, LR shrinks each tree's contribution. In RF, trees are independent and equally weighted — no shrinkage.</p>
+        <p><strong>Why over sklearn RF:</strong> LightGBM's infrastructure still applies — histogram binning (uint8, cache-friendly), EFB, native categoricals, GPU support. On large sparse datasets: significantly faster and more memory-efficient than sklearn's float64 implementation.</p>
+      </div>
+      <div class="key-insight">Gradient/hessian advantages don't apply in RF mode — no sequential residual fitting. Benefit is purely engineering infrastructure.</div>
+      </div>
+    </div>
+
+    <div class="interview-q" data-tier="bigtech">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q29</span><span class="q-tier tier-bigtech">Big Tech</span><span class="q-text">LightGBM supports distributed training. What are the two parallelization strategies and how do they differ?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p><strong>Feature parallel:</strong> each machine finds the best split for a different subset of features, then syncs to find the global best. Bottleneck: each machine still needs the full dataset in memory.</p>
+        <p><strong>Data parallel:</strong> each machine holds different rows, builds local histograms for all features, then merges histograms across machines (bin-by-bin addition). Split finding is done on the merged histogram.</p>
+        <p>Data parallel scales better because histogram merging is cheap — summing compact integer arrays, not sharing raw data. Merge cost is O(features × bins), independent of dataset size.</p>
+      </div></div>
+    </div>
+
+    <div class="q-group-label">Derivations &amp; Deep Theory</div>
+
+    <div class="interview-q" data-tier="research">
+      <div class="q-header" onclick="toggle(this)"><span class="q-num">Q30</span><span class="q-tier tier-research">Research</span><span class="q-text">Derive the split gain formula from first principles. Where does the g² term come from?</span><span class="q-toggle">+</span></div>
+      <div class="q-body"><div class="answer-section"><div class="answer-label">Strong Answer</div>
+        <p>The Taylor-expanded loss at a leaf with instances I:</p>
+        <pre>L(w) = (Σᵢ gᵢ)w + ½(Σᵢ hᵢ + λ)w²  =  G·w + ½(H+λ)·w²</pre>
+        <p>Minimize over w (set dL/dw = 0):</p>
+        <pre>w* = −G / (H + λ)</pre>
+        <p>Substitute w* back into L:</p>
+        <pre>L(w*) = G·(−G/(H+λ)) + ½(H+λ)·(G/(H+λ))²
+      = −G²/(H+λ) + ½G²/(H+λ)
+      = −½ G²/(H+λ)</pre>
+        <p>Gain from a split = reduction in objective = L(parent) − L(left) − L(right):</p>
+        <div class="formula">Gain = ½ [ G²_L/(H_L+λ) + G²_R/(H_R+λ) − G²_P/(H_P+λ) ] − γ</div>
+        <p>The g² falls out naturally from the quadratic form of the Taylor expansion — it's not arbitrary. It's the score of the optimal leaf value, not the leaf value itself.</p>
+      </div></div>
+    </div>
+
+  </section>
+
+  <footer>
+    <span>LightGBM Study Guide · Tree-Based Models Series</span>
+    <span>Next: CatBoost →</span>
+  </footer>
+
+</div>
+
+<script>
+  function toggle(header) {
+    const body = header.nextElementSibling;
+    const tog = header.querySelector('.q-toggle');
+    const isOpen = body.classList.contains('open');
+    document.querySelectorAll('.q-body').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.q-toggle').forEach(t => t.classList.remove('open'));
+    if (!isOpen) { body.classList.add('open'); tog.classList.add('open'); }
+  }
+
+  function filterQ(tier) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.interview-q').forEach(q => {
+      if (tier === 'all' || q.dataset.tier === tier) {
+        q.classList.remove('hidden');
+      } else {
+        q.classList.add('hidden');
+        q.querySelector('.q-body').classList.remove('open');
+        q.querySelector('.q-toggle').classList.remove('open');
+      }
+    });
+  }
+
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

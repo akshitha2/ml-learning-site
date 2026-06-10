@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>XGBoost — Advanced Topics Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090d;
+  --bg2:#0e0f15;
+  --bg3:#13141c;
+  --bg4:#1a1b25;
+  --bg5:#21222e;
+  --border:#22232f;
+  --border2:#2e3040;
+  --border3:#3d3f55;
+  --text:#dddde8;
+  --text2:#9191a8;
+  --text3:#55566a;
+  --accent:#6e9ef5;
+  --accent2:#92b8ff;
+  --accent3:#b8d0ff;
+  --teal:#29c98a;
+  --teal2:#1d9e6e;
+  --amber:#f0a030;
+  --amber2:#c87d1a;
+  --coral:#e8614a;
+  --coral2:#c04535;
+  --violet:#a07cf0;
+  --violet2:#7c58c8;
+  --green:#4db876;
+  --display:'Syne',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --serif:'Lora',serif;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--serif);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+
+/* ── Layout ── */
+.page{max-width:900px;margin:0 auto;padding:0 2rem 6rem}
+
+/* ── Hero ── */
+.hero{padding:4rem 0 3rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(110,158,245,0.06) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem}
+.hero h1{font-family:var(--display);font-size:3rem;font-weight:700;line-height:1.1;letter-spacing:-0.03em;color:#fff;margin-bottom:0.5rem}
+.hero h1 em{font-style:normal;color:var(--accent2)}
+.hero-sub{font-family:var(--mono);font-size:13px;color:var(--text3);margin-top:1rem}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:1.5rem}
+.hero-tag{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:20px;border:1px solid var(--border3);color:var(--text3)}
+.hero-tag.active{border-color:var(--accent);color:var(--accent2);background:rgba(110,158,245,0.07)}
+
+/* ── TOC ── */
+.toc{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:2rem;margin-bottom:4rem}
+.toc h2{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:1.25rem}
+.toc-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.toc-list a{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:6px;text-decoration:none;font-family:var(--mono);font-size:12px;color:var(--text2);transition:all 0.15s}
+.toc-list a:hover{color:var(--accent2);background:rgba(110,158,245,0.06)}
+.toc-list a .n{color:var(--text3);font-size:11px;min-width:20px}
+
+/* ── Section ── */
+.section{margin-bottom:5rem;padding-top:1rem}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+.section h2{font-family:var(--display);font-size:1.75rem;font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:0.5rem;line-height:1.2}
+.section-intro{font-size:15px;color:var(--text2);margin-bottom:2rem;line-height:1.8;max-width:720px}
+.divider{height:1px;background:var(--border);margin:2rem 0}
+
+/* ── Prose ── */
+p.prose{font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:1rem}
+p.prose strong{color:var(--text);font-family:var(--display);font-weight:600}
+p.prose code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:rgba(110,158,245,0.1);padding:1px 6px;border-radius:3px}
+
+/* ── Math / Code blocks ── */
+.math{background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:1.25rem 1.5rem;margin:1.25rem 0;font-family:var(--mono);font-size:13px;color:var(--accent3);line-height:2.1;overflow-x:auto}
+.math .c{color:var(--text3);font-style:italic}
+.math .hi{color:var(--teal)}
+.math .warn{color:var(--amber)}
+.math .key{color:var(--coral)}
+
+.code-block{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1.25rem 1.5rem;margin:1.25rem 0;font-family:var(--mono);font-size:12.5px;color:var(--text2);line-height:1.9;overflow-x:auto}
+.code-block .kw{color:var(--violet2)}
+.code-block .str{color:var(--teal)}
+.code-block .num{color:var(--amber)}
+.code-block .cm{color:var(--text3);font-style:italic}
+.code-block .fn{color:var(--accent2)}
+
+/* ── Example boxes ── */
+.example{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:1.5rem;margin:1.5rem 0}
+.example-label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);margin-bottom:1rem}
+.ex-grid{display:grid;gap:1rem;margin:1rem 0}
+.ex-grid.col2{grid-template-columns:1fr 1fr}
+.ex-grid.col3{grid-template-columns:1fr 1fr 1fr}
+.ex-grid.col4{grid-template-columns:1fr 1fr 1fr 1fr}
+.ex-card{background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.ex-card-title{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.ex-val{font-family:var(--mono);font-size:1.4rem;font-weight:500}
+.ex-val.blue{color:var(--accent2)}
+.ex-val.teal{color:var(--teal)}
+.ex-val.amber{color:var(--amber)}
+.ex-val.coral{color:var(--coral)}
+.ex-val.violet{color:var(--violet)}
+.ex-detail{font-size:12px;color:var(--text3);margin-top:4px;font-family:var(--mono);line-height:1.6}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto;margin:1.25rem 0;border-radius:8px;border:1px solid var(--border2)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--bg3)}
+th{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+td:first-child{font-family:var(--mono);font-size:12px;color:var(--accent2)}
+.good{color:var(--teal)}
+.bad{color:var(--coral)}
+.warn-text{color:var(--amber)}
+
+/* ── Callouts ── */
+.callout{display:flex;gap:12px;padding:1rem 1.25rem;border-radius:8px;margin:1.25rem 0;font-size:13.5px;line-height:1.75}
+.callout-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.callout.insight{background:rgba(110,158,245,0.07);border:1px solid rgba(110,158,245,0.2);color:var(--accent3)}
+.callout.warn{background:rgba(240,96,74,0.07);border:1px solid rgba(240,96,74,0.2);color:#f4a898}
+.callout.tip{background:rgba(41,201,138,0.07);border:1px solid rgba(41,201,138,0.2);color:#7ee8bc}
+.callout.violet{background:rgba(160,124,240,0.07);border:1px solid rgba(160,124,240,0.2);color:#c8b4ff}
+.callout strong{font-family:var(--display);font-weight:600}
+
+/* ── Step lists ── */
+.steps{list-style:none;counter-reset:s;margin:1rem 0}
+.steps li{counter-increment:s;display:flex;gap:14px;margin-bottom:1rem;font-size:14px;color:var(--text2)}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:11px;color:var(--accent2);background:rgba(110,158,245,0.1);border:1px solid rgba(110,158,245,0.25);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+/* ── Feature importance viz ── */
+.fi-bar-wrap{margin:1rem 0}
+.fi-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fi-name{font-family:var(--mono);font-size:12px;color:var(--text2);min-width:100px;text-align:right}
+.fi-bar-bg{flex:1;background:var(--bg4);border-radius:3px;height:22px;overflow:hidden;position:relative}
+.fi-bar{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-family:var(--mono);font-size:11px;font-weight:500;transition:width 0.6s ease}
+.fi-val{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:40px}
+
+/* ── SHAP diagram ── */
+.shap-row{display:flex;align-items:center;gap:0;margin-bottom:6px;height:32px}
+.shap-label{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:130px;text-align:right;padding-right:10px}
+.shap-center{position:relative;flex:1;height:100%}
+.shap-zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border3)}
+.shap-bar{position:absolute;top:4px;bottom:4px;border-radius:2px;display:flex;align-items:center;transition:all 0.5s ease}
+.shap-barval{font-family:var(--mono);font-size:10px;padding:0 5px;white-space:nowrap}
+
+/* ── Comparison table highlight ── */
+.compare-highlight{background:rgba(110,158,245,0.05);border-left:2px solid var(--accent)}
+
+/* ── Q&A Section ── */
+.qa-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.qf-btn{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:4px;border:1px solid var(--border2);color:var(--text3);background:transparent;cursor:pointer;transition:all 0.15s}
+.qf-btn:hover,.qf-btn.on{border-color:var(--accent);color:var(--accent2);background:rgba(110,158,245,0.08)}
+.qf-btn.on.hard{border-color:var(--coral);color:var(--coral);background:rgba(240,96,74,0.07)}
+.qf-btn.on.med{border-color:var(--amber);color:var(--amber);background:rgba(240,160,48,0.07)}
+.qf-btn.on.found{border-color:var(--teal);color:var(--teal);background:rgba(41,201,138,0.07)}
+
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color 0.15s}
+.q-card:hover{border-color:var(--border2)}
+.q-head{display:flex;align-items:flex-start;gap:12px;padding:1rem 1.25rem;cursor:pointer;user-select:none}
+.q-num{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:32px;margin-top:2px}
+.q-text{font-size:14px;color:var(--text);flex:1;line-height:1.5}
+.q-meta{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-top:2px}
+.q-diff{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;border:1px solid}
+.q-diff.hard{color:var(--coral);border-color:rgba(240,96,74,0.3);background:rgba(240,96,74,0.07)}
+.q-diff.med{color:var(--amber);border-color:rgba(240,160,48,0.3);background:rgba(240,160,48,0.07)}
+.q-diff.found{color:var(--teal);border-color:rgba(41,201,138,0.3);background:rgba(41,201,138,0.07)}
+.q-topic{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);color:var(--text3)}
+.q-chev{font-family:var(--mono);color:var(--text3);font-size:14px;margin-left:4px;flex-shrink:0;margin-top:1px}
+.q-body{display:none;padding:0 1.25rem 1.25rem}
+.q-body.open{display:block}
+.q-body-inner{border-top:1px solid var(--border);padding-top:1rem}
+.must-head{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.625rem}
+.must-list{list-style:none}
+.must-list li{font-size:13px;color:var(--text2);padding:4px 0 4px 18px;position:relative;line-height:1.65;border-bottom:1px solid var(--border)}
+.must-list li:last-child{border-bottom:none}
+.must-list li::before{content:'→';position:absolute;left:0;color:var(--accent2);font-family:var(--mono);font-size:11px;top:6px}
+.trap-box{background:rgba(240,96,74,0.06);border:1px solid rgba(240,96,74,0.18);border-radius:6px;padding:0.75rem 1rem;margin-top:0.875rem;font-size:12.5px;color:#f0a898;line-height:1.65}
+.trap-head{font-family:var(--mono);font-size:10px;color:var(--coral);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em}
+
+/* ── Monotone viz ── */
+.mono-chart{background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:1rem 0}
+.mono-title{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .page{padding:0 1rem 4rem}
+  .hero h1{font-size:2rem}
+  .ex-grid.col2,.ex-grid.col3,.ex-grid.col4{grid-template-columns:1fr}
+  .toc-list{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">ML Interview Series · XGBoost Advanced Topics</div>
+  <h1>The <em>Missing</em><br>XGBoost</h1>
+  <p class="hero-sub">feature importance · SHAP · cross-validation · monotone &amp; interaction constraints · failure modes · vs sklearn GBM</p>
+  <div class="hero-tags">
+    <span class="hero-tag active">Feature Importance</span>
+    <span class="hero-tag active">SHAP Values</span>
+    <span class="hero-tag active">xgb.cv()</span>
+    <span class="hero-tag active">Monotone Constraints</span>
+    <span class="hero-tag active">Interaction Constraints</span>
+    <span class="hero-tag active">Failure Modes</span>
+    <span class="hero-tag active">vs sklearn GBM</span>
+    <span class="hero-tag active">35 Interview Questions</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>Contents</h2>
+  <ul class="toc-list">
+    <li><a href="#s1"><span class="n">01</span>Feature importance — 3 types + biases</a></li>
+    <li><a href="#s2"><span class="n">02</span>SHAP values — theory + numerical example</a></li>
+    <li><a href="#s3"><span class="n">03</span>xgb.cv() — built-in cross-validation</a></li>
+    <li><a href="#s4"><span class="n">04</span>Monotone constraints</a></li>
+    <li><a href="#s5"><span class="n">05</span>Interaction constraints</a></li>
+    <li><a href="#s6"><span class="n">06</span>When XGBoost fails — failure modes</a></li>
+    <li><a href="#s7"><span class="n">07</span>XGBoost vs sklearn GBM — precise diff</a></li>
+    <li><a href="#s8"><span class="n">08</span>35 interview questions</a></li>
+  </ul>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 1: FEATURE IMPORTANCE -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="section-label">Section 01</div>
+  <h2>Feature Importance — 3 types &amp; their biases</h2>
+  <p class="section-intro">XGBoost exposes three distinct feature importance metrics. All three are flawed in different ways. Interviewers at Big Tech will ask you to explain the bias of each — and why SHAP replaced them all.</p>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Type 1 — Weight (Frequency)</h3>
+  <p class="prose">Counts how many times each feature is used as a split across all trees. The most commonly reported metric by default in older XGBoost versions.</p>
+
+  <div class="math">
+    weight(feature f) = total number of splits using feature f across all trees<br><br>
+    <span class="c">// Example: feature A splits in tree 1 at node 2, tree 3 at node 1, tree 3 at node 4</span><br>
+    weight(A) = 3
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Critical bias:</strong> High-cardinality features (age, income, timestamp) have many possible split points. XGBoost tries more of them → more likely to find a useful split → split more often → inflated weight score. A feature used 50 times with tiny Gain looks more important than a feature used 3 times with massive Gain. Weight is the least reliable metric.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Type 2 — Gain (Average)</h3>
+  <p class="prose">Average loss reduction (Gain) across all splits where the feature is used. Directly connected to the Gain formula you already know.</p>
+
+  <div class="math">
+    gain(feature f) = Σ Gain(split s using f) / count(splits using f)<br><br>
+    <span class="c">// If feature A is used in 3 splits with Gain = 10, 8, 12:</span><br>
+    gain(A) = (10 + 8 + 12) / 3 = <span class="hi">10.0</span><br><br>
+    <span class="c">// If feature B is used in 1 split with Gain = 9.5:</span><br>
+    gain(B) = 9.5 / 1 = <span class="hi">9.5</span><br><br>
+    <span class="c">// Gain says A > B, but B had comparable impact in far fewer uses</span>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Bias:</strong> Features used early (near the root) typically show higher Gain because root splits affect all examples. Features used deeper in the tree affect fewer examples — their Gain is smaller by construction, not because they're less informative. Gain is biased toward root-level features.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Type 3 — Cover</h3>
+  <p class="prose">Average number of examples (weighted by Hessian) affected by splits on this feature.</p>
+
+  <div class="math">
+    cover(feature f) = Σ H_node / count(splits using f)<br><br>
+    <span class="c">// H_node = sum of Hessians at the node where the split happens</span><br>
+    <span class="c">// For MSE where h=1: cover = average number of examples at the split node</span><br><br>
+    <span class="c">// Feature used at root (1000 examples) and depth 3 (50 examples):</span><br>
+    cover = (1000 + 50) / 2 = <span class="hi">525</span>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Bias:</strong> Also favours features used at the root (high node population → high cover). Doesn't distinguish between a split that actually matters and one that just happens to cut through a large portion of the data. Cover ignores the quality of the split entirely.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:1rem">Numerical example — all three types together</h3>
+  <p class="prose">Imagine a model with 3 trees. Feature A is used 8 times, feature B used 2 times.</p>
+
+  <div class="example">
+    <div class="example-label">Split log — feature A vs feature B</div>
+    <div class="table-wrap" style="margin:0">
+      <table>
+        <thead><tr><th>Split</th><th>Feature</th><th>Tree depth</th><th>Gain</th><th>Examples at node (Cover)</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td style="color:var(--accent2)">A</td><td>0 (root)</td><td>12.0</td><td>1000</td></tr>
+          <tr><td>2</td><td style="color:var(--accent2)">A</td><td>1</td><td>6.0</td><td>580</td></tr>
+          <tr><td>3</td><td style="color:var(--accent2)">A</td><td>2</td><td>3.0</td><td>310</td></tr>
+          <tr><td>4</td><td style="color:var(--accent2)">A</td><td>2</td><td>2.5</td><td>290</td></tr>
+          <tr><td>5</td><td style="color:var(--accent2)">A</td><td>3</td><td>1.5</td><td>150</td></tr>
+          <tr><td>6</td><td style="color:var(--accent2)">A</td><td>3</td><td>1.2</td><td>140</td></tr>
+          <tr><td>7</td><td style="color:var(--accent2)">A</td><td>3</td><td>1.0</td><td>130</td></tr>
+          <tr><td>8</td><td style="color:var(--accent2)">A</td><td>4</td><td>0.8</td><td>60</td></tr>
+          <tr><td>9</td><td style="color:var(--teal)">B</td><td>1</td><td>9.5</td><td>420</td></tr>
+          <tr><td>10</td><td style="color:var(--teal)">B</td><td>2</td><td>8.0</td><td>200</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="example-label">Computed importance scores</div>
+    <div class="ex-grid col3">
+      <div class="ex-card">
+        <div class="ex-card-title">Weight</div>
+        <div style="margin-bottom:6px">
+          <div class="fi-bar-wrap">
+            <div class="fi-row"><span class="fi-name">Feature A</span><div class="fi-bar-bg"><div class="fi-bar" style="width:80%;background:var(--accent);color:#fff">8</div></div></div>
+            <div class="fi-row"><span class="fi-name">Feature B</span><div class="fi-bar-bg"><div class="fi-bar" style="width:20%;background:var(--teal);color:#fff">2</div></div></div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--coral)">A wins — but only because it was used more often, not because each split was better</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">Gain (avg)</div>
+        <div style="margin-bottom:6px">
+          <div class="fi-bar-wrap">
+            <div class="fi-row"><span class="fi-name">Feature A</span><div class="fi-bar-bg"><div class="fi-bar" style="width:34%;background:var(--accent);color:#fff">3.5</div></div></div>
+            <div class="fi-row"><span class="fi-name">Feature B</span><div class="fi-bar-bg"><div class="fi-bar" style="width:88%;background:var(--teal);color:#fff">8.75</div></div></div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--teal)">B wins — each of B's splits was more impactful on average</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">Cover (avg)</div>
+        <div style="margin-bottom:6px">
+          <div class="fi-bar-wrap">
+            <div class="fi-row"><span class="fi-name">Feature A</span><div class="fi-bar-bg"><div class="fi-bar" style="width:72%;background:var(--accent);color:#fff">333</div></div></div>
+            <div class="fi-row"><span class="fi-name">Feature B</span><div class="fi-bar-bg"><div class="fi-bar" style="width:100%;background:var(--teal);color:#fff">310</div></div></div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--amber)">A wins — but only because it was used at the root (1000 examples)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <div><strong>Key takeaway:</strong> All three metrics give different answers. None is definitively correct. Weight is the least trustworthy. Gain is the most commonly used but biased toward root splits. Cover is rarely used alone. The modern standard is SHAP — which gives a theoretically grounded, per-example decomposition that none of the above can provide.</div>
+  </div>
+
+  <div class="code-block">
+    <span class="cm"># Accessing all three importance types in XGBoost</span><br>
+    model.<span class="fn">get_score</span>(importance_type=<span class="str">'weight'</span>)   <span class="cm"># split count</span><br>
+    model.<span class="fn">get_score</span>(importance_type=<span class="str">'gain'</span>)     <span class="cm"># avg gain per split</span><br>
+    model.<span class="fn">get_score</span>(importance_type=<span class="str">'cover'</span>)    <span class="cm"># avg hessian-weighted examples</span><br>
+    model.<span class="fn">get_score</span>(importance_type=<span class="str">'total_gain'</span>) <span class="cm"># sum of gain (not avg)</span><br>
+    model.<span class="fn">get_score</span>(importance_type=<span class="str">'total_cover'</span>)<span class="cm"># sum of cover</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 2: SHAP -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="section-label">Section 02</div>
+  <h2>SHAP Values — Theory &amp; Numerical Example</h2>
+  <p class="section-intro">SHAP (SHapley Additive exPlanations) is the modern standard for explaining tree model predictions. XGBoost has native O(TLD) SHAP support — faster than model-agnostic SHAP libraries. This is a mandatory topic at Big Tech interviews.</p>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">What SHAP measures</h3>
+  <p class="prose">SHAP answers: <strong>"How much did each feature contribute to pushing this prediction away from the baseline (average prediction)?"</strong> Unlike feature importance (which is global and biased), SHAP gives a per-example, per-feature attribution.</p>
+
+  <div class="math">
+    prediction(x) = base_value + φ₁ + φ₂ + ... + φₙ<br><br>
+    <span class="c">// base_value = E[ŷ] = mean prediction over training data</span><br>
+    <span class="c">// φᵢ = SHAP value for feature i for this specific example</span><br>
+    <span class="c">// φᵢ > 0 → feature i pushed prediction ABOVE baseline</span><br>
+    <span class="c">// φᵢ < 0 → feature i pushed prediction BELOW baseline</span><br>
+    <span class="c">// Σφᵢ = prediction - base_value (exact decomposition, no residual)</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Shapley values — the game theory origin</h3>
+  <p class="prose">SHAP values come from cooperative game theory. Imagine each feature is a "player" in a game, and the "payout" is the prediction. The Shapley value for a player is their fair share of the payout, defined as the average marginal contribution across all possible feature coalitions.</p>
+
+  <div class="math">
+    φᵢ = Σ [|S|!(n−|S|−1)!/n!] · [f(S∪{i}) − f(S)]<br>
+         S⊆F\{i}<br><br>
+    <span class="c">// For each subset S of features NOT including feature i:</span><br>
+    <span class="c">//   compute prediction with S ∪ {i} minus prediction with S</span><br>
+    <span class="c">//   weight by |S|!(n−|S|−1)!/n! (coalition size weight)</span><br>
+    <span class="c">//   sum over all subsets</span><br><br>
+    <span class="c">// For 3 features: need to evaluate 2³ = 8 subsets per feature</span><br>
+    <span class="c">// Exact SHAP is O(2ⁿ) — XGBoost uses a tree-specific O(TLD) algorithm</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Full numerical example — 3 features, 1 prediction</h3>
+  <p class="prose">Model: XGBoost predicting house price (in $1000s). Three features: <strong>size</strong> (sqft), <strong>age</strong> (years), <strong>location</strong> (score 1–10). Base value = $250k (mean prediction).</p>
+  <p class="prose">For a specific house: size=2000 sqft, age=5 years, location=9. Model predicts $340k.</p>
+  <p class="prose">Total to explain: 340 − 250 = <strong>+$90k above baseline</strong>.</p>
+
+  <div class="example">
+    <div class="example-label">Evaluating all 8 feature subsets (3 features → 2³ subsets)</div>
+    <div class="table-wrap" style="margin:0">
+      <table>
+        <thead><tr><th>Subset S</th><th>Features included</th><th>f(S)</th><th>Marginal of size</th><th>Marginal of age</th><th>Marginal of location</th></tr></thead>
+        <tbody>
+          <tr><td>∅</td><td>none</td><td>250</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>{size}</td><td>size only</td><td>270</td><td class="good">+20 (∅→{size})</td><td>—</td><td>—</td></tr>
+          <tr><td>{age}</td><td>age only</td><td>258</td><td>—</td><td class="good">+8 (∅→{age})</td><td>—</td></tr>
+          <tr><td>{loc}</td><td>location only</td><td>290</td><td>—</td><td>—</td><td class="good">+40 (∅→{loc})</td></tr>
+          <tr><td>{size,age}</td><td>size+age</td><td>285</td><td class="good">+27 ({age}→{age,size})</td><td class="good">+15 ({size}→{size,age})</td><td>—</td></tr>
+          <tr><td>{size,loc}</td><td>size+loc</td><td>318</td><td class="good">+28 ({loc}→{loc,size})</td><td>—</td><td class="good">+48 ({size}→{size,loc})</td></tr>
+          <tr><td>{age,loc}</td><td>age+loc</td><td>305</td><td>—</td><td class="good">+15 ({loc}→{loc,age})</td><td class="good">+47 ({age}→{age,loc})</td></tr>
+          <tr><td>{size,age,loc}</td><td>all</td><td>340</td><td class="good">+35 ({age,loc}→all)</td><td class="good">+22 ({size,loc}→all)</td><td class="good">+55 ({size,age}→all)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="example-label">Computing SHAP for 'size' feature (n=3 features)</div>
+    <div class="math" style="margin:0">
+      <span class="c">// Weights: |S|!(n−|S|−1)!/n! with n=3</span><br>
+      |S|=0: 0!·2!/3! = 1·2/6 = 1/3 &nbsp;<span class="c">// S=∅, marginal = f({size})−f(∅) = 270−250 = +20</span><br>
+      |S|=1: 1!·1!/3! = 1/6 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">// S={age}: f({size,age})−f({age}) = 285−258 = +27</span><br>
+      |S|=1: 1!·1!/3! = 1/6 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">// S={loc}: f({size,loc})−f({loc}) = 318−290 = +28</span><br>
+      |S|=2: 2!·0!/3! = 1/3 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">// S={age,loc}: f(all)−f({age,loc}) = 340−305 = +35</span><br><br>
+      φ(size) = (1/3)·20 + (1/6)·27 + (1/6)·28 + (1/3)·35<br>
+              = 6.67 + 4.50 + 4.67 + 11.67<br>
+              = <span class="hi">+27.5</span>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="example-label">Final SHAP decomposition (similarly computed for age and location)</div>
+    <div class="ex-grid col3">
+      <div class="ex-card">
+        <div class="ex-card-title">size (2000 sqft)</div>
+        <div class="ex-val teal">+27.5</div>
+        <div class="ex-detail">Large house pushes price +$27.5k above baseline</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">age (5 years)</div>
+        <div class="ex-val blue">+14.5</div>
+        <div class="ex-detail">New-ish house adds +$14.5k</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">location (score 9)</div>
+        <div class="ex-val amber">+48.0</div>
+        <div class="ex-detail">Prime location adds +$48k</div>
+      </div>
+    </div>
+    <div class="math" style="margin-top:1rem">
+      Verification: base + φ(size) + φ(age) + φ(loc) = 250 + 27.5 + 14.5 + 48.0 = <span class="hi">340 ✓</span><br>
+      <span class="c">// SHAP is an exact decomposition — no residual, no approximation</span>
+    </div>
+  </div>
+
+  <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:1.5rem;margin:1.5rem 0">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem">SHAP waterfall — prediction decomposition</div>
+    <div id="shap-viz"></div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:0.75rem;text-align:center">← negative (below baseline) | zero line | positive (above baseline) →</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Why SHAP beats traditional feature importance</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Property</th><th>Weight</th><th>Gain</th><th>Cover</th><th>SHAP</th></tr></thead>
+      <tbody>
+        <tr><td>Per-example explanation</td><td class="bad">✗</td><td class="bad">✗</td><td class="bad">✗</td><td class="good">✓</td></tr>
+        <tr><td>Exact additive decomposition</td><td class="bad">✗</td><td class="bad">✗</td><td class="bad">✗</td><td class="good">✓</td></tr>
+        <tr><td>Handles feature correlation</td><td class="bad">✗</td><td class="bad">✗</td><td class="bad">✗</td><td class="good">✓</td></tr>
+        <tr><td>Unbiased by cardinality</td><td class="bad">✗</td><td class="warn-text">partial</td><td class="warn-text">partial</td><td class="good">✓</td></tr>
+        <tr><td>Unbiased by tree depth</td><td class="bad">✗</td><td class="bad">✗</td><td class="bad">✗</td><td class="good">✓</td></tr>
+        <tr><td>Consistent (more impact → higher value)</td><td class="bad">✗</td><td class="warn-text">partial</td><td class="bad">✗</td><td class="good">✓</td></tr>
+        <tr><td>Theoretically grounded</td><td class="bad">✗</td><td class="bad">✗</td><td class="bad">✗</td><td class="good">✓ (Shapley axioms)</td></tr>
+        <tr><td>Computational cost</td><td class="good">O(1)</td><td class="good">O(1)</td><td class="good">O(1)</td><td class="warn-text">O(TLD) in XGBoost</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-block">
+    <span class="cm"># Native SHAP in XGBoost — fast tree-specific algorithm</span><br>
+    shap_values = model.<span class="fn">predict</span>(dmatrix, pred_contribs=<span class="kw">True</span>)<br>
+    <span class="cm"># Returns array of shape (n_samples, n_features + 1)</span><br>
+    <span class="cm"># Last column = base_value (same for all rows)</span><br>
+    <span class="cm"># shap_values[i, j] = φⱼ for example i, feature j</span><br><br>
+    <span class="cm"># Interaction SHAP values (2nd order)</span><br>
+    shap_interactions = model.<span class="fn">predict</span>(dmatrix, pred_interactions=<span class="kw">True</span>)<br>
+    <span class="cm"># Returns (n_samples, n_features, n_features) — φᵢⱼ for each feature pair</span>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <div><strong>The Shapley axioms — why SHAP is theoretically correct:</strong> Efficiency (values sum to prediction), Symmetry (symmetric features get equal values), Dummy (zero-contribution features get zero), Additivity (values from independent sub-models sum correctly). These four axioms uniquely determine the Shapley value. No other attribution method satisfies all four simultaneously.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 3: XGB.CV() -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="section-label">Section 03</div>
+  <h2>xgb.cv() — Built-in Cross-Validation</h2>
+  <p class="section-intro">XGBoost ships its own cross-validation function that differs from sklearn's CV in important ways — primarily its ability to run early stopping within each fold. This is how you properly tune n_estimators without data leakage.</p>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Why xgb.cv() vs sklearn cross_val_score</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>sklearn cross_val_score</th><th>xgb.cv()</th></tr></thead>
+      <tbody>
+        <tr><td>Early stopping per fold</td><td class="bad">✗ — needs custom wrapper</td><td class="good">✓ native support</td></tr>
+        <tr><td>Per-round CV metrics</td><td class="bad">✗ — only final score</td><td class="good">✓ mean±std per boosting round</td></tr>
+        <tr><td>Finds optimal n_estimators</td><td class="bad">✗</td><td class="good">✓ automatically</td></tr>
+        <tr><td>Stratified folds</td><td class="good">✓</td><td class="warn-text">manual stratify param</td></tr>
+        <tr><td>Pipeline integration</td><td class="good">✓ easy</td><td class="warn-text">requires DMatrix</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">How xgb.cv() works internally</h3>
+  <ol class="steps">
+    <li>Splits data into k folds. For each round (tree) from 1 to num_boost_round, trains on k−1 folds and evaluates on the held-out fold.</li>
+    <li>Tracks mean and std of the eval metric across folds at every boosting round: <code>test-rmse-mean</code>, <code>test-rmse-std</code>.</li>
+    <li>If early stopping is enabled, stops when the mean metric hasn't improved for <code>early_stopping_rounds</code> consecutive rounds.</li>
+    <li>Returns a DataFrame of shape (num_rounds, 4): train-metric-mean, train-metric-std, test-metric-mean, test-metric-std.</li>
+    <li>The optimal n_estimators is the row with the best <code>test-metric-mean</code>.</li>
+  </ol>
+
+  <div class="code-block">
+    <span class="kw">import</span> xgboost <span class="kw">as</span> xgb<br><br>
+    dtrain = xgb.<span class="fn">DMatrix</span>(X_train, label=y_train)<br><br>
+    params = {<br>
+    &nbsp;&nbsp;<span class="str">'objective'</span>: <span class="str">'binary:logistic'</span>,<br>
+    &nbsp;&nbsp;<span class="str">'max_depth'</span>: <span class="num">4</span>,<br>
+    &nbsp;&nbsp;<span class="str">'learning_rate'</span>: <span class="num">0.05</span>,<br>
+    &nbsp;&nbsp;<span class="str">'eval_metric'</span>: <span class="str">'aucpr'</span>,<br>
+    &nbsp;&nbsp;<span class="str">'subsample'</span>: <span class="num">0.8</span>,<br>
+    }<br><br>
+    cv_results = xgb.<span class="fn">cv</span>(<br>
+    &nbsp;&nbsp;params=params,<br>
+    &nbsp;&nbsp;dtrain=dtrain,<br>
+    &nbsp;&nbsp;num_boost_round=<span class="num">5000</span>,   <span class="cm"># set high, early stopping finds optimum</span><br>
+    &nbsp;&nbsp;nfold=<span class="num">5</span>,<br>
+    &nbsp;&nbsp;early_stopping_rounds=<span class="num">50</span>, <span class="cm"># stops if no improvement for 50 rounds</span><br>
+    &nbsp;&nbsp;stratified=<span class="kw">True</span>,          <span class="cm"># for classification</span><br>
+    &nbsp;&nbsp;seed=<span class="num">42</span><br>
+    )<br><br>
+    <span class="cm"># Find optimal n_estimators</span><br>
+    best_rounds = cv_results[<span class="str">'test-aucpr-mean'</span>].<span class="fn">idxmax</span>() + <span class="num">1</span><br>
+    best_score = cv_results[<span class="str">'test-aucpr-mean'</span>].<span class="fn">max</span>()<br>
+    std_at_best = cv_results[<span class="str">'test-aucpr-std'</span>].<span class="fn">iloc</span>[best_rounds - <span class="num">1</span>]<br><br>
+    <span class="cm"># Now train final model on ALL data with this n_estimators</span><br>
+    final_model = xgb.<span class="fn">train</span>(params, dtrain, num_boost_round=best_rounds)
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>The "1-SE rule" for n_estimators:</strong> Instead of picking the exact round with best mean score, consider picking the earliest round within 1 standard error of the best. This gives a simpler model (fewer trees) with statistically equivalent performance. Formula: pick smallest n where score ≥ best_score − best_std.</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">✓</span>
+    <div><strong>Production workflow:</strong> (1) Use xgb.cv() to find optimal n_estimators with the full hyperparameter set. (2) Retrain final model on all training data using that n_estimators. (3) Never use the validation folds from xgb.cv() to report final test metrics — use a completely held-out test set.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 4: MONOTONE CONSTRAINTS -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="section-label">Section 04</div>
+  <h2>Monotone Constraints</h2>
+  <p class="section-intro">Force XGBoost to learn monotone relationships between features and the target. Critical in regulated industries (banking, insurance, healthcare) where the model must obey business logic. Sleeper topic — comes up constantly in ML-at-scale interviews.</p>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">The problem</h3>
+  <p class="prose">Without constraints, XGBoost can learn non-monotone relationships even when the domain demands monotonicity. Example: a credit scoring model should always predict <strong>lower default probability for higher credit scores</strong>. Without constraints, the model might find a local pattern where very-high-credit-score applicants default more (perhaps due to sampling bias) and encode this — producing regulatory violations.</p>
+
+  <div class="example">
+    <div class="example-label">What can go wrong without monotone constraints</div>
+    <div class="table-wrap" style="margin:0">
+      <table>
+        <thead><tr><th>Credit score range</th><th>Actual default rate in data</th><th>Model learns</th><th>Business requirement</th></tr></thead>
+        <tbody>
+          <tr><td>300–400 (poor)</td><td>35%</td><td>35%</td><td class="good">✓ correct</td></tr>
+          <tr><td>400–550 (fair)</td><td>18%</td><td>18%</td><td class="good">✓ correct</td></tr>
+          <tr><td>550–700 (good)</td><td>8%</td><td>8%</td><td class="good">✓ correct</td></tr>
+          <tr><td>700–800 (great)</td><td>3%</td><td>3%</td><td class="good">✓ correct</td></tr>
+          <tr><td>800–850 (excellent)</td><td>4% (sampling artifact)</td><td class="bad">4% — UP from 700–800!</td><td class="bad">✗ violation — must be ≤ 3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">How monotone constraints work in XGBoost</h3>
+  <p class="prose">When a monotone constraint is set on feature f, XGBoost enforces it during tree building by restricting which splits are valid. For a monotone increasing constraint on feature f:</p>
+
+  <div class="math">
+    <span class="c">// For monotone_constraints = +1 on feature f:</span><br>
+    <span class="c">// At any node splitting on feature f with threshold t:</span><br><br>
+    left_child_prediction  ≤  right_child_prediction<br>
+    <span class="c">// i.e. lower values of f → lower prediction</span><br>
+    <span class="c">//      higher values of f → higher prediction</span><br><br>
+    <span class="c">// Enforced by clamping leaf values after each tree build:</span><br>
+    <span class="c">// Left leaf: w*_left = min(unconstrained_w*, parent_upper_bound)</span><br>
+    <span class="c">// Right leaf: w*_right = max(unconstrained_w*, parent_lower_bound)</span>
+  </div>
+
+  <div class="example">
+    <div class="example-label">Numerical example — monotone constraint in action</div>
+    <p class="prose" style="margin-bottom:1rem">Features: credit_score (constrained +1), loan_amount (constrained −1, higher loan = higher risk). Target: default probability.</p>
+    <div class="ex-grid col2">
+      <div class="ex-card">
+        <div class="ex-card-title">Without constraint</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text2);line-height:2">
+          credit=750 → default_prob = 0.03<br>
+          credit=800 → default_prob = <span style="color:var(--coral)">0.05 ← violation!</span><br>
+          credit=820 → default_prob = 0.02<br>
+          credit=850 → default_prob = 0.01
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">With constraint (+1 on credit)</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text2);line-height:2">
+          credit=750 → default_prob = <span style="color:var(--teal)">0.04</span><br>
+          credit=800 → default_prob = <span style="color:var(--teal)">0.03</span><br>
+          credit=820 → default_prob = <span style="color:var(--teal)">0.02</span><br>
+          credit=850 → default_prob = <span style="color:var(--teal)">0.01</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <span class="cm"># Monotone constraints — tuple or dict</span><br>
+    <span class="cm"># +1 = increasing, -1 = decreasing, 0 = no constraint</span><br>
+    params = {<br>
+    &nbsp;&nbsp;<span class="str">'monotone_constraints'</span>: (<span class="num">1</span>, -<span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>),<br>
+    &nbsp;&nbsp;<span class="cm"># Feature order: credit_score=+1, loan_amount=-1, age=0, income=0</span><br>
+    }<br><br>
+    <span class="cm"># Or as a dict (cleaner for many features)</span><br>
+    params[<span class="str">'monotone_constraints'</span>] = {<br>
+    &nbsp;&nbsp;<span class="str">'credit_score'</span>: <span class="num">1</span>,<br>
+    &nbsp;&nbsp;<span class="str">'loan_amount'</span>: -<span class="num">1</span><br>
+    }
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Cost of monotone constraints:</strong> Constraining the model reduces its capacity to fit the data — expected accuracy loss, especially when the true relationship is genuinely non-monotone in some range. The tradeoff is accuracy vs compliance. In regulated industries, compliance wins. Measure the accuracy cost explicitly: train with and without constraints, compare AUC-PR.</div>
+  </div>
+
+  <div class="callout violet">
+    <span class="callout-icon">◆</span>
+    <div><strong>Interview question this unlocks:</strong> "How would you build a credit scoring model that must satisfy regulatory monotonicity requirements?" The answer is: monotone constraints + SHAP for per-decision explanation + AUC-PR as primary metric + document the accuracy cost of the constraints explicitly.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 5: INTERACTION CONSTRAINTS -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="section-label">Section 05</div>
+  <h2>Interaction Constraints</h2>
+  <p class="section-intro">Restrict which features are allowed to interact in splits within the same tree path. A powerful tool for domain-driven regularisation and compliance in regulated ML systems.</p>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">What "interaction" means in a tree</h3>
+  <p class="prose">In a decision tree, two features <strong>interact</strong> if they both appear on the same root-to-leaf path. If feature A splits the root and feature B splits a child node reached via feature A, then A and B interact — the model has learned that the effect of B depends on the value of A.</p>
+
+  <div class="math">
+    <span class="c">// Tree path that uses BOTH age and income:</span><br>
+    root: if age &lt; 30 → go left<br>
+    &nbsp;&nbsp;left: if income &lt; 50k → predict 0.7 (high default)<br>
+    &nbsp;&nbsp;left: if income ≥ 50k → predict 0.3 (moderate default)<br><br>
+    <span class="c">// This encodes: "for young people (age &lt; 30), income matters"</span><br>
+    <span class="c">// → age and income are INTERACTING in this path</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Why you'd want to restrict interactions</h3>
+  <p class="prose">Two scenarios where interaction constraints are useful:</p>
+  <ol class="steps">
+    <li><strong>Regulatory compliance:</strong> A model must not use certain features together. Example: race and zip-code cannot both appear on the same decision path in a lending model (proxy discrimination concern).</li>
+    <li><strong>Domain-driven regularisation:</strong> You know from domain knowledge that two features should not interact. Forcing the model to respect this prevents overfitting to spurious interaction patterns in the training data.</li>
+  </ol>
+
+  <div class="code-block">
+    <span class="cm"># interaction_constraints: list of lists</span><br>
+    <span class="cm"># Each inner list = features ALLOWED to interact with each other</span><br>
+    <span class="cm"># Features from different lists CANNOT appear on the same path</span><br><br>
+    params[<span class="str">'interaction_constraints'</span>] = [<br>
+    &nbsp;&nbsp;[<span class="num">0</span>, <span class="num">1</span>, <span class="num">2</span>],   <span class="cm"># features 0,1,2 can interact with each other</span><br>
+    &nbsp;&nbsp;[<span class="num">3</span>, <span class="num">4</span>],      <span class="cm"># features 3,4 can interact with each other</span><br>
+    &nbsp;&nbsp;[<span class="num">5</span>]         <span class="cm"># feature 5 can only interact with itself (no interactions)</span><br>
+    ]<br>
+    <span class="cm"># Features 0 and 3 will NEVER appear on the same root-to-leaf path</span><br><br>
+    <span class="cm"># Example: credit scoring model</span><br>
+    <span class="cm"># Group 1: financial features [income, debt, assets]</span><br>
+    <span class="cm"># Group 2: behavioural features [payment_history, credit_utilisation]</span><br>
+    <span class="cm"># Group 3: demographic features [age] — isolated, no interactions</span>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <div><strong>Interaction constraints vs feature selection:</strong> Interaction constraints do NOT prevent a feature from being used — they only prevent it from appearing on the same path as features from other groups. Feature 5 above can still be used as the root split in every tree — it just can't interact with any other feature within a path. This is subtly different from simply dropping the feature.</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Accuracy cost:</strong> Like monotone constraints, interaction constraints reduce model capacity. A model that cannot let age interact with income loses the ability to capture "young borrowers respond differently to income changes." Measure the cost: compare AUC-PR with and without constraints. If the cost is high, investigate whether the constraint is actually necessary or too restrictive.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 6: FAILURE MODES -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s6">
+  <div class="section-label">Section 06</div>
+  <h2>When XGBoost Fails — Failure Modes</h2>
+  <p class="section-intro">XGBoost is not a universal solution. Knowing precisely when it fails — and why — is what separates strong candidates from those who just know how to run the model.</p>
+
+  <div class="divider"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Failure mode</th><th>Why it happens</th><th>What to use instead</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Extrapolation</td>
+          <td>Trees partition the feature space and predict the mean within each partition. There are no partitions beyond the training range. Predictions for values outside training range = mean of the most extreme leaf.</td>
+          <td>Linear models, neural networks (anything that can extrapolate)</td>
+        </tr>
+        <tr>
+          <td>High-dim sparse data</td>
+          <td>Text (bag-of-words), one-hot encoded categoricals with 1000s of levels. Most values are zero. XGBoost's exact splits become noise-chasing. Memory cost of column blocks explodes.</td>
+          <td>Logistic regression with L1, linear SVM, neural networks for text/NLP</td>
+        </tr>
+        <tr>
+          <td>Very noisy labels</td>
+          <td>Boosting sequentially amplifies residuals. If early trees learn noise patterns, subsequent trees must "undo" this — compounding noise. RF dilutes noise by averaging. XGBoost accumulates it.</td>
+          <td>Random Forest, heavy regularisation (γ++, α++, low max_depth), label smoothing</td>
+        </tr>
+        <tr>
+          <td>Very small datasets (&lt;500 rows)</td>
+          <td>With enough regularisation parameters, XGBoost can memorise even a few hundred examples. The sequential boosting compounds overfitting even with low learning rate.</td>
+          <td>Random Forest, logistic regression, SVM, Gaussian processes</td>
+        </tr>
+        <tr>
+          <td>Online / streaming learning</td>
+          <td>XGBoost requires the full dataset to compute gradients and Hessians. Cannot update incrementally without retraining from scratch.</td>
+          <td>Online gradient descent, vowpal wabbit, river (Python online ML library)</td>
+        </tr>
+        <tr>
+          <td>Temporal / sequential data</td>
+          <td>No native time-series awareness. Naive cross-validation causes future data leakage. No concept of sequence, lag, or trend.</td>
+          <td>LSTMs, Temporal Fusion Transformers, Prophet (with XGBoost for residuals)</td>
+        </tr>
+        <tr>
+          <td>Unstructured data (images, text, audio)</td>
+          <td>Trees operate on tabular feature vectors. Cannot learn spatial hierarchies, attention, embeddings, or sequential context natively.</td>
+          <td>CNNs, transformers, BERT/GPT for text, ResNets for images</td>
+        </tr>
+        <tr>
+          <td>Many correlated features</td>
+          <td>Feature importance metrics become meaningless when features are correlated — importance gets split arbitrarily across correlated features. SHAP handles this better but still has issues.</td>
+          <td>Feature selection first, PCA, or Lasso + XGBoost in two stages</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-family:var(--display);font-size:1.1rem;color:#fff;margin-bottom:0.75rem">Extrapolation — numerical illustration</h3>
+  <div class="example">
+    <div class="example-label">Training data range vs test prediction</div>
+    <div class="math">
+      <span class="c">// Training data: house_size from 500 to 3000 sqft</span><br>
+      <span class="c">// For size=2800: XGBoost predicts correctly using right-most leaf</span><br>
+      <span class="c">// For size=5000: XGBoost has no leaf for this range</span><br>
+      <span class="c">//   → falls into the rightmost leaf (training max)</span><br>
+      <span class="c">//   → predicts same value as size=3000</span><br>
+      <span class="c">//   → prediction PLATEAUS, never grows with feature value</span><br><br>
+      prediction(5000 sqft) = prediction(3000 sqft) <span class="warn">← extrapolation failure</span><br>
+      <span class="c">// A linear model would extrapolate: prediction(5000) &gt; prediction(3000)</span>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Interview trap:</strong> "XGBoost doesn't extrapolate — this is a weakness." Partially correct — it depends on your use case. For many real-world applications (fraud, churn, pricing) you never need to extrapolate because inputs stay within training range. But for forecasting or regression on unbounded targets, this is a genuine failure mode that must be acknowledged.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 7: XGBOOST VS SKLEARN GBM -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s7">
+  <div class="section-label">Section 07</div>
+  <h2>XGBoost vs sklearn GBM — Precise Differences</h2>
+  <p class="section-intro">sklearn's GradientBoostingClassifier and XGBoost are often treated as equivalent. They are not. Knowing the precise differences is a strong signal of depth in interviews.</p>
+
+  <div class="divider"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dimension</th><th>sklearn GBM</th><th>XGBoost</th></tr></thead>
+      <tbody>
+        <tr><td>Leaf value computation</td><td>First-order only: w* = mean residual (MSE) or median (MAE)</td><td class="compare-highlight">Second-order: w* = −G/(H+λ). Newton's method. Better leaf values for non-MSE losses.</td></tr>
+        <tr><td>Regularisation on leaves</td><td>None — no L1/L2 penalty on leaf values</td><td class="compare-highlight">λ (L2) and α (L1) directly in leaf formula. Default λ=1 already regularising.</td></tr>
+        <tr><td>Split penalty</td><td>None — any positive gain triggers a split</td><td class="compare-highlight">γ parameter: split only if Gain > γ. Principled pruning.</td></tr>
+        <tr><td>Missing value handling</td><td>Requires imputation before training</td><td class="compare-highlight">Native learned default directions. No imputation needed.</td></tr>
+        <tr><td>Parallelism</td><td>Sequential within and across trees (GIL-limited in Python)</td><td class="compare-highlight">Parallel split evaluation within each tree. Column blocks enable multi-core.</td></tr>
+        <tr><td>Tree building algorithm</td><td>Exact greedy only</td><td class="compare-highlight">exact, approx, hist, gpu_hist. hist is ~10× faster on large datasets.</td></tr>
+        <tr><td>Subsampling</td><td>subsample: row sampling (same as XGBoost)</td><td class="compare-highlight">subsample + colsample_bytree + colsample_bylevel + colsample_bynode</td></tr>
+        <tr><td>Early stopping</td><td>n_iter_no_change with validation_fraction</td><td class="compare-highlight">early_stopping_rounds with explicit eval_set. More flexible.</td></tr>
+        <tr><td>Monotone constraints</td><td>Not supported</td><td class="compare-highlight">monotone_constraints parameter. Native support.</td></tr>
+        <tr><td>Interaction constraints</td><td>Not supported</td><td class="compare-highlight">interaction_constraints parameter. Native support.</td></tr>
+        <tr><td>SHAP values</td><td>Via external shap library (slow)</td><td class="compare-highlight">Native O(TLD) fast tree SHAP. pred_contribs=True.</td></tr>
+        <tr><td>Default parameter names</td><td>max_features, min_samples_leaf</td><td class="compare-highlight">colsample_bytree, min_child_weight (Hessian-based, not count-based)</td></tr>
+        <tr><td>Speed at scale (&gt;1M rows)</td><td>Slow — exact greedy, no parallelism</td><td class="compare-highlight">Fast — hist + column blocks + multi-core</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <div><strong>The one-line answer:</strong> sklearn GBM and XGBoost implement the same boosting loop but XGBoost adds: (1) Newton's method for leaf values, (2) explicit L1/L2/γ regularisation, (3) native missing values, (4) column blocks + parallelism, (5) monotone/interaction constraints, (6) native SHAP. For small datasets they're often equivalent in accuracy. For large datasets, XGBoost wins on speed by 10–100×.</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><strong>min_child_weight trap:</strong> sklearn's min_samples_leaf is a count of examples. XGBoost's min_child_weight is the minimum sum of Hessians in a leaf. For MSE where h=1, they're equivalent. For log-loss where h=p(1−p), they're not — a leaf with 100 very confident predictions might have sum(h) = 2.0, which could be below a min_child_weight of 5. Never assume these parameters are interchangeable when porting models between sklearn and XGBoost.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SECTION 8: INTERVIEW QUESTIONS -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section" id="s8">
+  <div class="section-label">Section 08</div>
+  <h2>35 Interview Questions</h2>
+  <p class="section-intro">Weighted toward hard questions. Topics: feature importance, SHAP, xgb.cv(), monotone constraints, interaction constraints, failure modes, XGBoost vs sklearn GBM.</p>
+
+  <div class="qa-filters">
+    <button class="qf-btn on" onclick="filterQ('all',this)">All 35</button>
+    <button class="qf-btn found" onclick="filterQ('found',this)">Foundational</button>
+    <button class="qf-btn med" onclick="filterQ('med',this)">Medium</button>
+    <button class="qf-btn hard" onclick="filterQ('hard',this)">Hard</button>
+  </div>
+
+  <div id="q-container"></div>
+</div>
+
+</div><!-- end .page -->
+
+
+<script>
+/* ── SHAP waterfall viz ── */
+(function(){
+  const items = [
+    {label:'base value', val:0, isBase:true},
+    {label:'location (score=9)', val:48, pos:true},
+    {label:'size (2000 sqft)', val:27.5, pos:true},
+    {label:'age (5 years)', val:14.5, pos:true},
+    {label:'prediction', val:90, isTotal:true},
+  ];
+  const container = document.getElementById('shap-viz');
+  if(!container) return;
+  const maxAbs = 90;
+  let html = '';
+  items.forEach(item => {
+    const pct = Math.abs(item.val) / maxAbs * 45;
+    let barStyle, valStyle, labelColor;
+    if(item.isBase){
+      html += `<div class="shap-row"><span class="shap-label" style="color:var(--text3)">base value (250k)</span><div class="shap-center"><div class="shap-zero"></div><div class="shap-bar" style="left:50%;width:2px;background:var(--border3)"></div></div></div>`;
+      return;
+    }
+    if(item.isTotal){
+      html += `<div class="shap-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px"><span class="shap-label" style="color:var(--text)">prediction (340k)</span><div class="shap-center"><div class="shap-zero"></div><div class="shap-bar" style="left:50%;width:${pct}%;background:rgba(110,158,245,0.3);border:1px solid var(--accent)"><span class="shap-barval" style="color:var(--accent2)">+90k total</span></div></div></div>`;
+      return;
+    }
+    const color = item.pos ? 'var(--teal)' : 'var(--coral)';
+    const bgColor = item.pos ? 'rgba(41,201,138,0.15)' : 'rgba(240,96,74,0.15)';
+    const sign = item.pos ? '+' : '';
+    html += `<div class="shap-row"><span class="shap-label">${item.label}</span><div class="shap-center"><div class="shap-zero"></div><div class="shap-bar" style="left:50%;width:${pct}%;background:${bgColor};border:1px solid ${color}"><span class="shap-barval" style="color:${color}">${sign}${item.val}k</span></div></div></div>`;
+  });
+  container.innerHTML = html;
+})();
+
+/* ── Interview Questions ── */
+const qs = [
+  // FEATURE IMPORTANCE
+  {n:1,d:'found',topic:'Feature Importance',q:'What are the three types of feature importance in XGBoost? Define each.',
+   must:['Weight = total split count for the feature across all trees','Gain = average loss reduction per split (Gain formula value) for the feature','Cover = average sum of Hessians at nodes where the feature splits','Total gain / total cover are the non-averaged variants','Weight is least trustworthy. Gain is most commonly used. SHAP is the modern standard.']},
+  {n:2,d:'med',topic:'Feature Importance',q:'Why is weight importance biased toward high-cardinality features? Give a concrete example.',
+   must:['High-cardinality features (age, income) have many unique values → many possible split points','XGBoost evaluates more split candidates → more likely to find useful ones → feature used more often','A feature with 1000 unique values and weak signal may rank above a binary feature with strong signal','Example: zip_code (50,000 levels) vs is_premium_member (2 levels). Even if membership predicts 10× better, zip_code will dominate weight count.'],
+   trap:'Gain also has a bias (toward root splits) but it\'s less severe than weight\'s cardinality bias.'},
+  {n:3,d:'med',topic:'Feature Importance',q:'Why is gain importance biased toward root-level splits?',
+   must:['Root nodes contain all training examples. Gain at root = loss reduction applied to all n examples','Deeper nodes contain fewer examples. Same quality split → smaller absolute Gain','Gain is Hessian-weighted: G²/(H+λ). More examples → larger H → potentially larger G → larger Gain','A feature used only deep in the tree with local but important effect gets undervalued','This is why two correlated features can show very different Gain even if they\'re equally predictive — whichever gets to the root first will show higher Gain.']},
+  {n:4,d:'hard',topic:'Feature Importance',q:'You have two correlated features A and B (correlation = 0.95). Feature importance assigns A a high score and B a low score. What is happening and how would you investigate?',
+   must:['Correlated features compete for the same splits. Whichever gets used first (usually the one with slightly higher Gain at first evaluation) tends to dominate across trees.','XGBoost is greedy — once A captures a signal at a node, B has less signal left to capture. B looks unimportant.','SHAP with interaction values (pred_interactions=True) shows how much of the effect is due to A vs B vs their interaction.','Permutation importance (shuffle one feature at a time, measure performance drop) handles correlation better than split-based importance.','Practical fix: if B is truly correlated with A, consider dropping it and use SHAP to confirm A is capturing the shared signal.'],
+   trap:'Don\'t conclude B is unimportant just from XGBoost feature importance. The model may have learned to use A as a proxy for A+B.'},
+  {n:5,d:'hard',topic:'Feature Importance',q:'A colleague claims "XGBoost feature importance can be used to select features before model training." Critique this claim.',
+   must:['Feature importance is computed FROM a trained model — you can\'t use it before training (circular dependency)','Workaround: train a fast approximate model, get importance, select features, retrain — but this introduces bias','Better approaches: univariate filter methods (mutual information, chi-square) before training; or L1/LASSO in a linear model to pre-select','Within XGBoost: alpha (L1 on leaf values) and gamma effectively prune irrelevant features during training — no pre-selection needed','SHAP-based feature selection (permutation importance via SHAP) is valid but requires a trained model on full features first']},
+
+  // SHAP
+  {n:6,d:'found',topic:'SHAP',q:'What does a SHAP value measure? What is the base value?',
+   must:['SHAP value φᵢ = average marginal contribution of feature i across all possible subsets of other features','base_value = E[ŷ] = mean prediction of the model over the training dataset','prediction = base_value + Σφᵢ (exact additive decomposition, no residual)','φᵢ > 0: feature pushed prediction above baseline. φᵢ < 0: feature pushed prediction below baseline.']},
+  {n:7,d:'med',topic:'SHAP',q:'State the four Shapley axioms. Why do they matter?',
+   must:['Efficiency: Σφᵢ = f(x) − f(∅) (values sum to total contribution)','Symmetry: if two features contribute identically in all coalitions, they get equal values','Dummy: if a feature contributes nothing in any coalition, its SHAP value is 0','Additivity: for a model that is a sum of two sub-models, SHAP values add','These axioms uniquely determine the Shapley value — no other attribution method satisfies all four simultaneously. This is what makes SHAP theoretically principled rather than heuristic.']},
+  {n:8,d:'med',topic:'SHAP',q:'What is the computational complexity of exact SHAP and how does XGBoost speed it up?',
+   must:['Exact Shapley: O(2ⁿ) — must evaluate all 2ⁿ feature subsets per example. Infeasible for n>30.','XGBoost tree SHAP: O(TLD) where T = number of trees, L = max leaves, D = max depth','Key insight: tree structure allows efficient computation by propagating coverage statistics through each tree path rather than enumerating subsets','In practice: tree SHAP is 100-1000× faster than model-agnostic SHAP on the same model','Access via: model.predict(dmatrix, pred_contribs=True)']},
+  {n:9,d:'hard',topic:'SHAP',q:'Explain SHAP interaction values. When would you use them and what do they tell you?',
+   must:['SHAP interaction value φᵢⱼ measures the additional effect of feature i when feature j is also present (beyond their individual effects)','Diagonal φᵢᵢ = main effect of feature i (its SHAP value minus all interaction effects)','φᵢⱼ = φⱼᵢ (symmetric). Σⱼ φᵢⱼ = standard SHAP value φᵢ','Use case: understanding synergistic effects. E.g. in fraud: high transaction amount AND unusual location together → much higher fraud risk than either alone','Access: model.predict(dmatrix, pred_interactions=True) → returns (n_samples, n_features, n_features)','Complexity: O(TLD²) — quadratic in features. Expensive for many features.'],
+   trap:'Interaction values do NOT capture all possible higher-order interactions — only pairwise. Three-way interactions are not directly accessible.'},
+  {n:10,d:'hard',topic:'SHAP',q:'A model has SHAP values where feature A has mean |SHAP| = 5.2 and feature B has mean |SHAP| = 0.3. Can you conclude A is a better predictor than B? What could make this misleading?',
+   must:['Mean |SHAP| is a valid global importance metric — better than weight/gain because it handles correlation and depth bias','But it can still be misleading if A and B are correlated — A may be capturing B\'s signal','If B was excluded from the model, mean |SHAP| of A could increase further (absorbing B\'s contribution)','The distribution of SHAP values matters: A with mean |SHAP|=5.2 but high variance might be unreliable (only important for specific examples). B with |SHAP|=0.3 and low variance is consistently predictive.','SHAP dependence plots (SHAP value vs feature value) reveal whether the relationship is monotone, non-monotone, or driven by specific subgroups']},
+  {n:11,d:'hard',topic:'SHAP',q:'How would you use SHAP to detect data leakage in a trained XGBoost model?',
+   must:['Leakage: a feature that is computed using or correlated with the target (not available at inference time)','SHAP red flags: a feature that is always the #1 contributor and has very high SHAP values is suspicious','Check the SHAP dependence plot: if SHAP values for a feature show a perfect monotone relationship with the target, the feature may encode the target directly','Time-series leakage: if a feature derived from future data appears, its SHAP values will be unreasonably high and concentrated','Action: remove the suspected feature, retrain, compare AUC-PR. Large drop → the feature was leaking. Stable performance → it was a legitimate predictor.']},
+
+  // XGB.CV()
+  {n:12,d:'found',topic:'xgb.cv()',q:'What does xgb.cv() return and how do you use it to find optimal n_estimators?',
+   must:['Returns a DataFrame with columns: train-metric-mean, train-metric-std, test-metric-mean, test-metric-std — one row per boosting round','best_rounds = index of best test-metric-mean + 1 (1-indexed)','Then retrain final model on ALL data with num_boost_round=best_rounds','Early stopping in cv() stops training when test-metric-mean doesn\'t improve for early_stopping_rounds consecutive rounds','This is the correct way to find n_estimators — avoids grid searching and data leakage']},
+  {n:13,d:'med',topic:'xgb.cv()',q:'What is the 1-SE rule for model selection and how does it apply to xgb.cv()?',
+   must:['1-SE rule: choose the simplest model (fewest trees) whose CV score is within 1 standard error of the best CV score','Formula: pick smallest n where test-metric-mean[n] ≥ best_score − test-metric-std[best_round]','Rationale: we prefer simpler models when the performance difference is within noise. Fewer trees = faster inference, less memory, less likely to overfit.','Particularly useful when best_score is at round 2000 but a model at round 800 is statistically equivalent — take the 800-tree model.'],
+   trap:'The 1-SE rule selects fewer trees, not the most accurate model. Only use it when you have a specific reason to prefer simplicity.'},
+  {n:14,d:'hard',topic:'xgb.cv()',q:'You use xgb.cv() with 5-fold CV and report the test-metric-mean at the best round as your model\'s expected performance. What is wrong with this and how do you fix it?',
+   must:['The CV was used to make a training decision (choosing n_estimators) — it is no longer an unbiased estimate of test performance','This is a form of "optimism bias": by optimising n_estimators on the CV folds, we\'ve overfit the CV procedure itself','The true expected performance is slightly worse than reported — the CV estimate is optimistically biased','Fix: use a 3-way split. (1) Train/val from xgb.cv() to find n_estimators. (2) Retrain on full train set. (3) Evaluate on a completely held-out test set that was never touched during any decision.','Alternative: nested CV (outer loop for evaluation, inner loop for hyperparameter tuning) — expensive but unbiased.']},
+
+  // MONOTONE CONSTRAINTS
+  {n:15,d:'found',topic:'Monotone Constraints',q:'What is a monotone constraint in XGBoost and when would you use it?',
+   must:['+1: prediction must increase as feature increases. -1: prediction must decrease. 0: no constraint.','Use when: regulatory compliance (lending, insurance), business logic must be enforced (higher loyalty score → better offer), preventing spurious inversions due to sampling artifacts','How it works: XGBoost clamps leaf values during tree building to maintain monotone ordering along any path splitting on the constrained feature','Cost: accuracy loss — the model cannot fit genuine non-monotone patterns if they exist in data']},
+  {n:16,d:'med',topic:'Monotone Constraints',q:'Explain how XGBoost enforces monotone constraints mechanically during tree building.',
+   must:['During split finding: for a split on constrained feature f with threshold t, left child gets lower values of f, right child gets higher values','For +1 constraint: XGBoost enforces that predicted value of right child ≥ predicted value of left child','Mechanism: after computing optimal leaf values w* = −G/(H+λ), XGBoost clamps them using propagated bounds from the parent node','left leaf upper bound = parent node bound; right leaf lower bound = left leaf value','This is applied recursively through the tree, maintaining monotonicity at every level','Consequence: the clamped leaf values are no longer mathematically optimal (they\'re the nearest feasible values to the unconstrained optimum)'],
+   trap:'Monotone constraints do NOT guarantee globally monotone predictions for all feature ranges — only along any single decision path. Complex interactions can still create apparent non-monotonicity in the global input-output mapping.'},
+  {n:17,d:'hard',topic:'Monotone Constraints',q:'You add monotone constraints to all 10 features in your credit model and observe a 0.05 AUC-PR drop. How do you decide which constraints to keep?',
+   must:['Measure individual constraint cost: remove one constraint at a time, retrain, measure AUC-PR change. Rank constraints by cost.','Constraints with near-zero cost: data genuinely follows the monotone relationship → keep them (free compliance)','Constraints with high cost: data has genuine non-monotone patterns → investigate why before deciding','Domain analysis: is the non-monotone pattern real or a sampling artifact? If artifact: keep constraint. If real: may need to accept cost or redesign the feature.','Stakeholder decision: the cost of constraint is a business/regulatory tradeoff, not purely a modelling decision. Report the cost clearly.','SHAP analysis: use SHAP dependence plots on unconstrained model to visualise where non-monotonicity occurs — gives insight into whether the pattern is meaningful.']},
+  {n:18,d:'hard',topic:'Monotone Constraints',q:'Can monotone constraints and interaction constraints conflict? Give an example.',
+   must:['Yes — they can produce contradictory requirements on the same tree path','Example: monotone +1 on income (higher income → lower default). Interaction constraint: income cannot interact with age.','A tree might want to split: age<30 → income matters differently → needs age and income on same path. Interaction constraint blocks this.','The model cannot find a valid tree that satisfies both: monotone on income AND no income-age interaction.','In practice: XGBoost will find the best feasible tree subject to both constraints — but the accuracy cost of both together may be larger than either alone.','Recommendation: apply constraints one type at a time, measure cost, then test combined constraints before deploying both.']},
+
+  // INTERACTION CONSTRAINTS
+  {n:19,d:'found',topic:'Interaction Constraints',q:'What do interaction constraints prevent in XGBoost?',
+   must:['They prevent features from different constraint groups from appearing on the same root-to-leaf path','A feature can still be used in the tree — it just cannot be "downstream" of a feature in a different group on the same path','Example: [[0,1],[2,3]] means feature 0 and 2 can never interact — not that either is excluded from the model','Each constraint group = a set of features allowed to interact with each other']},
+  {n:20,d:'med',topic:'Interaction Constraints',q:'How are interaction constraints different from simply dropping features?',
+   must:['Dropping a feature: removes it from the model entirely — it provides no information at all','Interaction constraint: the feature is still used, but only in paths that don\'t include certain other features','A feature isolated in its own group [[5]] can still be the root split of every tree — it just can\'t have any other feature below it on the same path','Practical difference: a highly predictive feature that must not interact with specific others can still be the primary driver of predictions — it just cannot modify the effect of restricted features']},
+  {n:21,d:'hard',topic:'Interaction Constraints',q:'Design an interaction constraint scheme for a lending model where you must prevent proxy discrimination between zip_code and race_indicator, but zip_code is important for geographic risk.',
+   must:['Goal: zip_code can be used (it\'s predictive) but must not interact with race_indicator','Scheme: [[zip_code, financial_features...], [race_indicator], [other_demographics...]]','This allows: zip_code to interact with income, debt_ratio (legitimate geographic risk)','This prevents: zip_code and race_indicator on the same decision path (no "zip_code for certain racial groups" pattern)','Important: this prevents direct tree interactions but does NOT prevent race_indicator from being a correlated proxy for zip_code effects — further work needed (adversarial debiasing, SHAP fairness analysis)','Always report the accuracy cost of the constraint and document it for model governance.']},
+
+  // FAILURE MODES
+  {n:22,d:'found',topic:'Failure Modes',q:'Why does XGBoost fail at extrapolation? What does it predict for inputs outside the training range?',
+   must:['Trees partition the feature space into rectangular regions and predict the mean within each region','No region exists beyond the training range. The most extreme training value defines the last leaf boundary.','For values above training max: falls into the rightmost leaf → predicts its constant value → prediction plateaus','For values below training min: falls into leftmost leaf → same plateau behaviour','Example: trained on house sizes 500–3000 sqft. Prediction for 5000 sqft = same as prediction for 3000 sqft.','Linear models, neural networks, and polynomial models can extrapolate (for better or worse).']},
+  {n:23,d:'med',topic:'Failure Modes',q:'You train XGBoost on historical fraud data from 2020–2022 and deploy in 2024. What are the specific failure modes to watch for?',
+   must:['Concept drift: fraud patterns change (new attack vectors, new merchant categories). XGBoost cannot update without retraining.','Extrapolation in feature space: new fraud patterns may use feature values outside training range → plateau predictions','Distribution shift: if feature distributions change (new payment methods, new geographic markets), the existing partitions are stale','No online learning: cannot incorporate feedback from 2024 fraud labels without full retraining','Monitoring plan: track model score distribution over time. If distribution drifts, retrain. Use SHAP to identify which features drive the drift.','Recommendation: retrain quarterly minimum; use concept drift detectors (ADWIN, drift metrics) to trigger ad-hoc retraining.']},
+  {n:24,d:'hard',topic:'Failure Modes',q:'When would you choose Random Forest over XGBoost, even if XGBoost achieves higher accuracy?',
+   must:['Very noisy labels: RF dilutes noise by averaging; XGBoost compounds noise through sequential residuals','Very small datasets (<500 rows): RF\'s bootstrap + averaging is more robust than sequential boosting which can overfit even with regularisation','Online/streaming data: RF can update individual trees; XGBoost requires full retrain','Need for uncertainty quantification: RF gives natural variance estimates across trees; XGBoost doesn\'t natively','Time pressure: RF with default params usually performs reasonably well; XGBoost requires careful tuning to reach its ceiling','Interpretability requirements at tree level: RF trees are individually interpretable; XGBoost trees are small stumps that aren\'t individually meaningful','The "higher ceiling vs higher floor" tradeoff: RF has a higher floor (hard to make it terrible), XGBoost has a higher ceiling (well-tuned XGBoost usually beats RF on tabular data).']},
+  {n:25,d:'hard',topic:'Failure Modes',q:'Describe a scenario where correlated features cause XGBoost to appear to work well in training and CV but fail silently in production.',
+   must:['Scenario: features A and B are highly correlated (0.95) in training data but A becomes unavailable at inference time for 10% of cases','In training: XGBoost uses A as primary split. B seems unimportant. CV looks clean.','In production: 10% of cases have A missing. XGBoost tries learned default direction → falls back to B\'s signal less effectively → performance degradation','Feature importance showed B as unimportant → team didn\'t monitor B → silent failure','Detection: SHAP with feature A removed — if mean |SHAP(B)| increases dramatically, B is a backup for A\'s signal','Fix: explicitly test model performance when each feature is separately missing. Stress-test missing value scenarios before deployment.']},
+
+  // SKLEARN VS XGBOOST
+  {n:26,d:'found',topic:'vs sklearn GBM',q:'Name 5 concrete differences between sklearn GradientBoostingClassifier and XGBoost.',
+   must:['1. Leaf values: sklearn = mean residual. XGBoost = −G/(H+λ) via Newton\'s method.','2. Regularisation: sklearn = none on leaves. XGBoost = γ, λ, α.','3. Missing values: sklearn = requires imputation. XGBoost = native learned default directions.','4. Speed: sklearn = exact greedy only, sequential. XGBoost = hist + parallel split evaluation.','5. Constraints: sklearn = none. XGBoost = monotone + interaction constraints.','Bonus: min_child_weight in XGBoost is Hessian-sum, not example count like sklearn\'s min_samples_leaf.']},
+  {n:27,d:'med',topic:'vs sklearn GBM',q:'You port a well-tuned sklearn GBM model to XGBoost. Same hyperparameter values, but XGBoost performs worse. What might be happening?',
+   must:['min_child_weight ≠ min_samples_leaf: if you set min_child_weight to a small int thinking it\'s example count, it\'s too permissive for classification (where h << 1)','Default λ=1 in XGBoost adds regularisation that sklearn doesn\'t have — try λ=0 to match sklearn behaviour first','Learning rate scaling: XGBoost\'s eta might interact differently with n_estimators than sklearn\'s learning_rate','Tree building: sklearn uses exact greedy by default; XGBoost may use approx depending on dataset size — try tree_method=\'exact\'','Feature scaling: irrelevant for both (trees are scale-invariant) — not the issue','Debugging approach: set λ=0, α=0, γ=0 in XGBoost first (match sklearn\'s no-regularisation baseline), then layer in XGBoost-specific regularisation.']},
+  {n:28,d:'hard',topic:'vs sklearn GBM',q:'For a tabular dataset with 50k rows, 20 features, and no missing values — would you expect sklearn GBM and XGBoost to produce the same model? Explain precisely.',
+   must:['No — even with equivalent hyperparameters, the models differ in leaf values','For MSE regression: leaf values would be identical (both compute mean residual, XGBoost with λ=0)','For log-loss classification: XGBoost with h=p(1−p) produces different leaf values than sklearn. Even one boosting round produces different trees → different subsequent residuals → diverging models.','With λ>0 (XGBoost default): further divergence from sklearn.','Speed: both use exact greedy at this size. XGBoost still faster due to column blocks and parallelism.','Conclusion: for regression with MSE + λ=0: near-identical. For classification: different from round 1 onward due to Hessian-weighted leaf values.']},
+  {n:29,d:'hard',topic:'vs sklearn GBM',q:'A data scientist says "I\'ll use sklearn GBM for prototyping and XGBoost for production — they\'re the same algorithm." What are the risks of this workflow?',
+   must:['Hyperparameter mismatch: min_child_weight vs min_samples_leaf behave differently for classification. A well-tuned sklearn model doesn\'t translate directly to XGBoost.','Leaf value differences: especially for classification, the models diverge from the first tree. CV results from sklearn may not predict XGBoost\'s performance.','Missing value handling: sklearn requires explicit imputation strategy which XGBoost ignores. The imputed values in sklearn may actually help (or hurt) — XGBoost learns its own default directions.','Regularisation mismatch: sklearn has no γ/λ/α. The "same" hyperparameters produce different levels of regularisation.','Recommended workflow: prototype with XGBoost from the start using small n_estimators. The APIs are similar enough (sklearn wrapper exists). No reason to use sklearn GBM in 2024.']},
+
+  // MIXED / SYNTHESIS
+  {n:30,d:'hard',topic:'Synthesis',q:'Design a complete ML system for predicting credit default that satisfies: (a) explainability per decision, (b) regulatory monotonicity, (c) no proxy discrimination, (d) handles 20% missing values.',
+   must:['Model: XGBoost with monotone_constraints={credit_score:−1, income:−1, debt_ratio:+1} (higher score/income → lower default, higher debt → higher default)','Missing values: no imputation needed — XGBoost native default directions. Document which direction each feature defaults for audit trail.','Explainability: pred_contribs=True for SHAP values on every decision. Log φᵢ for each feature in the decision record.','Proxy discrimination: interaction_constraints separating protected-proxy features (zip_code) from demographic features (age, gender if used). SHAP fairness audit — compare mean SHAP distributions across protected groups.','Evaluation: AUC-PR (imbalanced), scale_pos_weight = count(non-default)/count(default). Hold-out test set separate from xgb.cv().','Monitoring: track SHAP distribution drift over time. Alert when feature SHAP distributions shift significantly.']},
+  {n:31,d:'hard',topic:'Synthesis',q:'How would you explain a single XGBoost prediction to a non-technical stakeholder (e.g., a loan applicant who was denied)?',
+   must:['Compute SHAP values for the specific application: prediction = base_value + Σφᵢ','Identify the 3 features with highest negative φᵢ (features that most strongly pushed the prediction toward denial)','Translate SHAP values into plain language: "Your application was primarily affected by: (1) your debt-to-income ratio of 0.62 — this reduced our confidence score by 18 points. (2) Your credit age of 8 months — this reduced confidence by 12 points."','Never show raw SHAP numbers to applicants — translate into directional language ("your X was higher/lower than our typical approved applicant")','Legal consideration: SHAP values enable adverse action notices required by ECOA/FCRA — document the top 4 negative contributors.']},
+  {n:32,d:'hard',topic:'Synthesis',q:'Your XGBoost model has high train AUC-PR but poor test AUC-PR AND high SHAP variance for the top feature. What hypotheses do you form?',
+   must:['High train/test gap → overfitting. High SHAP variance for top feature → the model is making very different predictions based on one feature, which is unstable.','Hypothesis 1: the top feature is leaking. Check if it\'s computed using future information. SHAP dependence plot — if it perfectly tracks the target, likely leakage.','Hypothesis 2: the top feature is high-cardinality and XGBoost is memorising specific values. Weight importance would be very high.','Hypothesis 3: the top feature has very different distribution in train vs test (distribution shift). Check feature distribution statistics.','Diagnosis: plot SHAP values of the top feature separately for train and test examples. If SHAP distribution looks very different, it\'s distribution shift or overfitting to training-specific patterns.','Fix depends on diagnosis: leakage → remove feature. Overfitting → increase γ/α, reduce max_depth. Distribution shift → retrain with more recent data or add the test distribution to training.']},
+  {n:33,d:'hard',topic:'Synthesis',q:'How does the Hessian in XGBoost implicitly implement instance weighting for hard examples in classification?',
+   must:['For log-loss: h = sigmoid(F)·(1−sigmoid(F)) = p·(1−p)','p near 0.5 → h ≈ 0.25 (maximum) → denominator of w* = −G/(H+λ) is largest → leaf value is smallest step','p near 0 or 1 → h ≈ 0 → denominator is smallest → leaf value is largest step','Interpretation: examples where the model is uncertain (p≈0.5) get smaller updates. Examples where the model is already confident but wrong (large g, small h) get large updates.','This is the OPPOSITE of AdaBoost: AdaBoost upweights misclassified examples. XGBoost upweights confidently-wrong examples (which have small h because the model is wrong about them).','This implicit curriculum learning helps XGBoost focus on correcting its most egregious errors.']},
+  {n:34,d:'hard',topic:'Synthesis',q:'Explain why tree SHAP is O(TLD) and what the T, L, D represent.',
+   must:['T = number of trees. L = max number of leaves per tree. D = max depth.','The algorithm: for each tree, traverse all possible paths from root to leaf (there are at most L paths, each of depth D)','At each node, accumulate weighted coverage statistics that represent the "expected value with/without the feature"','Total work per example: T trees × L leaves × D depth = O(TLD)','Key insight: the tree structure allows computing Shapley values by propagating "portion of examples reaching this node given feature included/excluded" — avoiding explicit enumeration of 2ⁿ coalitions','Compare to model-agnostic SHAP: O(2ⁿ) per example — exponential in n. For n=50 features, 2⁵⁰ ≈ 10¹⁵. Tree SHAP is polynomial.']},
+  {n:35,d:'hard',topic:'Synthesis',q:'You\'re interviewing at a hedge fund. They ask: "We have a 10-year market dataset. Describe all the ways you would make XGBoost production-ready for a trading signal model."',
+   must:['Time-series CV: NEVER use random k-fold. Use time-series split (train on t-k to t, test on t to t+horizon). Prevents future leakage.','Feature engineering: lag features, rolling statistics. All must be computed with only information available at signal generation time.','Walk-forward validation: retrain periodically (monthly/quarterly) as new data arrives. XGBoost has no online learning — batch retrain.','Overfitting: financial data has extremely low signal-to-noise. Use heavy regularisation: max_depth=2-3, γ high, α moderate, low learning_rate.','Feature importance + SHAP: monitor which features drive predictions over time. If a feature\'s SHAP distribution shifts suddenly, investigate before trading.','Extrapolation risk: market regimes change. Features can go outside training range (VIX spike, rate shock). Build regime detectors alongside the model.','Transaction costs: the model predicts signal, not profit. Need to account for slippage, bid-ask spread. Don\'t overfit to gross returns.']},
+];
+
+function renderQs(list){
+  const c = document.getElementById('q-container');
+  if(!c) return;
+  let html = '';
+  list.forEach(q => {
+    const mustHtml = q.must.map(m=>`<li>${m}</li>`).join('');
+    const trapHtml = q.trap ? `<div class="trap-box"><div class="trap-head">⚠ common trap</div>${q.trap}</div>` : '';
+    html += `<div class="q-card" data-diff="${q.d}">
+      <div class="q-head" onclick="toggleQ(this)">
+        <span class="q-num">Q${String(q.n).padStart(2,'0')}</span>
+        <span class="q-text">${q.q}</span>
+        <div class="q-meta">
+          <span class="q-topic">${q.topic}</span>
+          <span class="q-diff ${q.d}">${q.d==='hard'?'Hard':q.d==='med'?'Medium':'Foundational'}</span>
+          <span class="q-chev">+</span>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="q-body-inner">
+          <div class="must-head">Must-cover points</div>
+          <ul class="must-list">${mustHtml}</ul>
+          ${trapHtml}
+        </div>
+      </div>
+    </div>`;
+  });
+  c.innerHTML = html || '<div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--mono)">no questions match this filter</div>';
+}
+
+function toggleQ(head){
+  const body = head.nextElementSibling;
+  const chev = head.querySelector('.q-chev');
+  const open = body.classList.toggle('open');
+  chev.textContent = open ? '−' : '+';
+}
+
+function filterQ(diff, btn){
+  document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const filtered = diff==='all' ? qs : qs.filter(q=>q.d===diff);
+  renderQs(filtered);
+}
+
+renderQs(qs);
+</script>
+
+</body>
+</html>
