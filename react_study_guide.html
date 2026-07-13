@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReAct — Exhaustive Study Reference</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#151b23; --border:#2a323d; --text:#e6edf3;
+    --muted:#8b96a5; --accent:#5fb3f7; --accent2:#f2994a; --good:#3fb950; --bad:#f85149;
+    --mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+    --sans:'Inter','Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--text); font-family:var(--sans); margin:0; padding:0 0 80px; line-height:1.6;}
+  header{padding:48px 24px 32px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#111820,var(--bg));}
+  header h1{font-size:2.1rem; margin:0 0 6px; letter-spacing:-0.02em;}
+  header .tag{color:var(--muted); font-size:0.95rem;}
+  nav{display:flex; flex-wrap:wrap; gap:8px; padding:16px 24px; border-bottom:1px solid var(--border);
+      position:sticky; top:0; background:rgba(13,17,23,0.94); backdrop-filter:blur(6px); z-index:10;}
+  nav a{color:var(--muted); text-decoration:none; font-size:0.78rem; padding:6px 10px; border:1px solid var(--border); border-radius:6px;}
+  nav a:hover{color:var(--accent); border-color:var(--accent);}
+  main{max-width:900px; margin:0 auto; padding:0 24px;}
+  section{margin-top:56px;}
+  h2{font-size:1.4rem; border-left:3px solid var(--accent); padding-left:12px; margin-bottom:18px;}
+  h3{font-size:1.08rem; color:var(--accent2); margin:26px 0 10px;}
+  h4{font-size:0.95rem; color:var(--accent); margin:16px 0 6px;}
+  p{color:#c9d1d9;}
+  ul,ol{color:#c9d1d9;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 20px; margin-bottom:14px;}
+  code,.mono{font-family:var(--mono); font-size:0.88em;}
+  pre{background:#0a0e13; border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;
+      font-family:var(--mono); font-size:0.85rem; line-height:1.6; color:#c9d1d9;}
+  .kw-thought{color:#7ee787;} .kw-action{color:#79c0ff;} .kw-obs{color:#ffa657;}
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:0.88rem;}
+  th,td{border:1px solid var(--border); padding:10px 12px; text-align:left; vertical-align:top;}
+  th{background:#1a212b; color:var(--accent);}
+  tr:nth-child(even) td{background:#10151c;}
+  .analogy{display:flex; gap:20px; align-items:center; flex-wrap:wrap; background:#141a22;
+            border:1px dashed var(--accent2); border-radius:10px; padding:20px;}
+  .analogy .side{flex:1; min-width:220px;}
+  .analogy .side h4{margin:0 0 8px; color:var(--accent2);}
+  .arrow{font-size:1.6rem; color:var(--muted);}
+  details{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:10px;}
+  details[open]{border-color:var(--accent);}
+  summary{cursor:pointer; font-weight:500; color:var(--text);}
+  summary::marker{color:var(--accent);}
+  .answer{margin-top:10px; padding-top:10px; border-top:1px solid var(--border); color:#c9d1d9;}
+  .badge{display:inline-block; font-size:0.7rem; padding:2px 8px; border-radius:20px; margin-left:8px; font-family:var(--mono); text-transform:uppercase;}
+  .easy{background:#0d3b1e; color:var(--good);} .med{background:#3a2a0d; color:var(--accent2);} .hard{background:#3a0d0d; color:var(--bad);}
+  .pitfall{border-left:3px solid var(--bad); padding-left:14px; margin-bottom:16px;}
+  .pitfall h4{margin:0 0 4px; color:var(--bad);}
+  .trap{border-left:3px solid var(--accent2); padding-left:14px; margin-bottom:16px;}
+  .trap h4{margin:0 0 4px; color:var(--accent2);}
+  .qgroup-title{margin-top:32px; font-size:0.8rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);
+                border-bottom:1px solid var(--border); padding-bottom:6px;}
+  .step-num{display:inline-block; width:26px; height:26px; border-radius:50%; background:var(--accent); color:#04121f;
+             text-align:center; line-height:26px; font-weight:700; font-size:0.85rem; margin-right:8px;}
+  footer{text-align:center; color:var(--muted); font-size:0.8rem; margin-top:60px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ReAct — Reasoning + Acting</h1>
+  <div class="tag">Exhaustive study reference · Thought → Action → Observation loop · Agentic AI interview prep</div>
+</header>
+
+<nav>
+  <a href="#s1">1. Why Plain Prompting Fails</a>
+  <a href="#s2">2. Loop Mechanics</a>
+  <a href="#s3">3. Stopping Condition</a>
+  <a href="#s4">4. Worked Example</a>
+  <a href="#s5">5. Failure Modes</a>
+  <a href="#s6">6. ReAct vs Alternatives</a>
+  <a href="#s7">7. Interview Traps</a>
+  <a href="#harness">8. Harness</a>
+  <a href="#comparison">9. Comparison Table</a>
+  <a href="#pitfalls">10. Pitfalls</a>
+  <a href="#questions">11. 30 Questions</a>
+</nav>
+
+<main>
+
+<section id="s1">
+  <h2><span class="step-num">1</span>Why Plain LLM Prompting Fails for Multi-Step Tasks</h2>
+  <p>A plain LLM call is a single forward pass: prompt in → text out. No mechanism to pause, call an external tool, or use a real result to decide the next step.</p>
+  <div class="card">
+    <b>Concrete failure:</b> asking a plain LLM "What's NVDA's current stock price, and is it up more than Apple's today?" — with no live data access, it either refuses or <b>hallucinates</b> plausible-looking numbers. Even giving both prices upfront only works because <i>you</i> did the multi-step fetching — the LLM itself can't decide "fetch X, then Y, then compare."
+  </div>
+  <p><b>The gap ReAct fills:</b> interleave reasoning with actions, observe real results, and adjust — not generate one static blob of text.</p>
+</section>
+
+<section id="s2">
+  <h2><span class="step-num">2</span>Loop Mechanics — Thought → Action → Observation</h2>
+  <h4>Thought</h4>
+  <p>LLM's internal reasoning, written out before acting — forces planning instead of jumping straight to a tool call, reducing wrong tool selection.</p>
+  <h4>Action</h4>
+  <p>A structured call: tool name + arguments, emitted as parseable text or structured JSON.</p>
+  <h4>Observation</h4>
+  <p>The real-world result, injected back into context by the harness.</p>
+  <pre><span class="kw-thought">Thought:</span> I need France's population before computing 15%.
+<span class="kw-action">Action:</span> search("population of France")
+<span class="kw-obs">Observation:</span> 68,000,000
+
+<span class="kw-thought">Thought:</span> Now compute 15% of 68,000,000.
+<span class="kw-action">Action:</span> calculator("0.15 * 68000000")
+<span class="kw-obs">Observation:</span> 10,200,000
+
+<span class="kw-thought">Thought:</span> I have enough information.
+Final Answer: ~10.2 million</pre>
+  <div class="card">
+    <b>Key mechanical detail:</b> each Thought is conditioned on <i>all</i> prior Observations in context — this is what lets a later action depend on an earlier one's result. Impossible in a single-shot prompt.
+  </div>
+  <h4>Execution &amp; error handling (the harness's role in the loop)</h4>
+  <pre>while not done:
+    response = llm.generate(context)
+    if response.is_final_answer():
+        done = True
+    else:
+        tool_name, args = parse_action(response)
+        try:
+            result = execute_tool(tool_name, args)
+            context += f"Observation: {result}"
+        except Exception as e:
+            context += f"Observation: Error - {e}"   # fed back, not crashed</pre>
+  <p>Errors are <b>caught and fed back as an Observation</b>, not raised to crash the loop — this lets the LLM self-correct (retry with fixed input, try a different tool) on the next iteration. Needs a <span class="mono">max_iterations</span> cap so a malformed call can't loop forever.</p>
+</section>
+
+<section id="s3">
+  <h2><span class="step-num">3</span>How the LLM Decides "Action" vs "Final Answer"</h2>
+  <p>Not a separate classifier — still next-token prediction. The <b>prompt format defines two mutually exclusive output patterns</b>, and the harness parses which one appeared.</p>
+  <pre>Format A (still working):
+Thought: &lt;reasoning&gt;
+Action: &lt;tool_name&gt;[&lt;tool_input&gt;]
+
+Format B (done):
+Thought: &lt;reasoning&gt;
+Final Answer: &lt;answer&gt;</pre>
+  <pre>if "Final Answer:" in response:
+    done = True
+    return extract_final_answer(response)
+else:
+    action, args = parse_action(response)
+    # continue loop</pre>
+  <table>
+    <tr><th>Approach</th><th>How it works</th><th>Reliability</th></tr>
+    <tr><td>Text-parsing ReAct (original paper)</td><td>Plain text with Action:/Final Answer: markers; harness regex-parses</td><td>Fragile — inconsistent formatting breaks the parser</td></tr>
+    <tr><td>Native function-calling (modern APIs)</td><td>Structured JSON via a dedicated tool-call field; absence = final answer</td><td>Robust — API enforces schema, no regex</td></tr>
+  </table>
+  <div class="card">
+    <b>Misconception:</b> there is no special "stop token." Native function-calling has two structurally distinct output channels (<span class="mono">tool_calls</span> field vs plain text) the model was fine-tuned to choose between — stopping becomes a binary schema check, not string-matching inside free text. This is why text-parsing ReAct can fail to detect "Final Answer:" if phrasing drifts, even though the model effectively finished.
+  </div>
+</section>
+
+<section id="s4">
+  <h2><span class="step-num">4</span>Worked Example — Multi-Tool Trace</h2>
+  <p><i>"I have a meeting with a client from Tokyo tomorrow at 9 AM their time. What time is that for me in New York, and will it clash with any of my existing meetings?"</i></p>
+  <pre><span class="kw-thought">Thought:</span> I need to convert 9 AM Tokyo time to New York time before checking conflicts.
+<span class="kw-action">Action:</span> timezone_convert["9:00 AM", "Asia/Tokyo", "America/New_York"]
+<span class="kw-obs">Observation:</span> 7:00 PM (previous day, due to date line + 13hr offset)
+
+<span class="kw-thought">Thought:</span> This falls on the previous calendar day for me — need to check that specific date.
+<span class="kw-action">Action:</span> calendar_lookup["2026-07-01", "6:30 PM - 8:00 PM"]
+<span class="kw-obs">Observation:</span> Existing event: "Team Sync" 7:00-7:30 PM, 2026-07-01
+
+<span class="kw-thought">Thought:</span> Direct overlap found. I have enough information.
+Final Answer: The 9 AM Tokyo meeting is 7:00 PM in New York, but on July 1st (not July 2nd).
+It conflicts with your "Team Sync" (7:00-7:30 PM) that day.</pre>
+  <p>Demonstrates:</p>
+  <ul>
+    <li><b>Data dependency across tools</b> — calendar_lookup's date couldn't be built until timezone_convert's result was known.</li>
+    <li><b>Mid-trace reasoning correction</b> — caught that "tomorrow" ≠ same calendar date after conversion.</li>
+    <li><b>Final Answer synthesizes across observations</b>, not just relays the last one.</li>
+  </ul>
+  <div class="card"><b>If the tool returns multiple results</b> (e.g. two overlapping events): no new tool or harness change needed — the Observation string just carries more information, and the next Thought reasons over it. A <i>new</i> tool is only needed if the agent must <i>act</i> (reschedule), not just report.</div>
+</section>
+
+<section id="s5">
+  <h2><span class="step-num">5</span>Failure Modes</h2>
+
+  <h4>1. Infinite / non-terminating loops</h4>
+  <ul>
+    <li><b>Semantic non-convergence:</b> keeps rephrasing a failed query, never concludes "give up."</li>
+    <li><b>Oscillation:</b> alternates between two actions with no progress.</li>
+    <li><b>Mitigation:</b> hard max_iterations cap + full history in context so repetition is visible to the model.</li>
+  </ul>
+
+  <h4>2. Hallucinated actions</h4>
+  <ul>
+    <li>LLM references a tool that doesn't exist or gives malformed/impossible arguments.</li>
+    <li><b>Hallucinated success:</b> skips the Action entirely, fabricates a plausible Observation, proceeds as if real.</li>
+    <li><b>Mitigation:</b> strict schema validation before execution; native function-calling constrains what's generatable.</li>
+  </ul>
+
+  <h4>3. Bad / misleading observations</h4>
+  <ul>
+    <li>Not a model failure — the tool itself returns technically-successful but wrong/stale data (outdated cache, wrong units).</li>
+    <li>LLM has no way to know it's wrong — trusts it, compounds the error into the Final Answer.</li>
+    <li><b>Why "double-checking" doesn't fix it:</b> the LLM has no independent ground truth — re-reading the same wrong text just re-confirms it. Needs an independent verification source, freshness/provenance metadata, or confidence signaling from the tool — not a retry with the same tool (same stale source → same wrong answer).</li>
+  </ul>
+
+  <div class="card"><b>Key distinction:</b> failure modes 1 &amp; 2 are about the <b>LLM's behavior</b>; failure mode 3 is about <b>tool/data reliability</b> — fixing one doesn't fix the other; each needs separate guardrails.</div>
+</section>
+
+<section id="s6">
+  <h2><span class="step-num">6</span>ReAct vs Alternatives</h2>
+  <table>
+    <tr><th></th><th>Chain-of-Thought</th><th>ReAct</th><th>Function-Calling Only</th></tr>
+    <tr><td>Mechanism</td><td>Text reasoning, no execution — facts from training data</td><td>Interleaves reasoning + real tool execution</td><td>Direct tool calls, no verbalized reasoning</td></tr>
+    <tr><td>Strength</td><td>Good for pure reasoning/math</td><td>Grounded, self-correcting via observed errors</td><td>Fast, cheap, clean for simple tasks</td></tr>
+    <tr><td>Weakness</td><td>No live data access, hallucinates facts</td><td>More latency/cost; can loop/oscillate</td><td>No reasoning trace; worse at multi-step planning</td></tr>
+  </table>
+  <div class="card">
+    <b>Misconception:</b> ReAct and function-calling are not competing paradigms. ReAct is the reasoning <i>pattern</i>; function-calling is an implementation <i>mechanism</i> for the Action step. You can have function-calling without ReAct (no Thought), and ReAct via text-parsing or native function-calling.
+  </div>
+  <p><b>Compliance-sensitive agents specifically prefer ReAct</b> over function-calling-only despite the cost: function-calling logs show <i>what</i> was called, not <i>why</i>. Compliance/audit needs the causal reasoning chain — "flagged because X, Y, and Z" — which only the Thought history provides.</p>
+</section>
+
+<section id="s7">
+  <h2><span class="step-num">7</span>Interview Traps &amp; Misconceptions</h2>
+
+  <div class="trap"><h4>"ReAct requires a fine-tuned model"</h4>It's a prompting pattern, not a training method — any capable LLM can do it via few-shot/system instructions.</div>
+  <div class="trap"><h4>"More Thought steps = better"</h4>Redundant reasoning increases cost/latency and can increase hallucination risk if the model reasons itself into a wrong conclusion without new grounding data.</div>
+  <div class="trap"><h4>Confusing ReAct with RAG</h4>RAG is a single retrieval step before generation. ReAct is a loop — retrieval/action can happen multiple times, conditionally, with each step depending on prior observations.</div>
+  <div class="trap"><h4>"The agent knows when it's wrong"</h4>Self-correction only works if a <i>new</i> Observation contradicts a prior assumption. No new grounding data = no mechanism to detect its own error.</div>
+  <div class="trap"><h4>Treating max_iterations as optional</h4>Common take-home gap: happy-path demo works, safety net forgotten. Interviewers probe "what happens if this never converges?"</div>
+  <div class="trap"><h4>Assuming linear scaling with complexity</h4>Cost/latency grows with iteration count, not task complexity directly — ambiguous tool schemas can spiral a "simple" task into many iterations.</div>
+</section>
+
+<section id="harness">
+  <h2><span class="step-num">8</span>Remembering "What is the Harness?"</h2>
+  <div class="analogy">
+    <div class="side"><h4>🧠 The LLM = The Customer</h4>Decides what it wants ("calculator do 47×89") and reasons about the meal so far. Never touches the kitchen.</div>
+    <div class="arrow">⇄</div>
+    <div class="side"><h4>🧑‍🍳 The Harness = The Waiter</h4>Takes the order to the kitchen (<b>executes</b> the tool), catches problems (error handling), carries the real dish back (<b>Observation</b>).</div>
+  </div>
+  <div class="card">
+    <b>Memory hook:</b> <i>"The LLM only ever talks. The harness is the only thing that ever <u>does</u>."</i><br><br>
+    In scope: tool execution, error catching, context/state management, parsing Action vs Final Answer, enforcing max_iterations, safety/guardrail validation, decision-trace logging.
+  </div>
+</section>
+
+<section id="comparison">
+  <h2><span class="step-num">9</span>CoT vs Function-Calling vs ReAct — In Depth</h2>
+  <table>
+    <tr><th></th><th>Chain-of-Thought (CoT)</th><th>Function-Calling Only</th><th>ReAct</th></tr>
+    <tr><td><b>Reasoning shown?</b></td><td>Yes — that's the whole point</td><td>No (or optional)</td><td>Yes, interleaved with each action</td></tr>
+    <tr><td><b>External data access?</b></td><td>No — training data / given context only</td><td>Yes — direct execution</td><td>Yes — execution + reasoning over the result</td></tr>
+    <tr><td><b>Multi-step dependency handling</b></td><td>Cannot handle</td><td>Weak — no explicit planning between calls</td><td>Strong — each Thought conditions on prior Observations</td></tr>
+    <tr><td><b>Auditability</b></td><td>High but ungrounded</td><td>Low — shows what, not why</td><td>High — Thought history = causal trace</td></tr>
+    <tr><td><b>Cost / latency</b></td><td>Low</td><td>Low–medium</td><td>Higher — multiple round-trips</td></tr>
+    <tr><td><b>Best for</b></td><td>Pure logic/math</td><td>Simple, single-tool lookups</td><td>Multi-step, dependent chains; compliance</td></tr>
+  </table>
+</section>
+
+<section id="pitfalls">
+  <h2><span class="step-num">10</span>Common Pitfalls</h2>
+  <div class="pitfall"><h4>Infinite / non-terminating loops</h4>Oscillation or endless rephrasing. Fix: max_iterations + full history in context.</div>
+  <div class="pitfall"><h4>Hallucinated actions</h4>Nonexistent tool calls or fabricated Observations. Fix: schema validation + native function-calling.</div>
+  <div class="pitfall"><h4>Bad/stale observations trusted blindly</h4>Tool succeeds, data is wrong — no error to catch. Fix: independent verification source, not self-double-checking.</div>
+  <div class="pitfall"><h4>max_iterations treated as optional</h4>Happy-path demos forget the safety net.</div>
+  <div class="pitfall"><h4>More Thought steps assumed better</h4>Increases cost and hallucination risk without new grounding data.</div>
+  <div class="pitfall"><h4>Harness auto-retrying identical failed action</h4>Only the LLM can semantically decide how to adapt.</div>
+</section>
+
+<section id="questions">
+  <h2><span class="step-num">11</span>30 Interview Questions</h2>
+
+  <div class="qgroup-title">Fundamentals (1–8)</div>
+  <details><summary>1. What problem does ReAct solve that plain prompting cannot? <span class="badge easy">Easy</span></summary><div class="answer">Plain prompting can't pause to fetch real data and use it to decide the next step — it only pattern-completes on static context, leading to hallucination on anything requiring live/external info.</div></details>
+  <details><summary>2. Name the three components of the ReAct loop and which is the harness's job. <span class="badge easy">Easy</span></summary><div class="answer">Thought (LLM reasoning), Action (LLM-issued tool call), Observation (harness executes and injects the real result back). The harness executes the Action and produces the Observation.</div></details>
+  <details><summary>3. Does ReAct require a fine-tuned model? <span class="badge easy">Easy</span></summary><div class="answer">No — it's a prompting pattern, achievable via system instructions or few-shot examples.</div></details>
+  <details><summary>4. How does the model "decide" between an Action vs a Final Answer? <span class="badge med">Medium</span></summary><div class="answer">Not a separate classifier — the prompt format defines two mutually exclusive patterns; the model learns to emit one, and the harness checks which appeared.</div></details>
+  <details><summary>5. Why is text-parsing ReAct fragile vs native function-calling? <span class="badge med">Medium</span></summary><div class="answer">Stopping requires the model to emit an exact string inside free text — phrasing drift can make the parser miss it. Native function-calling makes stopping a binary schema check.</div></details>
+  <details><summary>6. Is ReAct the same as RAG? <span class="badge easy">Easy</span></summary><div class="answer">No. RAG is a single retrieval step before generation. ReAct is a loop where retrieval/action can happen multiple times, conditionally.</div></details>
+  <details><summary>7. Difference between the ReAct "pattern" and "function-calling" mechanism? <span class="badge med">Medium</span></summary><div class="answer">ReAct is the reasoning pattern; function-calling is one implementation of the Action step. You can have function-calling without ReAct, and ReAct via either implementation.</div></details>
+  <details><summary>8. Why does each Thought "see" prior Observations, and why does it matter? <span class="badge med">Medium</span></summary><div class="answer">Full history is resent each turn — this lets a later action depend on an earlier tool's result, impossible in a single-shot prompt.</div></details>
+
+  <div class="qgroup-title">Harness &amp; Mechanics (9–16)</div>
+  <details><summary>9. Define "harness" precisely. <span class="badge easy">Easy</span></summary><div class="answer">Everything around the LLM that isn't the forward pass: tool execution, error catching, context/state management, parsing, loop control, guardrails, logging.</div></details>
+  <details><summary>10. If a tool call throws an exception, what should the harness do? <span class="badge med">Medium</span></summary><div class="answer">Catch it and feed the error back as an Observation so the LLM can self-correct next turn — not crash the loop.</div></details>
+  <details><summary>11. Why is max_iterations necessary even with perfect error handling? <span class="badge med">Medium</span></summary><div class="answer">Error handling only catches execution failures; a model can succeed at every step while never semantically converging.</div></details>
+  <details><summary>12. Risk of the harness blindly retrying a failed action with the same input? <span class="badge med">Medium</span></summary><div class="answer">The harness has no semantic understanding of why it failed — only the LLM can decide the right adaptation.</div></details>
+  <details><summary>13. What is a "decision trace" and why does it matter for compliance? <span class="badge med">Medium</span></summary><div class="answer">The logged Thought/Action/Observation history — used for auditability, e.g. "why did the agent deny this loan."</div></details>
+  <details><summary>14. Give an example of a harness guardrail before executing an Action. <span class="badge med">Medium</span></summary><div class="answer">Validating tool arguments — e.g. blocking a delete_file action on a restricted path, or rejecting an unknown tool name.</div></details>
+  <details><summary>15. Does the loop structure change if a tool returns multiple results? <span class="badge hard">Hard</span></summary><div class="answer">No — only the Observation's content changes. The harness's job and loop mechanics stay identical.</div></details>
+  <details><summary>16. Why must context include full history, not just the latest Observation? <span class="badge hard">Hard</span></summary><div class="answer">Needed for the model to detect its own repetition/oscillation and reason over multi-step dependencies.</div></details>
+
+  <div class="qgroup-title">Failure Modes &amp; Reliability (17–23)</div>
+  <details><summary>17. Name three distinct failure categories in ReAct agents. <span class="badge med">Medium</span></summary><div class="answer">Infinite/non-terminating loops, hallucinated actions (including hallucinated success), and bad/stale observations trusted blindly.</div></details>
+  <details><summary>18. Why can't "double-checking" fix a stale/wrong Observation? <span class="badge hard">Hard</span></summary><div class="answer">The LLM has no independent ground truth — it can only re-reason over the same possibly-wrong text, catching internal inconsistencies at best.</div></details>
+  <details><summary>19. Why doesn't re-fetching with the same tool fix stale data? <span class="badge med">Medium</span></summary><div class="answer">If the tool is the stale source, retrying returns the same wrong answer — needs a different information channel.</div></details>
+  <details><summary>20. What is "hallucinated success" vs a hallucinated action? <span class="badge hard">Hard</span></summary><div class="answer">Hallucinated action calls a nonexistent tool/bad args. Hallucinated success skips the tool entirely and fabricates a plausible Observation.</div></details>
+  <details><summary>21. What causes "oscillation," distinct from simple non-convergence? <span class="badge hard">Hard</span></summary><div class="answer">The model alternates between two actions where each result triggers reverting to the other — no progress despite each step "succeeding."</div></details>
+  <details><summary>22. Does fixing execution errors also fix infinite loops? <span class="badge hard">Hard</span></summary><div class="answer">No — execution-error handling and loop-control are separate guardrail layers.</div></details>
+  <details><summary>23. Why does cost scale with iteration count, not task complexity directly? <span class="badge hard">Hard</span></summary><div class="answer">Ambiguous tool schemas or misread Observations can spiral a "simple" task into many iterations — the cost driver is loop turns, not inherent difficulty.</div></details>
+
+  <div class="qgroup-title">Comparisons &amp; System Design (24–30)</div>
+  <details><summary>24. When would you choose function-calling-only over full ReAct? <span class="badge med">Medium</span></summary><div class="answer">Simple, single-tool lookups where reasoning-transparency overhead isn't needed.</div></details>
+  <details><summary>25. Why is ReAct preferred over function-calling-only for compliance-sensitive agents? <span class="badge med">Medium</span></summary><div class="answer">Function-calling logs show what was called, not why. Compliance needs the causal reasoning chain from the Thought history.</div></details>
+  <details><summary>26. Design: your agent must both report and resolve a scheduling conflict — what changes? <span class="badge hard">Hard</span></summary><div class="answer">Reporting needs no change (richer Observation). Resolving requires a new tool (e.g. reschedule_event) since the agent needs a new capability to act.</div></details>
+  <details><summary>27. Why prefer a locally-hosted LLM over an API-based one for agentic workflows? <span class="badge med">Medium</span></summary><div class="answer">Data sovereignty — sensitive compliance/healthcare data can't leave enterprise infrastructure; supports regulatory compliance and full audit control.</div></details>
+  <details><summary>28. Red flag if a candidate skips max_iterations/error feedback in a design? <span class="badge med">Medium</span></summary><div class="answer">Signals they've only seen a happy-path demo, not a production-grade agent.</div></details>
+  <details><summary>29. Why must the Final Answer synthesize across all Observations, not just the last? <span class="badge hard">Hard</span></summary><div class="answer">Earlier Observations may carry information the last step doesn't restate — dropping them loses context the user needs.</div></details>
+  <details><summary>30. Trade-off of adding more Thought steps? <span class="badge hard">Hard</span></summary><div class="answer">Gains: more auditable, sometimes catches mid-trace errors. Loses: higher cost/latency, and can increase hallucination risk without new grounding data.</div></details>
+
+</section>
+
+<footer>ReAct study reference · Thought → Action → Observation</footer>
+
+</main>
+</body>
+</html>

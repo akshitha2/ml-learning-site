@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XGBoost Study Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1e1e28;
+--border:#2a2a38;--border2:#383848;
+--text:#e8e8f0;--text2:#9898b0;--text3:#5a5a70;
+--accent:#7c6af7;--accent2:#a594f9;--accent3:#c4b8ff;
+--teal:#2dd4a0;--teal2:#1a9e77;
+--amber:#f5a623;--amber2:#e8912a;
+--coral:#f07060;--coral2:#d45040;
+--green:#5cb85c;
+--mono:'DM Mono',monospace;
+--sans:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7;padding:0}
+
+.page{max-width:860px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+.hero{padding:3rem 0 2.5rem;border-bottom:1px solid var(--border);margin-bottom:3rem}
+.hero-tag{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem}
+.hero h1{font-size:2.6rem;font-weight:300;line-height:1.15;color:var(--text);letter-spacing:-0.03em;margin-bottom:0.5rem}
+.hero h1 span{color:var(--accent2)}
+.hero-sub{color:var(--text2);font-size:14px;font-family:var(--mono)}
+
+.progress-bar{display:flex;gap:6px;margin-top:1.5rem;flex-wrap:wrap}
+.pb-item{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--text3)}
+.pb-item.done{border-color:var(--teal2);color:var(--teal);background:rgba(45,212,160,0.06)}
+.pb-item.active{border-color:var(--accent);color:var(--accent2);background:rgba(124,106,247,0.1)}
+
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:3rem}
+.toc-title{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.toc-item{font-size:13px;color:var(--text2);cursor:pointer;padding:4px 8px;border-radius:4px;transition:all 0.15s}
+.toc-item:hover{color:var(--accent2);background:rgba(124,106,247,0.08)}
+.toc-num{font-family:var(--mono);color:var(--text3);font-size:11px;margin-right:8px}
+
+.section{margin-bottom:3.5rem}
+.section-header{display:flex;align-items:baseline;gap:12px;margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+.section-num{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.section-title{font-size:1.1rem;font-weight:500;color:var(--text)}
+.section-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(124,106,247,0.12);color:var(--accent2);border:1px solid rgba(124,106,247,0.2);margin-left:auto}
+
+.prose{color:var(--text2);font-size:14px;line-height:1.8;margin-bottom:1rem}
+.prose strong{color:var(--text);font-weight:500}
+
+.math-block{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:1rem 1.25rem;margin:1rem 0;font-family:var(--mono);font-size:13px;color:var(--accent3);line-height:1.9}
+.math-block .comment{color:var(--text3);font-style:italic}
+
+.example-box{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1.25rem;margin:1rem 0}
+.example-label{font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem}
+.example-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.ex-card{background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:0.75rem}
+.ex-card-title{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:0.5rem}
+.ex-val{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--teal)}
+.ex-val.amber{color:var(--amber)}
+.ex-val.coral{color:var(--coral)}
+.ex-detail{font-size:12px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+
+.step-list{list-style:none;counter-reset:steps}
+.step-list li{counter-increment:steps;display:flex;gap:12px;margin-bottom:0.75rem;font-size:14px;color:var(--text2)}
+.step-list li::before{content:counter(steps);font-family:var(--mono);font-size:11px;color:var(--accent2);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.2);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--border2);text-align:left}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td:first-child{font-family:var(--mono);font-size:12px;color:var(--accent2)}
+.yes{color:var(--teal)}
+.no{color:var(--coral)}
+
+.callout{display:flex;gap:10px;padding:0.875rem 1rem;border-radius:8px;margin:1rem 0;font-size:13px}
+.callout.insight{background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);color:var(--accent3)}
+.callout.warn{background:rgba(240,112,96,0.08);border:1px solid rgba(240,112,96,0.2);color:#f4a898}
+.callout.tip{background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.2);color:var(--teal)}
+.callout-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:0.75rem 0}
+.tag{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--text3)}
+.tag.new{border-color:var(--accent);color:var(--accent2);background:rgba(124,106,247,0.08)}
+.tag.gbm{border-color:var(--teal2);color:var(--teal);background:rgba(45,212,160,0.06)}
+
+.q-section{margin-bottom:3.5rem}
+.q-filter{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
+.q-filter-btn{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:4px;border:1px solid var(--border2);color:var(--text3);background:transparent;cursor:pointer;transition:all 0.15s}
+.q-filter-btn:hover,.q-filter-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(124,106,247,0.1)}
+
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;transition:border-color 0.15s}
+.q-card:hover{border-color:var(--border2)}
+.q-head{display:flex;align-items:center;gap:10px;padding:0.875rem 1rem;cursor:pointer}
+.q-num{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:28px}
+.q-text{font-size:13.5px;color:var(--text);flex:1;line-height:1.4}
+.q-badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;flex-shrink:0}
+.q-badge.hard{background:rgba(240,112,96,0.12);color:var(--coral);border:1px solid rgba(240,112,96,0.2)}
+.q-badge.med{background:rgba(245,166,35,0.12);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+.q-badge.found{background:rgba(124,106,247,0.12);color:var(--accent2);border:1px solid rgba(124,106,247,0.2)}
+.q-chevron{font-family:var(--mono);font-size:14px;color:var(--text3);transition:transform 0.2s}
+.q-body{display:none;padding:0 1rem 1rem;border-top:1px solid var(--border)}
+.q-body.open{display:block}
+.must-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin:0.875rem 0 0.5rem}
+.must-list{list-style:none}
+.must-list li{font-size:13px;color:var(--text2);padding:3px 0 3px 16px;position:relative;line-height:1.6}
+.must-list li::before{content:'→';position:absolute;left:0;color:var(--accent2);font-family:var(--mono);font-size:11px;top:5px}
+.trap{background:rgba(240,112,96,0.06);border:1px solid rgba(240,112,96,0.15);border-radius:6px;padding:0.625rem 0.875rem;margin-top:0.75rem;font-size:12px;color:#f4a898}
+.trap-label{font-family:var(--mono);font-size:10px;color:var(--coral);margin-bottom:3px}
+
+.algo-flow{display:flex;flex-direction:column;gap:0;margin:1rem 0}
+.algo-step{display:flex;gap:0;align-items:stretch}
+.algo-line{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+.algo-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
+.algo-connector{width:1px;background:var(--border2);flex:1;margin:4px 0}
+.algo-content{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.625rem 0.875rem;margin-bottom:8px;flex:1;font-size:13px;color:var(--text2)}
+.algo-content strong{color:var(--text);font-weight:500}
+.algo-content code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:3px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.mini-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.mini-card-title{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:0.625rem;text-transform:uppercase;letter-spacing:0.08em}
+
+.hyperparam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:1rem 0}
+.hp-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.75rem}
+.hp-name{font-family:var(--mono);font-size:13px;color:var(--accent2);margin-bottom:4px}
+.hp-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.hp-new{font-family:var(--mono);font-size:9px;color:var(--teal);background:rgba(45,212,160,0.1);border:1px solid rgba(45,212,160,0.2);padding:1px 6px;border-radius:3px;display:inline-block;margin-bottom:4px}
+
+@media(max-width:600px){
+.example-grid,.two-col,.hyperparam-grid,.toc-grid{grid-template-columns:1fr}
+.hero h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<div class="hero">
+  <div class="hero-tag">ML Interview Series — Tree Models</div>
+  <h1>XGBoost<span> Deep Dive</span></h1>
+  <div class="hero-sub">algorithm · math · regularisation · implementation · 30 interview questions</div>
+  <div class="progress-bar">
+    <div class="pb-item done">✓ Decision Trees</div>
+    <div class="pb-item done">✓ Bagging vs Boosting</div>
+    <div class="pb-item done">✓ Random Forest</div>
+    <div class="pb-item done">✓ AdaBoost</div>
+    <div class="pb-item done">✓ GBM</div>
+    <div class="pb-item active">● XGBoost</div>
+    <div class="pb-item">○ LightGBM + CatBoost</div>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <div class="toc-grid">
+    <div class="toc-item" onclick="document.getElementById('s1').scrollIntoView({behavior:'smooth'})"><span class="toc-num">01</span>5 improvements over GBM</div>
+    <div class="toc-item" onclick="document.getElementById('s2').scrollIntoView({behavior:'smooth'})"><span class="toc-num">02</span>Taylor expansion + Hessian</div>
+    <div class="toc-item" onclick="document.getElementById('s3').scrollIntoView({behavior:'smooth'})"><span class="toc-num">03</span>Optimal leaf value derivation</div>
+    <div class="toc-item" onclick="document.getElementById('s4').scrollIntoView({behavior:'smooth'})"><span class="toc-num">04</span>Gain formula + γ regularisation</div>
+    <div class="toc-item" onclick="document.getElementById('s5').scrollIntoView({behavior:'smooth'})"><span class="toc-num">05</span>Full hyperparameter family</div>
+    <div class="toc-item" onclick="document.getElementById('s6').scrollIntoView({behavior:'smooth'})"><span class="toc-num">06</span>Missing value handling</div>
+    <div class="toc-item" onclick="document.getElementById('s7').scrollIntoView({behavior:'smooth'})"><span class="toc-num">07</span>Regressor vs Classifier</div>
+    <div class="toc-item" onclick="document.getElementById('s8').scrollIntoView({behavior:'smooth'})"><span class="toc-num">08</span>Approximate splits + column blocks</div>
+    <div class="toc-item" onclick="document.getElementById('s9').scrollIntoView({behavior:'smooth'})"><span class="toc-num">09</span>Level-wise vs leaf-wise</div>
+    <div class="toc-item" onclick="document.getElementById('s10').scrollIntoView({behavior:'smooth'})"><span class="toc-num">10</span>30 Interview questions</div>
+  </div>
+</div>
+
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <span class="section-title">5 improvements over vanilla GBM</span>
+    <span class="section-tag">overview</span>
+  </div>
+  <div class="tag-row">
+    <span class="tag gbm">known from GBM</span>
+    <span class="tag new">new in XGBoost</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>improvement</th><th>mechanism</th><th>status</th></tr>
+      <tr><td>second-order gradients</td><td>Uses both gradient g and Hessian h to compute optimal leaf values via −g/h. Newton's method in function space.</td><td><span class="new tag">new</span></td></tr>
+      <tr><td>L1 + L2 regularisation</td><td>α (L1) and λ (L2) penalties on leaf values. Shrinks or zeros out weak leaves.</td><td><span class="new tag">new</span></td></tr>
+      <tr><td>γ split penalty</td><td>Minimum loss reduction required to make a split. Gain must exceed γ or split is pruned.</td><td><span class="new tag">new</span></td></tr>
+      <tr><td>native missing values</td><td>Learns optimal default direction (left or right) for missing values at each node during training.</td><td><span class="new tag">new</span></td></tr>
+      <tr><td>column blocks + parallelism</td><td>Pre-sorts feature columns once, stores in memory blocks. Enables within-tree parallelisation and cache-aware access.</td><td><span class="new tag">new</span></td></tr>
+    </table>
+  </div>
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <span>The single most important innovation is second-order gradients. Everything else is engineering. Interviewers at Big Tech want you to derive −g/h, not just name it.</span>
+  </div>
+</div>
+
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <span class="section-title">Taylor expansion + Hessian — the math</span>
+    <span class="section-tag">core math</span>
+  </div>
+  <p class="prose">XGBoost approximates the loss function locally using a second-order Taylor expansion — the same principle as Newton's method in optimisation.</p>
+
+  <div class="math-block">
+    <span class="comment">// Second-order Taylor expansion of loss around current prediction F</span><br>
+    L(F + w) ≈ L(F) + g·w + ½·h·w²<br><br>
+    <span class="comment">// where:</span><br>
+    g = ∂L/∂F    <span class="comment">// gradient  = first derivative of loss</span><br>
+    h = ∂²L/∂F²  <span class="comment">// Hessian   = second derivative of loss</span><br>
+    w            <span class="comment">// leaf value we want to find</span>
+  </div>
+
+  <p class="prose"><strong>Worked example using MSE loss:</strong> L(F) = ½·(y − F)²</p>
+  <div class="example-box">
+    <div class="example-label">Numerical example — y = 3, F = 1</div>
+    <div class="example-grid">
+      <div class="ex-card">
+        <div class="ex-card-title">gradient g</div>
+        <div class="ex-val">−2</div>
+        <div class="ex-detail">g = ∂L/∂F = F − y = 1 − 3</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">Hessian h</div>
+        <div class="ex-val amber">1</div>
+        <div class="ex-detail">h = ∂²L/∂F² = 1 (constant for MSE)</div>
+      </div>
+    </div>
+    <div style="margin-top:0.75rem;font-family:var(--mono);font-size:13px;color:var(--text2)">
+      Taylor approx: L(1 + w) ≈ 2 + (−2)·w + ½·(1)·w² = 2 − 2w + ½w²
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <span><strong>Gradient descent vs Newton's method:</strong> GBM uses only g (slope). XGBoost uses g + h (slope + curvature). High h = fast-changing slope = take smaller steps. Low h = stable slope = take larger steps. Newton's method converges faster and self-adjusts step size.</span>
+  </div>
+
+  <p class="prose"><strong>Why h matters — classification case:</strong></p>
+  <div class="math-block">
+    <span class="comment">// For log-loss (binary classification):</span><br>
+    g = sigmoid(F) − y<br>
+    h = sigmoid(F) · (1 − sigmoid(F))<br><br>
+    <span class="comment">// h varies per example:</span><br>
+    sigmoid near 0 or 1  → h small  → confident prediction → large step<br>
+    sigmoid near 0.5     → h large  → uncertain prediction  → small step
+  </div>
+
+  <div class="example-box">
+    <div class="example-label">Two examples, same gradient g = 0.3</div>
+    <div class="example-grid">
+      <div class="ex-card">
+        <div class="ex-card-title">Example A — low curvature</div>
+        <div class="ex-val">−3.0</div>
+        <div class="ex-detail">w* = −0.3 / 0.1 = −3.0 (large step)</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-card-title">Example B — high curvature</div>
+        <div class="ex-val amber">−0.33</div>
+        <div class="ex-detail">w* = −0.3 / 0.9 = −0.33 (small step)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <span><strong>Interview trap:</strong> "XGBoost uses the Hessian instead of the gradient." Wrong — it uses both. The Hessian modulates the step size; the gradient provides the direction. For MSE, h = 1 always, so −g/h = residual. Hessian only does meaningful work for other losses.</span>
+  </div>
+</div>
+
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <span class="section-title">Optimal leaf value derivation</span>
+    <span class="section-tag">derivation</span>
+  </div>
+  <p class="prose">XGBoost finds the analytically optimal leaf value by minimising the Taylor-approximated loss. This is not a heuristic — it is an exact closed-form solution.</p>
+
+  <div class="math-block">
+    <span class="comment">// Simplified loss for one leaf (ignoring L(F) constant):</span><br>
+    Ĺ(w) = g·w + ½·h·w²<br><br>
+    <span class="comment">// Minimise: differentiate wrt w, set to zero</span><br>
+    dĹ/dw = g + h·w = 0<br><br>
+    <span class="comment">// Solve:</span><br>
+    w* = −g / h<br><br>
+    <span class="comment">// With L2 regularisation (λ on leaf values):</span><br>
+    w* = −G / (H + λ)<br><br>
+    <span class="comment">// where G = Σgᵢ and H = Σhᵢ summed over all examples in the leaf</span>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">✓</span>
+    <span><strong>Key insight:</strong> For MSE, h = 1 for every example, so w* = −G/H = −Σresiduals / n = mean residual. XGBoost recovers the same answer as vanilla GBM for MSE. The Hessian only changes the answer for other loss functions.</span>
+  </div>
+
+  <p class="prose"><strong>Substituting w* back gives the minimum achievable loss for a leaf — used in the Gain formula:</strong></p>
+  <div class="math-block">
+    L*(leaf) = −½ · G² / (H + λ)
+  </div>
+</div>
+
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <span class="section-title">Gain formula + γ regularisation</span>
+    <span class="section-tag">splits</span>
+  </div>
+  <p class="prose">XGBoost evaluates every candidate split using a Gain formula derived from the optimal leaf losses. A split only happens if Gain > 0.</p>
+
+  <div class="math-block">
+    Gain = ½ · [ G_L²/(H_L + λ) + G_R²/(H_R + λ) − (G_L+G_R)²/(H_L+H_R+λ) ] − γ<br><br>
+    <span class="comment">// Split happens only if Gain > 0</span><br>
+    <span class="comment">// G_L, G_R = sum of gradients in left/right child</span><br>
+    <span class="comment">// H_L, H_R = sum of Hessians in left/right child</span><br>
+    <span class="comment">// λ = L2 penalty (regularises the leaf score)</span><br>
+    <span class="comment">// γ = minimum loss reduction required to justify the split</span>
+  </div>
+
+  <div class="two-col">
+    <div class="mini-card">
+      <div class="mini-card-title">γ = 0 (no penalty)</div>
+      <p style="font-size:13px;color:var(--text2)">Any split that reduces loss at all is accepted. Vanilla GBM behaviour. Prone to fitting noise.</p>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-title">γ high (strong penalty)</div>
+      <p style="font-size:13px;color:var(--text2)">Only splits with large loss reduction survive. Shallower trees. Stronger regularisation. Better on noisy data.</p>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <span><strong>γ vs α/λ:</strong> γ acts at the split decision — it prevents a leaf from being created. α and λ act after the leaf exists — they shrink the leaf value. For noisy data, prefer γ first (prevention) then α/λ (correction).</span>
+  </div>
+</div>
+
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <span class="section-title">Full hyperparameter family</span>
+    <span class="section-tag">tuning</span>
+  </div>
+
+  <div class="hyperparam-grid">
+    <div class="hp-card">
+      <div class="hp-new">new in XGBoost</div>
+      <div class="hp-name">gamma (γ)</div>
+      <div class="hp-desc">Min loss reduction to make a split. Acts on the Gain formula directly. Primary pruning lever.</div>
+    </div>
+    <div class="hp-card">
+      <div class="hp-new">new in XGBoost</div>
+      <div class="hp-name">lambda (λ)</div>
+      <div class="hp-desc">L2 penalty on leaf values. Shrinks all leaves toward zero. Never eliminates a leaf entirely.</div>
+    </div>
+    <div class="hp-card">
+      <div class="hp-new">new in XGBoost</div>
+      <div class="hp-name">alpha (α)</div>
+      <div class="hp-desc">L1 penalty on leaf values. Can zero out weak leaves entirely. Indirect feature selection.</div>
+    </div>
+    <div class="hp-card">
+      <div class="hp-new">new in XGBoost</div>
+      <div class="hp-name">colsample_bylevel</div>
+      <div class="hp-desc">Feature sampling per tree level (not just per tree). Finer-grained than colsample_bytree.</div>
+    </div>
+    <div class="hp-card">
+      <div class="hp-card-title" style="font-family:var(--mono);font-size:9px;color:var(--teal);margin-bottom:4px">same as GBM</div>
+      <div class="hp-name">learning_rate</div>
+      <div class="hp-desc">Shrinks each tree's contribution. Always tuned with n_estimators. Use early stopping.</div>
+    </div>
+    <div class="hp-card">
+      <div class="hp-card-title" style="font-family:var(--mono);font-size:9px;color:var(--teal);margin-bottom:4px">same as GBM</div>
+      <div class="hp-name">max_depth</div>
+      <div class="hp-desc">Primary complexity lever. Tune first when overfitting. Depth 3–6 for most tasks.</div>
+    </div>
+  </div>
+
+  <p class="prose" style="margin-top:1.25rem"><strong>Tuning order for overfitting:</strong></p>
+  <div class="math-block">
+    max_depth → γ → λ / α → subsample / colsample → learning_rate + n_estimators (together, with early stopping)
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <span><strong>Trap:</strong> Never tune learning_rate and n_estimators independently. They are coupled — lower learning_rate always requires more trees to compensate. Set learning_rate low, use early stopping to find optimal n_estimators automatically.</span>
+  </div>
+</div>
+
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <span class="section-title">Missing value handling</span>
+    <span class="section-tag">sparsity-aware</span>
+  </div>
+
+  <p class="prose">XGBoost's sparsity-aware split finding learns the optimal direction to send missing values — without any imputation.</p>
+
+  <div class="algo-flow">
+    <div class="algo-step">
+      <div class="algo-line"><div class="algo-dot"></div><div class="algo-connector"></div></div>
+      <div class="algo-content"><strong>Training — try both directions:</strong> For each split candidate, send all missing-value rows left → compute Gain. Then send all right → compute Gain. Pick the direction with higher Gain.</div>
+    </div>
+    <div class="algo-step">
+      <div class="algo-line"><div class="algo-dot"></div><div class="algo-connector"></div></div>
+      <div class="algo-content"><strong>Storage:</strong> The winning direction is stored in the node as the <code>default_direction</code>. One bit per node per feature. Different nodes can have different default directions for the same feature.</div>
+    </div>
+    <div class="algo-step">
+      <div class="algo-line"><div class="algo-dot"></div></div>
+      <div class="algo-content"><strong>Inference:</strong> If a feature value is missing at a node → follow the stored default direction. No computation. No lookup of training rows. Just follow the arrow.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="mini-card">
+      <div class="mini-card-title">Vanilla GBM (imputation)</div>
+      <p style="font-size:13px;color:var(--text2)">Requires mean/median imputation before training. Destroys the signal that missingness itself is informative. All missing values in a feature get the same imputed value → same treatment everywhere in the tree.</p>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-title">XGBoost (learned directions)</div>
+      <p style="font-size:13px;color:var(--text2)">Missingness is a signal. "Income = missing" may mean high earner (declined to answer). Different nodes learn different directions. No imputation, no information loss.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <span><strong>Precision trap:</strong> "Some missing values go left, some go right" — wrong at node level. At each node, ALL missing values go the same direction (the stored default). Variation happens across different nodes, not within one node.</span>
+  </div>
+</div>
+
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <span class="section-title">Regressor vs Classifier</span>
+    <span class="section-tag">implementation</span>
+  </div>
+  <p class="prose">The architecture is identical. Differences are the loss function, gradient/Hessian forms, and output transformation.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>dimension</th><th>XGBRegressor</th><th>XGBClassifier</th></tr>
+      <tr><td>F₀ (init)</td><td>mean(y)</td><td>log(p / (1−p)) — log-odds of mean class rate</td></tr>
+      <tr><td>gradient g</td><td>F − y (residual)</td><td>sigmoid(F) − y</td></tr>
+      <tr><td>Hessian h</td><td>1 (constant)</td><td>sigmoid(F) · (1 − sigmoid(F)) — varies per example</td></tr>
+      <tr><td>leaf value w*</td><td>−G/H = mean residual</td><td>−G/(H+λ) — Hessian does real work here</td></tr>
+      <tr><td>final output</td><td>F_M (raw value)</td><td>sigmoid(F_M) → probability</td></tr>
+      <tr><td>predict()</td><td>raw value</td><td>class label (threshold 0.5 by default)</td></tr>
+      <tr><td>predict_proba()</td><td>n/a</td><td>sigmoid(F_M) — probability between 0 and 1</td></tr>
+    </table>
+  </div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <span><strong>Key insight:</strong> The Hessian is always 1 for MSE regression. XGBoost's mathematical innovation (second-order gradients) only changes results for non-MSE losses like log-loss. For regression, XGBoost with MSE is exactly equivalent to vanilla GBM in terms of leaf values — just faster.</span>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">✓</span>
+    <span><strong>Imbalanced classification:</strong> Set <code>scale_pos_weight = count(negative) / count(positive)</code>. This upweights the gradient and Hessian contributions of minority class examples. Then use <code>predict_proba()</code> and set your own threshold — default 0.5 is wrong for imbalanced data. Evaluate with AUC-PR, not AUC-ROC.</span>
+  </div>
+</div>
+
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <span class="section-title">Approximate splits + column blocks</span>
+    <span class="section-tag">speed</span>
+  </div>
+
+  <div class="two-col">
+    <div class="mini-card">
+      <div class="mini-card-title">Exact greedy split finding</div>
+      <p style="font-size:13px;color:var(--text2)">For each feature, sort all values O(n log n), evaluate every possible split point. Optimal but expensive. Fine for small datasets.</p>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-title">Approximate (histogram)</div>
+      <p style="font-size:13px;color:var(--text2)">Bucket feature values into quantile bins (e.g. 256 bins). Evaluate only bin boundaries as split candidates. Tiny accuracy loss, massive speed gain.</p>
+    </div>
+  </div>
+
+  <div class="math-block">
+    tree_method = 'exact'   <span class="comment">// exact greedy — small datasets</span><br>
+    tree_method = 'approx'  <span class="comment">// quantile sketch — medium datasets</span><br>
+    tree_method = 'hist'    <span class="comment">// histogram — large datasets (fastest, similar to LightGBM)</span>
+  </div>
+
+  <p class="prose" style="margin-top:1rem"><strong>Column blocks + cache-aware access:</strong></p>
+  <div class="prose">Feature columns are pre-sorted once at training start and stored in contiguous memory blocks. This eliminates re-sorting at every node (saves O(n log n) per node) and ensures sequential memory access — data stays in CPU L1/L2 cache (~100× faster than RAM reads). Within-tree parallelisation is possible because different features can be evaluated simultaneously from their independent column blocks.</div>
+
+  <div class="callout insight">
+    <span class="callout-icon">◆</span>
+    <span><strong>One-line summary:</strong> Pre-sort once (saves time), store contiguously (stays in CPU cache), parallelise across features (uses all cores). This is why XGBoost is faster than sklearn GBM on large datasets — same math, better engineering.</span>
+  </div>
+</div>
+
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <span class="section-title">Level-wise vs leaf-wise — bridge to LightGBM</span>
+    <span class="section-tag">tree building</span>
+  </div>
+
+  <div class="two-col">
+    <div class="mini-card">
+      <div class="mini-card-title">XGBoost — level-wise</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Breadth-first. Evaluates all nodes at depth d before going to depth d+1. Produces balanced, symmetric trees.</p>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text3)">
+        Depth 1: split root<br>
+        Depth 2: split both children<br>
+        Depth 3: split all 4 grandchildren<br>
+        <span style="color:var(--coral)">Wastes compute on low-gain splits</span>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-title">LightGBM — leaf-wise</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Best-first. Always splits the leaf with highest Gain anywhere in the tree. Produces deep, asymmetric trees.</p>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text3)">
+        Round 1: split best leaf globally<br>
+        Round 2: split next best leaf<br>
+        ...<br>
+        <span style="color:var(--teal)">Focuses compute where it matters</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th></th><th>level-wise (XGBoost)</th><th>leaf-wise (LightGBM)</th></tr>
+      <tr><td>tree shape</td><td>balanced, symmetric</td><td>asymmetric, can be very deep on one branch</td></tr>
+      <tr><td>speed</td><td>slower on large data</td><td>faster — skips low-gain splits</td></tr>
+      <tr><td>accuracy ceiling</td><td>slightly lower</td><td>higher — finds better splits</td></tr>
+      <tr><td>overfit risk</td><td>lower</td><td>higher on small datasets</td></tr>
+      <tr><td>complexity control</td><td>max_depth</td><td>num_leaves (primary lever)</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section q-section" id="s10">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <span class="section-title">30 interview questions</span>
+    <span class="section-tag">interview prep</span>
+  </div>
+
+  <div class="q-filter">
+    <button class="q-filter-btn active" onclick="filterQ('all',this)">All 30</button>
+    <button class="q-filter-btn" onclick="filterQ('found',this)">Foundational</button>
+    <button class="q-filter-btn" onclick="filterQ('med',this)">Medium</button>
+    <button class="q-filter-btn" onclick="filterQ('hard',this)">Hard</button>
+  </div>
+
+  <div id="q-list"></div>
+</div>
+
+</div>
+
+<script>
+const questions = [
+  {n:1,d:'found',q:'What is XGBoost and what problem does it solve over vanilla GBM?',must:['Name all 5 improvements: second-order gradients, L1/L2 regularisation, γ split penalty, native missing value handling, column blocks + parallelism','Vanilla GBM is slower, has no explicit regularisation on leaf values, and handles missing values poorly','The core mathematical advance is Newton\'s method in function space (second-order gradients)']},
+  {n:2,d:'found',q:'What is the gradient and what is the Hessian in the context of XGBoost?',must:['g = ∂L/∂F (first derivative of loss wrt prediction)','h = ∂²L/∂F² (second derivative — curvature of loss surface)','For MSE: g = F − y, h = 1 (constant). For log-loss: g = sigmoid(F) − y, h = sigmoid(F)·(1 − sigmoid(F))','Hessian only does meaningful work for non-MSE losses where h varies per example'],trap:'Confusing the Hessian as a replacement for the gradient. It modulates step size — both are used.'},
+  {n:3,d:'found',q:'Derive the optimal leaf value formula w* = −g/h from first principles.',must:['Start with second-order Taylor expansion: L(F+w) ≈ L(F) + g·w + ½·h·w²','Drop constant L(F), minimise g·w + ½·h·w²','Differentiate wrt w: g + h·w = 0 → w* = −g/h','With L2 regularisation: w* = −G / (H + λ) where G = Σgᵢ, H = Σhᵢ over the leaf','This is Newton\'s method — exact closed-form solution to a quadratic approximation'],trap:'Saying this is a heuristic. It is the exact analytical solution to the Taylor-approximated loss.'},
+  {n:4,d:'found',q:'Why does XGBoost use both gradient and Hessian while vanilla GBM only uses gradient?',must:['GBM does gradient descent in function space — uses only first-order information','XGBoost does Newton\'s method — uses second-order information (curvature)','Hessian tells you how trustworthy the linear approximation is. High curvature → step carefully. Low curvature → step confidently','Result: better leaf values, faster convergence, self-adjusting step size per example']},
+  {n:5,d:'found',q:'What is the XGBoost Gain formula and when does a split happen?',must:['Gain = ½·[G_L²/(H_L+λ) + G_R²/(H_R+λ) − (G_L+G_R)²/(H_L+H_R+λ)] − γ','Split happens only if Gain > 0','The bracket term is loss reduction from the split. γ is the cost of making the split.','Higher γ → fewer splits → shallower trees → stronger regularisation'],trap:'Saying Gain > 0 means noisy data. It means the benefit exceeded the penalty — which depends on both data and γ setting.'},
+  {n:6,d:'found',q:'What does γ do and how does it differ from max_depth?',must:['γ is a minimum loss reduction threshold — a split only happens if Gain > γ','max_depth is a hard limit on tree depth regardless of gain','γ is principled (based on actual loss reduction), max_depth is structural','γ prunes from the bottom up — a split that doesn\'t pay off is rejected. max_depth stops all splits at a fixed level']},
+  {n:7,d:'found',q:'What is the difference between α (L1) and λ (L2) regularisation in XGBoost?',must:['Both act on leaf values, not feature weights (no feature coefficients exist in tree models)','λ (L2): shrinks all leaf values toward zero, never reaches exactly zero','α (L1): can shrink leaf values to exactly zero — weak leaves contribute nothing','For noisy data with irrelevant features: prefer α for indirect feature selection via leaf zeroing','In the leaf formula: w* = −G/(H+λ). Increasing λ explicitly dampens all leaf values']},
+  {n:8,d:'found',q:'How does XGBoost handle missing values during training and inference?',must:['Sparsity-aware split finding: for each split, try sending all missing rows left → compute Gain. Try right → compute Gain. Pick winner.','Winning direction stored as default_direction in the node','At inference: missing value → follow stored default direction. No computation needed.','Different nodes can have different default directions for the same feature','Advantage over imputation: missingness itself is a signal. Imputation destroys this.'],trap:'Saying "some missing values go left, some go right at the same node." At each node, ALL missing values go the same direction.'},
+  {n:9,d:'found',q:'What does predict() vs predict_proba() return in XGBClassifier?',must:['predict_proba() returns sigmoid(F_M) — probability between 0 and 1','predict() applies threshold (default 0.5) to probability → class label 0 or 1','Internally identical computation. predict() adds one thresholding step.','For imbalanced data, use predict_proba() and set your own threshold — 0.5 is wrong']},
+  {n:10,d:'found',q:'What is the difference between level-wise and leaf-wise tree building?',must:['Level-wise (XGBoost): breadth-first. All nodes at depth d split before depth d+1. Balanced trees.','Leaf-wise (LightGBM): best-first. Always splits the leaf with highest Gain globally. Asymmetric trees.','Leaf-wise: higher accuracy ceiling, faster, but higher overfit risk on small datasets','Complexity control: max_depth for level-wise, num_leaves for leaf-wise']},
+  {n:11,d:'med',q:'For MSE regression, show that XGBoost\'s leaf value reduces to the same result as vanilla GBM.',must:['For MSE: h = ∂²L/∂F² = 1 for every example','So H = Σhᵢ = n (number of examples in leaf)','w* = −G/H = −Σ(Fᵢ − yᵢ) / n = mean of residuals','This is exactly what vanilla GBM puts in a leaf under MSE','Conclusion: for MSE, XGBoost and GBM are mathematically equivalent. Hessian adds nothing.'],trap:'Assuming XGBoost always gives different leaf values than GBM. It doesn\'t for MSE.'},
+  {n:12,d:'med',q:'Why is AUC-PR a better metric than AUC-ROC for imbalanced classification?',must:['AUC-ROC plots TPR vs FPR. FPR = FP / (FP + TN). TN dominates in imbalanced data → FPR looks tiny even with many false positives','AUC-PR plots Precision vs Recall. Precision = TP / (TP + FP). No TN anywhere.','Example: 100k false positives out of 9.99M negatives → FPR = 0.01 (looks great on ROC). Precision = 8% (exposed on PR curve).','AUC-PR is a harder, more honest metric for imbalanced data'],trap:'Using accuracy on imbalanced data. Predicting majority class always gives high accuracy.'},
+  {n:13,d:'med',q:'You have 10M rows and 500 features. Which tree_method would you choose and why?',must:['tree_method = \'hist\' (histogram-based approximate splits)','Exact greedy requires sorting O(n log n) per feature per node — infeasible at 10M×500','Histogram bins feature values into ~256 quantile buckets. Only 255 split points per feature evaluated.','Column blocks + cache-aware access: pre-sort once, reuse across all trees, sequential memory = CPU cache hits','Accuracy loss vs exact is negligible in practice — best split is rarely at a precise value, it\'s in a region']},
+  {n:14,d:'med',q:'Explain scale_pos_weight in XGBoost. When and how would you set it?',must:['scale_pos_weight = count(negative class) / count(positive class)','Upweights gradient and Hessian contributions of minority class examples during training','For 1% fraud rate: scale_pos_weight ≈ 99','Not a replacement for threshold tuning — still use predict_proba() and set threshold from PR curve','Alternative approaches: undersample majority, oversample minority (SMOTE), class-weighted loss']},
+  {n:15,d:'med',q:'What is the difference between subsample in XGBoost vs Random Forest?',must:['XGBoost subsample: row sampling without replacement, once per tree, before tree building','Random Forest: row sampling with replacement (bootstrap sampling)','Without replacement in GBM is deliberate — replacement would cause duplicate rows → duplicate gradients → distorted gradient signal','Both reduce variance. XGBoost subsample also enables rough OOB estimation (less reliable than RF).'],trap:'Assuming XGBoost uses bootstrap like RF. It doesn\'t — and the reason matters.'},
+  {n:16,d:'med',q:'What is early stopping in XGBoost and what are its risks?',must:['Set eval_set (validation data) + early_stopping_rounds parameter','Training stops when validation metric hasn\'t improved for N consecutive rounds','Automatically finds optimal n_estimators — avoids manual grid search','Risk 1: small validation sets give noisy stopping signal — can stop too early or too late','Risk 2: the validation set is "used up" — no longer a clean held-out set for final evaluation','Best practice: use a 3-way split (train / val for early stopping / test for final eval)']},
+  {n:17,d:'med',q:'How does colsample_bytree differ from colsample_bylevel? When would you use each?',must:['colsample_bytree: sample a fraction of features once per tree. Same subset used for all splits in that tree.','colsample_bylevel: sample a new fraction of features at each depth level within a tree','colsample_bylevel is more aggressive — different features are available at each level','colsample_bytree is more similar to Random Forest\'s feature sampling','Use colsample_bylevel for high-dimensional data where more feature diversity per level helps']},
+  {n:18,d:'med',q:'Walk through the full XGBoost training algorithm step by step.',must:['F₀ = mean(y) for regression, log-odds for classification','For each tree m: compute gᵢ = ∂L/∂F and hᵢ = ∂²L/∂F² for every example','Find best split using Gain formula. Split if Gain > 0.','Compute leaf values: w* = −G/(H+λ) for each leaf','Update: F_m = F_{m-1} + η·h_m(x). Repeat until n_estimators or early stopping.','Key: trees are fit to negative gradients (GBM framing) but leaf values are optimised using Newton\'s method (XGBoost framing)']},
+  {n:19,d:'hard',q:'Prove that AdaBoost is a special case of gradient boosting with exponential loss.',must:['Exponential loss: L(y,F) = exp(−y·F) where y ∈ {−1, +1}','Gradient: g = −y·exp(−y·F)','AdaBoost sample weights wᵢ = exp(−yᵢ·Fᵢ) — exactly the gradient magnitude','Fitting a tree to these weighted examples = fitting to negative gradient of exponential loss','Therefore AdaBoost = GBM with exponential loss, with hard weighting instead of soft gradient fitting'],trap:'This is a conceptual bridge question. Must connect the reweighting mechanism to gradient steps under exponential loss.'},
+  {n:20,d:'hard',q:'XGBoost uses second-order Taylor expansion. Why not third-order? What would the tradeoff be?',must:['Third-order would use the third derivative (jerk of the loss surface)','More accurate local approximation → potentially better leaf values','But: cubic has no clean closed-form minimum (unlike quadratic) → need iterative solve per leaf → much slower','For most loss functions (MSE, log-loss), the second-order approximation is already very tight near the optimum','Practical answer: diminishing returns on accuracy, quadratic cost increase in complexity. Second-order is the sweet spot.']},
+  {n:21,d:'hard',q:'In XGBoost for binary classification, derive what g and h look like and explain why h matters.',must:['Loss: L = −[y·log(p) + (1−y)·log(1−p)] where p = sigmoid(F)','g = ∂L/∂F = sigmoid(F) − y','h = ∂²L/∂F² = sigmoid(F)·(1 − sigmoid(F)) = p·(1−p)','h is maximised at p=0.5 (maximum uncertainty, h=0.25) and minimised near p=0 or p=1 (high confidence, h→0)','High h → smaller leaf value adjustment (uncertain prediction, be conservative)','Low h → larger adjustment (confident prediction, the error is clear and large)','This is qualitatively different from MSE where h=1 always']},
+  {n:22,d:'hard',q:'How would you tune XGBoost for a noisy dataset with many irrelevant features? Justify every choice.',must:['max_depth: keep shallow (3–4). Deep trees overfit to noisy residuals that get compounded.','γ: increase significantly. Requires large Gain to justify a split. Noise produces small, inconsistent gains.','α (L1): use to zero out leaf values on splits that relied on noisy features','subsample + colsample_bytree: both around 0.6–0.8. Randomisation prevents model from memorising noise patterns.','learning_rate: low (0.01–0.05) with early stopping. Slow learning compounds less noise per step.','Avoid: large max_depth, γ=0, no subsampling — all amplify noise'],trap:'Reaching for n_estimators first. It\'s determined by early stopping, not manual tuning.'},
+  {n:23,d:'hard',q:'Explain cache-aware access in XGBoost. Why does it matter at scale?',must:['CPU has L1/L2 cache (MBs) between processor and RAM (GBs). Cache access is ~100× faster than RAM.','CPU speculatively loads contiguous memory chunks into cache. Sequential access = cache hits. Random access = cache misses.','XGBoost stores pre-sorted feature columns in contiguous memory blocks','Scanning a column to evaluate splits = sequential reads → data stays in cache → no RAM round-trips','Vanilla GBM / random access patterns = frequent cache misses → CPU idles waiting for RAM','At 10M rows, the difference can be 5–10× wall-clock speed improvement']},
+  {n:24,d:'hard',q:'What happens if you set γ too high? Describe the failure mode precisely.',must:['γ too high: Gain threshold is never met → no splits happen → all trees are stumps (root only)','A stump predicts the global mean/log-odds for every example — same as F₀','Model underfits severely. Bias is high, variance is near zero.','Bias-variance: increasing γ increases bias and decreases variance. Optimal γ balances these.','Diagnosing: training loss barely decreases. Validation loss also high. Feature importances all zero or uniform.']},
+  {n:25,d:'hard',q:'Compare XGBoost and LightGBM. When would you prefer each?',must:['XGBoost: level-wise, more stable, lower overfit risk on small/medium datasets, better default behaviour','LightGBM: leaf-wise, faster on large datasets (histogram + leaf-wise), higher accuracy ceiling, num_leaves is primary lever','LightGBM also has: categorical feature native handling (no encoding needed), faster training on very wide datasets','Prefer XGBoost: <100k rows, stability matters, simpler tuning needed','Prefer LightGBM: >1M rows, speed matters, high-cardinality categoricals present','Both: tune learning_rate + early stopping. LightGBM tune num_leaves, XGBoost tune max_depth']},
+  {n:26,d:'hard',q:'How does XGBoost\'s regularisation compare to Random Forest\'s implicit regularisation?',must:['RF regularises via averaging (ensemble of diverse trees). Diversity from bootstrap + feature sampling.','XGBoost regularises explicitly: γ (split penalty), λ/α (leaf value penalties), learning_rate (shrinkage), subsample/colsample','RF has no concept of leaf value regularisation. XGBoost does.','RF\'s implicit regularisation has higher floor (hard to make it badly overfit). XGBoost has higher ceiling but can overfit if misconfigured.','For small datasets: RF\'s implicit regularisation is often safer. For large data: XGBoost tuned carefully dominates.']},
+  {n:27,d:'hard',q:'Explain why XGBoost can fail. Give specific scenarios where you wouldn\'t use it.',must:['Very noisy labels: sequential boosting compounds noise in residuals. RF dilutes it instead.','High-dimensional sparse data (NLP bag-of-words, >10k features mostly zero): neural networks or linear models handle sparsity better','Extrapolation: trees can\'t predict outside training range. Any tree-based model fails here.','Online learning: XGBoost requires full dataset. Can\'t update incrementally with new data.','Very small datasets (<1000 rows): overfits even with regularisation. RF or linear models more robust.','Time series with strong temporal structure: leakage risk, need careful CV. Not a tree model failure per se but a usage risk.']},
+  {n:28,d:'hard',q:'You get high train accuracy but poor validation accuracy in XGBoost. Walk through your full diagnostic and fix process.',must:['Confirm overfit: train loss << validation loss','Step 1: reduce max_depth (primary complexity driver)','Step 2: increase γ (raise the bar for making splits)','Step 3: reduce subsample and colsample_bytree (add randomisation)','Step 4: increase λ and/or α (regularise leaf values)','Step 5: lower learning_rate + refit n_estimators with early stopping','Step 6: check data — is target leaking? Are features computed with future information?','Step 7: if dataset is small (<5k rows), consider switching to RF or adding more data'],trap:'Jumping to reducing n_estimators directly. The root cause is usually max_depth or missing regularisation.'},
+  {n:29,d:'hard',q:'What is the relationship between the Taylor expansion in XGBoost and Newton\'s method in standard optimisation?',must:['Standard Newton\'s method: θ_{t+1} = θ_t − [H(θ)]⁻¹ · ∇L(θ) where H is the Hessian matrix','XGBoost functional form: instead of optimising parameters θ, optimises a function F in function space','The leaf value w* = −G/H is exactly the Newton step applied to the leaf-level quadratic approximation','XGBoost is Newton boosting. GBM is gradient descent boosting.','Newton converges in fewer steps than gradient descent because it uses curvature — XGBoost needs fewer trees for same accuracy']},
+  {n:30,d:'hard',q:'An interviewer asks: "Implement XGBoost from scratch. What are the core components?" Walk through the pseudocode.',must:['F₀ = mean(y). For m in 1..M:', 'Compute gᵢ = ∂L(yᵢ,F)/∂F and hᵢ = ∂²L(yᵢ,F)/∂F² for all i','Build tree: at each node, find split that maximises Gain = ½[G_L²/(H_L+λ) + G_R²/(H_R+λ) − (G_L+G_R)²/(H_L+H_R+λ)] − γ','Assign leaf values: w* = −G_leaf / (H_leaf + λ)','Update F = F + η · tree(x). Repeat.','Missing values: at each split, try both directions, store winner as default_direction','Key data structure: column blocks — pre-sorted feature arrays for O(1) split enumeration after initial O(n log n) sort']}
+];
+
+function renderQ(list){
+  const el=document.getElementById('q-list');
+  el.innerHTML='';
+  list.forEach(q=>{
+    const badge=q.d==='hard'?'hard':q.d==='med'?'med':'found';
+    const label=q.d==='hard'?'Hard':q.d==='med'?'Medium':'Foundational';
+    const div=document.createElement('div');
+    div.className='q-card';
+    div.setAttribute('data-diff',q.d);
+    const trapHtml=q.trap?`<div class="trap"><div class="trap-label">⚠ Common trap</div>${q.trap}</div>`:'';
+    const mustHtml=q.must.map(m=>`<li>${m}</li>`).join('');
+    div.innerHTML=`
+      <div class="q-head" onclick="toggleQ(this)">
+        <span class="q-num">Q${String(q.n).padStart(2,'0')}</span>
+        <span class="q-text">${q.q}</span>
+        <span class="q-badge ${badge}">${label}</span>
+        <span class="q-chevron">+</span>
+      </div>
+      <div class="q-body">
+        <div class="must-label">Must-cover points</div>
+        <ul class="must-list">${mustHtml}</ul>
+        ${trapHtml}
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+function toggleQ(head){
+  const body=head.nextElementSibling;
+  const ch=head.querySelector('.q-chevron');
+  const open=body.classList.toggle('open');
+  ch.textContent=open?'−':'+';
+}
+
+function filterQ(diff,btn){
+  document.querySelectorAll('.q-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered=diff==='all'?questions:questions.filter(q=>q.d===diff);
+  renderQ(filtered);
+}
+
+renderQ(questions);
+</script>
+
+</body>
+</html>

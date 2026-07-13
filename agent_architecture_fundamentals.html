@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agent Architecture Fundamentals — Study Guide</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #171a23;
+    --border: #2a2e3a;
+    --text: #e4e6eb;
+    --muted: #9aa1b1;
+    --accent: #7c9eff;
+    --good: #4ade80;
+    --gap: #f87171;
+    --code-bg: #10131a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    line-height: 1.6;
+  }
+  h1 { font-size: 1.8rem; border-bottom: 2px solid var(--accent); padding-bottom: 12px; }
+  h2 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin-top: 48px;
+    border-left: 4px solid var(--accent);
+    padding-left: 12px;
+  }
+  h3 { font-size: 1.05rem; color: var(--text); margin-top: 24px; }
+  p { color: var(--text); }
+  .muted { color: var(--muted); font-size: 0.92rem; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+  th { background: var(--panel); color: var(--accent); }
+  code, pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.85rem;
+  }
+  pre { padding: 14px; overflow-x: auto; }
+  code { padding: 2px 6px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .gap-card {
+    background: #201417;
+    border: 1px solid var(--gap);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+  .gap-card h4 { color: var(--gap); margin-top: 0; }
+  .good-tag { color: var(--good); font-weight: 600; }
+  .gap-tag { color: var(--gap); font-weight: 600; }
+  .toc { columns: 2; margin: 20px 0; }
+  .toc a { color: var(--accent); text-decoration: none; display: block; padding: 3px 0; font-size: 0.9rem; }
+  .qcard {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 10px 0;
+    background: var(--panel);
+  }
+  .qcard summary { cursor: pointer; font-weight: 600; }
+  .qcard[open] summary { color: var(--accent); }
+  .difficulty { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; margin-left: 8px; }
+  .easy { background: #14432a; color: var(--good); }
+  .medium { background: #453a14; color: #fbbf24; }
+  .hard { background: #431414; color: var(--gap); }
+</style>
+</head>
+<body>
+
+<h1>Agent Architecture Fundamentals</h1>
+<p class="muted">Study guide compiled from Deep Dive + Grill Me session · 9 subtopics</p>
+
+<div class="toc">
+  <a href="#s1">1. Agent vs. Pipeline</a>
+  <a href="#s2">2. Loop Mechanics</a>
+  <a href="#s3">3. Tool Calling Internals</a>
+  <a href="#s4">4. Memory Systems</a>
+  <a href="#s5">5. Planning Strategies</a>
+  <a href="#s6">6. State Management & Control Flow</a>
+  <a href="#s7">7. Multi-Agent Architectures</a>
+  <a href="#s8">8. Failure Modes & Reliability</a>
+  <a href="#s9">9. Evaluation of Agents</a>
+  <a href="#gaps">⚠ Gaps to Review</a>
+  <a href="#interview">Interview Questions</a>
+</div>
+
+<h2 id="s1">1. Agent vs. Pipeline</h2>
+<div class="card">
+<p><b>Defining criterion:</b> An agent is a system where the <b>LLM's output determines the next action taken by the system</b> — with results fed back before the next decision. A fixed pipeline (retrieve→generate, always) is not an agent even if an LLM is involved.</p>
+<p><b>Loop:</b> Perceive → Reason → Act → (feed result back into Perceive) → repeat until termination.</p>
+<p class="muted">Perceive re-runs every iteration — it reads the <i>current</i> accumulated state, not just the original query.</p>
+</div>
+
+<h2 id="s2">2. Loop Mechanics</h2>
+<div class="card">
+<table>
+<tr><th>Step</th><th>What happens</th><th>Key risk</th></tr>
+<tr><td>Prompt construction</td><td>Full history re-serialized into context every turn</td><td>O(n²) tokens across a trajectory, not O(n)</td></tr>
+<tr><td>Tool-call parsing</td><td>Native function calling (constrained decoding) vs. ReAct text parsing</td><td>Text parsing is fragile to malformed output</td></tr>
+<tr><td>Execution</td><td>Harness validates + runs the tool outside the LLM</td><td>—</td></tr>
+<tr><td>Observation feedback</td><td>Result formatted back into history</td><td>Empty/error results must be distinguishable from success</td></tr>
+</table>
+</div>
+
+<h2 id="s3">3. Tool Calling Internals</h2>
+<div class="card">
+<p><b>Schema</b> does two jobs: tool selection signal (via <code>description</code>) and argument constraint (<code>type</code>, <code>enum</code>, <code>required</code>).</p>
+<p><b>Constrained decoding:</b> token sampling is restricted at each step to stay valid against the schema — this is why native function calling beats ReAct parsing structurally, not just "tries harder."</p>
+<table>
+<tr><th>Failure</th><th>Example</th></tr>
+<tr><td>Argument hallucination</td><td>Right tool, wrong value (NYC → NJ)</td></tr>
+<tr><td>Wrong tool selection</td><td>Irrelevant/no results — entirely wrong tool called</td></tr>
+<tr><td>Type mismatch</td><td>"5" (string) passed where int expected</td></tr>
+</table>
+<p class="muted">Sequential vs. parallel calls: sequential iff call 2's arguments can't be resolved without call 1's output.</p>
+</div>
+
+<h2 id="s4">4. Memory Systems</h2>
+<div class="card">
+<table>
+<tr><th>Type</th><th>Scope</th><th>Failure mode</th></tr>
+<tr><td>Working memory</td><td>Current loop only</td><td>Dies with the task, by design</td></tr>
+<tr><td>Short-term (sliding window)</td><td>Recent N turns</td><td>Total loss of anything before the window — silent</td></tr>
+<tr><td>Short-term (summarization)</td><td>Whole conversation, compressed</td><td>Lossy — flattens strict constraints into soft approximations</td></tr>
+<tr><td>Long-term</td><td>Across sessions</td><td>Stale/contradicted memories need invalidation</td></tr>
+</table>
+<div class="card" style="background:#1a1f14;border-color:#fbbf24;">
+<b>Fix for hard constraints:</b> pull them out of summarization entirely into a pinned, always-injected structured slot (e.g. <code>constraints: {budget_max: 4200}</code>). Don't let hard constraints get compressed like narrative context.
+</div>
+<p class="muted">Memory vs. RAG: RAG = external knowledge base. Agent memory = the agent's own past experience (autobiographical).</p>
+</div>
+
+<h2 id="s5">5. Planning Strategies</h2>
+<div class="card">
+<table>
+<tr><th>Strategy</th><th>Best when</th><th>Cost</th></tr>
+<tr><td>ReAct</td><td>Short, exploratory, next step depends on last observation</td><td>Low/step, myopic</td></tr>
+<tr><td>Plan-and-Execute</td><td>Well-decomposable upfront</td><td>Medium, brittle without replanning</td></tr>
+<tr><td>Tree-of-Thought</td><td>Many viable paths, backtracking valuable</td><td>High</td></tr>
+<tr><td>Reflection</td><td>Correctness/constraint-adherence critical</td><td>2x generation calls; shares generator's blind spots</td></tr>
+</table>
+</div>
+
+<h2 id="s6">6. State Management & Control Flow</h2>
+<div class="card">
+<table>
+<tr><th></th><th>Single-agent loop</th><th>Graph-based</th></tr>
+<tr><td>Control flow</td><td>Implicit — model decides</td><td>Explicit — code defines edges</td></tr>
+<tr><td>Invariant enforcement</td><td>Requested via prompt (not guaranteed)</td><td>Hard-enforced via edge conditions</td></tr>
+<tr><td>Best for</td><td>Open-ended, exploratory</td><td>Compliance/safety-critical production</td></tr>
+</table>
+<div class="card" style="background:#1a1f14;border-color:#fbbf24;">
+<b>Not automatically solved by graphs:</b> state resumption after a human-approval node fires — resume same node? restart the step? roll back further? This is a separate design decision.
+</div>
+</div>
+
+<h2 id="s7">7. Multi-Agent Architectures</h2>
+<div class="card">
+<p><b>Orchestrator-Worker:</b> orchestrator decomposes + routes to narrow-scoped workers, then synthesizes.</p>
+<p><b>Hierarchical:</b> orchestrators of orchestrators — more modularity, compounding latency, harder failure tracing.</p>
+<p><b>Debate/Consensus:</b> independent agents cross-critique — avoids the shared-blind-spot problem that single-agent Reflection has (different model/context ≠ same systematic error).</p>
+<p class="muted"><b>Key design question:</b> shared vs. isolated context. Isolated + explicit hand-off is the default in production — avoids context bloat and cross-contamination between workers.</p>
+</div>
+
+<h2 id="s8">8. Failure Modes & Reliability</h2>
+<div class="card">
+<table>
+<tr><th>Failure</th><th>Fix</th></tr>
+<tr><td>Infinite/runaway loops</td><td>Max-iteration cap, "no progress" detection</td></tr>
+<tr><td>Hallucinated tool calls</td><td>Strict schema validation before execution</td></tr>
+<tr><td>Error propagation</td><td>Structured error schema + explicit "don't assume success" instruction</td></tr>
+<tr><td>Context poisoning</td><td>Reflection/validation nodes that can correct earlier turns</td></tr>
+<tr><td>Guardrails</td><td>Code-enforced (approval gates, rate limits) — never model-only</td></tr>
+</table>
+</div>
+
+<h2 id="s9">9. Evaluation of Agents</h2>
+<div class="card">
+<p><b>Task success rate</b> alone hides inefficient/unsafe paths — need <b>trajectory analysis</b>: efficiency, redundancy, mid-trajectory constraint adherence, recovery behavior.</p>
+<p><b>Offline vs. online:</b> offline = fast/reproducible but may miss real edge cases; online = real signal, real cost.</p>
+<p><b>LLM-as-judge:</b> scalable but can share the agent's blind spots — mitigate with a different/stronger judge + concrete rubrics.</p>
+<p class="muted">Latency/step-count belongs in trajectory metrics — a correct-but-slow run passes a pure success/fail eval silently.</p>
+</div>
+
+<h2 id="gaps">⚠ Gaps to Review (from your Grill Me answers)</h2>
+
+<div class="gap-card">
+<h4>Gap 1 — Agent vs. pipeline definition</h4>
+<p><b>You said:</b> "When LLM makes decisions instead of human, it's an agent."</p>
+<p><b>Missing:</b> A plain LLM call also "decides" what text to output — that's not sufficient. The defining piece is the <b>feedback loop</b>: the LLM's output determines the next action, and the result of that action feeds back in before the next decision. No loop = not an agent, regardless of whether a decision was made.</p>
+</div>
+
+<div class="gap-card">
+<h4>Gap 2 — Why native function calling beats ReAct</h4>
+<p><b>You said:</b> function calling gives finite/valid cases; ReAct can hallucinate.</p>
+<p><b>Missing:</b> the <i>mechanism</i> — constrained decoding restricts token sampling itself to stay schema-valid at each step. It's not that the model "tries harder," the decoding process structurally cannot emit invalid output. ReAct has no such constraint; it's free text your harness parses after the fact.</p>
+</div>
+
+<div class="gap-card">
+<h4>Gap 3 — What graphs don't solve automatically</h4>
+<p><b>You said (after 2 attempts):</b> guessed "ask human to proceed" / "human intervention or budget agent" — didn't land on it.</p>
+<p><b>Answer:</b> <b>state resumption</b> after a human-approval node fires. The graph guarantees the check happens; it says nothing about whether execution resumes at the same node, restarts the step, or rolls back further. That's a design decision you own separately.</p>
+</div>
+
+<div class="gap-card">
+<h4>Gap 4 — Isolated vs. shared context in multi-agent</h4>
+<p><b>You said:</b> shared context "might confuse" workers.</p>
+<p><b>Missing:</b> be concrete — two distinct risks: (1) <b>context bloat</b>, irrelevant info competing for attention, and (2) <b>cross-contamination</b>, a worker acting on another worker's tool calls/results that aren't relevant to its own task.</p>
+</div>
+
+<div class="gap-card">
+<h4>Gap 5 (Deep Dive) — Empty tool payload handling</h4>
+<p><b>You said:</b> handle at the observation step.</p>
+<p><b>Missing:</b> location is right but incomplete — you also need explicit <b>reasoning/prompt instructions</b> telling the model what "empty" means and what to do about it (retry broader? report not-found? fallback tool?). Schema alone doesn't guarantee correct interpretation.</p>
+</div>
+
+<div class="gap-card">
+<h4>Gap 6 (Deep Dive) — 504 error propagation fix</h4>
+<p><b>You said:</b> schema checks instead of plain string fix it.</p>
+<p><b>Missing:</b> schema is necessary but not sufficient — pair it with an explicit system-prompt instruction ("never claim success without a success-shaped observation"), since a model can still misinterpret a well-structured error if not told how to treat it.</p>
+</div>
+
+<p class="good-tag">✓ Strong / fully correct: argument hallucination vs. wrong tool selection, sliding window vs. summarization trade-offs, budget-check placement (orchestrator edge vs. agent reasoning), Debate vs. Reflection blind-spot argument, checkin-date sequential dependency nuance, latency-missing-from-eval diagnosis.</p>
+
+<h2 id="interview">Interview Questions</h2>
+
+<details class="qcard">
+<summary>What's the architectural difference between an agent and a RAG pipeline? <span class="difficulty easy">Easy</span></summary>
+<p>RAG has fixed control flow (always retrieve → generate) determined by code. An agent's control flow is determined dynamically by the LLM's own output at each step — whether to retrieve, what to retrieve, whether to retrieve again.</p>
+</details>
+
+<details class="qcard">
+<summary>Why does context length grow O(n²) in tokens processed across an agent trajectory, not O(n)? <span class="difficulty medium">Medium</span></summary>
+<p>Each iteration re-sends the full accumulated history (all prior tool calls/results) in the prompt. At step k you resend k-1 prior turns, so total tokens processed across a full n-step trajectory sums to O(n²).</p>
+</details>
+
+<details class="qcard">
+<summary>Explain constrained decoding and why it makes native function calling more reliable than ReAct-style parsing. <span class="difficulty medium">Medium</span></summary>
+<p>Constrained decoding restricts the token sampling process itself so only schema-valid tokens can be emitted at each generation step — validity is structurally guaranteed, not hoped for. ReAct relies on free-text generation parsed post-hoc by the harness, which breaks on malformed output even when intent was correct.</p>
+</details>
+
+<details class="qcard">
+<summary>Design a memory strategy for an agent handling long-running sessions with hard user constraints (e.g., budget caps, exclusions). <span class="difficulty hard">Hard</span></summary>
+<p>Separate hard constraints from narrative history. Use summarization/sliding window for general context, but extract constraints into a structured, always-injected slot (not subject to compression) — e.g. a <code>constraints</code> object re-added to every prompt verbatim, independent of the rolling summary.</p>
+</details>
+
+<details class="qcard">
+<summary>When would you choose a graph-based (state machine) architecture over a single-agent loop, and what's the cost? <span class="difficulty medium">Medium</span></summary>
+<p>Choose graph-based when you need to hard-enforce invariants (approval gates, spending limits, compliance checks) — code-level edges guarantee enforcement vs. prompted requests that can be missed. Cost: reduced flexibility — rigid graphs struggle with genuinely open-ended tasks that don't fit predefined nodes.</p>
+</details>
+
+<details class="qcard">
+<summary>Your agent has 98% task success on your offline eval set but users complain in production. Diagnose. <span class="difficulty hard">Hard</span></summary>
+<p>Classic train/serve skew applied to agent evals — the eval set doesn't represent the real production distribution of tasks/edge cases. Also check if success rate is masking trajectory issues (latency, redundant calls, mid-trajectory constraint violations that get silently corrected) that never surface in a pass/fail metric.</p>
+</details>
+
+<details class="qcard">
+<summary>Why can LLM-as-judge evaluation fail silently, and how do you mitigate it? <span class="difficulty medium">Medium</span></summary>
+<p>The judge model can share the same training biases/blind spots as the agent model being evaluated, rubber-stamping systematic errors. Mitigate with a stronger or architecturally different judge model, plus concrete fact-checkable rubrics (e.g. exact budget compliance) rather than vague quality scoring.</p>
+</details>
+
+<details class="qcard">
+<summary>Multi-agent orchestrator-worker: should the Budget Agent enforce the spending limit, or should the Orchestrator? <span class="difficulty hard">Hard</span></summary>
+<p>Orchestrator, via a graph edge — code-level enforcement guarantees the check fires every time. If left to the Budget Agent's LLM reasoning, it's a request, not a guarantee, and can be silently missed. Split responsibility: Budget Agent tracks/reports the running total (data), Orchestrator enforces the gate (control).</p>
+</details>
+
+</body>
+</html>

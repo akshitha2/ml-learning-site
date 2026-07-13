@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics Deep Dive — ML Interview Prep</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+:root{--bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--border:#252a38;--accent:#4f9cf9;--accent2:#a78bfa;--accent3:#34d399;--warn:#f59e0b;--danger:#f87171;--text:#e2e8f0;--text-dim:#94a3b8;--text-faint:#475569;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75;}
+nav{position:sticky;top:0;z-index:100;background:rgba(13,15,20,0.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;gap:1.8rem;height:52px;overflow-x:auto;}
+nav .brand{font-family:var(--mono);font-size:12px;color:var(--accent);white-space:nowrap;font-weight:600;letter-spacing:.06em;}
+nav a{font-size:12px;color:var(--text-dim);text-decoration:none;white-space:nowrap;transition:color .2s;}
+nav a:hover{color:var(--accent);}
+.hero{padding:5rem 2rem 4rem;max-width:960px;margin:0 auto;border-bottom:1px solid var(--border);}
+.hero-tag{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.1;letter-spacing:-.02em;margin-bottom:1.2rem;}
+.hero h1 span{color:var(--accent);}
+.hero p{font-size:1.05rem;color:var(--text-dim);max-width:620px;font-weight:300;line-height:1.8;}
+.roadmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.6rem;margin-top:2.5rem;}
+.roadmap-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:.6rem .9rem;font-family:var(--mono);font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:.6rem;}
+.roadmap-item .num{color:var(--accent);font-weight:600;}
+.roadmap-item.done{border-color:var(--accent3);color:var(--accent3);}
+.roadmap-item.done .num{color:var(--accent3);}
+.container{max-width:960px;margin:0 auto;padding:0 2rem;}
+.topic{border-bottom:1px solid var(--border);padding:4.5rem 0;}
+.topic-header{display:flex;align-items:flex-start;gap:1.2rem;margin-bottom:2.5rem;}
+.topic-number{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(79,156,249,.08);border:1px solid rgba(79,156,249,.2);border-radius:4px;padding:.3rem .6rem;white-space:nowrap;margin-top:.35rem;}
+.topic h2{font-size:1.9rem;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
+.topic h3{font-size:1.05rem;font-weight:600;color:var(--accent);margin:2.5rem 0 .8rem;font-family:var(--mono);letter-spacing:.03em;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
+.topic h4{font-size:.95rem;font-weight:600;color:var(--accent2);margin:1.6rem 0 .5rem;}
+.topic p{color:var(--text-dim);margin-bottom:1rem;line-height:1.8;}
+.formula{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:1.2rem 1.5rem;margin:1.2rem 0;font-family:var(--mono);font-size:13px;color:var(--text);line-height:2.1;}
+.formula .label{font-size:10px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem;display:block;}
+.formula .comment{color:var(--text-faint);font-size:12px;}
+.example{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin:1.5rem 0;}
+.example-tag{font-family:var(--mono);font-size:10px;color:var(--accent3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.8rem;display:flex;align-items:center;gap:.4rem;}
+.example-tag::before{content:'';display:inline-block;width:6px;height:6px;background:var(--accent3);border-radius:50%;}
+.example p,.example li{color:var(--text-dim);margin-bottom:.5rem;line-height:1.75;}
+.callout{display:flex;gap:.8rem;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:6px;padding:1rem 1.2rem;margin:1.2rem 0;font-size:13.5px;color:var(--text-dim);line-height:1.75;}
+.callout .icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.callout.warn{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);}
+.callout.danger{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.2);}
+.callout.success{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.2);}
+.callout.info{background:rgba(79,156,249,.06);border-color:rgba(79,156,249,.2);}
+table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:13.5px;}
+th{background:var(--surface);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:.7rem 1rem;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface);}
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin:1.5rem 0;}
+.chart-title{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;}
+canvas{max-height:280px;}
+.misconception{border-left:3px solid var(--danger);background:rgba(248,113,113,.05);border-radius:0 6px 6px 0;padding:1rem 1.2rem;margin:.8rem 0;}
+.misconception .mlabel{font-family:var(--mono);font-size:10px;color:var(--danger);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;}
+.misconception p{color:var(--text-dim);margin:0;font-size:13.5px;line-height:1.7;}
+.step-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.8rem;margin:1.2rem 0;}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.1rem;}
+.step-card .snum{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.1em;margin-bottom:.4rem;}
+.step-card .stitle{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.3rem;}
+.step-card p{font-size:12.5px;color:var(--text-dim);margin:0;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
+@media(max-width:640px){.two-col{grid-template-columns:1fr;}}
+ul,ol{padding-left:1.5rem;margin:.8rem 0;color:var(--text-dim);}
+li{margin-bottom:.5rem;line-height:1.7;}
+strong{color:var(--text);font-weight:600;}
+code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:.1rem .4rem;border-radius:3px;color:var(--accent2);}
+.interview-section{padding:4rem 0;}
+.interview-section h2{font-size:1.8rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem;}
+.interview-section .subtitle{color:var(--text-dim);margin-bottom:2.5rem;font-size:.95rem;}
+.q-group{margin-bottom:2rem;}
+.q-group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:.4rem .8rem;border-radius:4px;display:inline-block;margin-bottom:1rem;font-weight:600;}
+.q-group-label.easy{background:rgba(52,211,153,.1);color:var(--accent3);border:1px solid rgba(52,211,153,.2);}
+.q-group-label.medium{background:rgba(245,158,11,.1);color:var(--warn);border:1px solid rgba(245,158,11,.2);}
+.q-group-label.hard{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.2);}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:.8rem;overflow:hidden;}
+.q-header{padding:1rem 1.2rem;cursor:pointer;display:flex;align-items:flex-start;gap:.8rem;user-select:none;transition:background .15s;}
+.q-header:hover{background:var(--surface2);}
+.q-num{font-family:var(--mono);font-size:11px;color:var(--text-faint);min-width:24px;margin-top:2px;}
+.q-text{flex:1;font-size:14px;color:var(--text);line-height:1.5;}
+.q-toggle{color:var(--text-faint);font-size:12px;transition:transform .2s;margin-top:2px;flex-shrink:0;}
+.q-card.open .q-toggle{transform:rotate(180deg);color:var(--accent);}
+.q-answer{display:none;padding:1rem 1.2rem 1.2rem 3rem;font-size:13.5px;color:var(--text-dim);line-height:1.75;border-top:1px solid var(--border);}
+.q-card.open .q-answer{display:block;}
+.q-answer code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:.15rem .4rem;border-radius:3px;color:var(--accent2);}
+.q-answer strong{color:var(--text);}
+footer{border-top:1px solid var(--border);padding:2rem;text-align:center;font-family:var(--mono);font-size:11px;color:var(--text-faint);}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">STATS // ML PREP</span>
+  <a href="#topic1">Descriptive Stats</a>
+  <a href="#topic2">Probability</a>
+  <a href="#topic3">Distributions</a>
+  <a href="#topic4">CLT &amp; Sampling</a>
+  <a href="#interview">Interview Q&amp;A</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag">// Statistics Deep Dive &mdash; Full Session Notes</div>
+  <h1>Statistics for<br><span>ML Interviews</span></h1>
+  <p>Complete notes from the deep-dive session. Every concept explained with full intuition, formulas broken down term by term, worked numerical examples, ML applications, and the exact misconceptions interviewers probe.</p>
+  <div class="roadmap-grid">
+    <div class="roadmap-item done"><span class="num">01</span> Descriptive Statistics</div>
+    <div class="roadmap-item done"><span class="num">02</span> Probability Fundamentals</div>
+    <div class="roadmap-item done"><span class="num">03</span> Distributions</div>
+    <div class="roadmap-item done"><span class="num">04</span> Sampling &amp; CLT</div>
+    <div class="roadmap-item"><span class="num">05</span> Hypothesis Testing</div>
+    <div class="roadmap-item"><span class="num">06</span> Confidence Intervals</div>
+    <div class="roadmap-item"><span class="num">07</span> A/B Testing</div>
+    <div class="roadmap-item"><span class="num">08</span> Correlation vs Causation</div>
+    <div class="roadmap-item"><span class="num">09</span> Linear Regression</div>
+    <div class="roadmap-item"><span class="num">10</span> MLE</div>
+    <div class="roadmap-item"><span class="num">11</span> Interview Traps</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ====== TOPIC 1 ====== -->
+<section class="topic" id="topic1">
+  <div class="topic-header">
+    <span class="topic-number">TOPIC 01</span>
+    <h2>Descriptive Statistics</h2>
+  </div>
+  <p>Descriptive statistics summarize the key properties of a dataset &mdash; its center, spread, shape, and tail behavior &mdash; without making inferences about a larger population. These are your first tools in every EDA workflow.</p>
+
+  <h3>Mean</h3>
+  <p>The mean is the <strong>center of mass</strong> of your data. If you placed equal weights at every data point on a number line, the mean is where it would perfectly balance.</p>
+  <div class="formula">
+    <span class="label">Population Mean</span>
+    &mu; = (1/n) &times; &Sigma;x&#8522;
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example</div>
+    <p>Data: <code>[2, 4, 4, 4, 5, 5, 7, 9]</code></p>
+    <p>Mean = (2+4+4+4+5+5+7+9) / 8 = 40/8 = <strong>5</strong></p>
+    <p>Interpretation: the average value is 5. Every other metric will be measured relative to this center.</p>
+  </div>
+
+  <h3>Variance &amp; Standard Deviation</h3>
+  <p><strong>Variance</strong> measures the average squared deviation from the mean. We square deviations for two reasons: (1) make all deviations positive regardless of direction, (2) penalize large deviations much more heavily than small ones.</p>
+  <p><strong>Standard deviation</strong> is the square root of variance &mdash; it brings units back to the original scale so you can interpret spread alongside the mean.</p>
+  <div class="formula">
+    <span class="label">Population Variance</span>
+    &sigma;&sup2; = (1/n) &times; &Sigma;(x&#8522; &minus; &mu;)&sup2;
+    <br><span class="comment">// Squared so all deviations are positive AND large deviations penalized more</span>
+  </div>
+  <div class="formula">
+    <span class="label">Standard Deviation</span>
+    &sigma; = &radic;&sigma;&sup2;
+    <br><span class="comment">// Same units as original data. "Values typically sit within &plusmn;2 of the mean."</span>
+  </div>
+  <div class="example">
+    <div class="example-tag">Full Numerical Walkthrough</div>
+    <p>Data: <code>[2, 4, 4, 4, 5, 5, 7, 9]</code>, Mean = 5</p>
+    <p>Deviations from mean: <code>[&minus;3, &minus;1, &minus;1, &minus;1, 0, 0, 2, 4]</code></p>
+    <p>Squared deviations: <code>[9, 1, 1, 1, 0, 0, 4, 16]</code></p>
+    <p>Variance = (9+1+1+1+0+0+4+16) / 8 = 32/8 = <strong>4</strong></p>
+    <p>Std Dev = &radic;4 = <strong>2</strong> &rarr; values typically fall within &plusmn;2 of the mean (between 3 and 7)</p>
+  </div>
+
+  <h4>Sample vs Population Variance &mdash; Classic Interview Trap</h4>
+  <table>
+    <tr><th>Type</th><th>Formula</th><th>When to Use</th></tr>
+    <tr><td><strong>Population</strong></td><td><code>&Sigma;(x&#8522;&minus;&mu;)&sup2; / n</code></td><td>You have ALL the data (rare in practice)</td></tr>
+    <tr><td><strong>Sample</strong></td><td><code>&Sigma;(x&#8522;&minus;x&#772;)&sup2; / (n&minus;1)</code></td><td>Estimating from a subset (almost always)</td></tr>
+  </table>
+  <div class="callout warn">
+    <span class="icon">&#9888;&#65039;</span>
+    <div><strong>Why n&minus;1? (Bessel's Correction)</strong><br>
+    When you compute sample variance, you first compute sample mean x&#772;. By doing this, you've already "used" the data once &mdash; the deviations from x&#772; always sum to zero, so the last deviation is determined by the others. One degree of freedom is lost. Dividing by n systematically underestimates the true population variance. Dividing by (n&minus;1) corrects this bias, making sample variance an unbiased estimator of population variance.<br><br>
+    <strong>ML connection:</strong> sklearn's StandardScaler uses (n&minus;1) by default. Numpy's np.var() uses n by default. np.std(ddof=1) uses (n&minus;1). Know which one you're calling.</div>
+  </div>
+  <div class="callout info">
+    <span class="icon">&#128161;</span>
+    <div><strong>Variance vs Std Dev &mdash; when to use which?</strong><br>
+    Use <strong>std dev</strong> for interpretation in original units ("salaries deviate by $5,000"). Use <strong>variance</strong> in math &mdash; it's additive: Var(X+Y) = Var(X) + Var(Y) for independent X, Y. Std dev doesn't have this property. This additivity is why neural network weight initialization (Xavier, He) is specified in terms of variance, not std dev.</div>
+  </div>
+
+  <h3>Z-Score (Standard Score)</h3>
+  <p>The Z-score answers: <em>"How many standard deviations is this observation from the mean?"</em> It standardizes any value so it's comparable across different scales and units.</p>
+  <div class="formula">
+    <span class="label">Z-Score</span>
+    Z = (x &minus; &mu;) / &sigma;
+    <br><span class="comment">// Positive Z: above mean. Negative Z: below mean. Z=0: exactly at mean.</span>
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example</div>
+    <p>Exam scores: Mean = 70, Std Dev = 10. Student scores 90.</p>
+    <p>Z = (90 &minus; 70) / 10 = 20/10 = <strong>2.0</strong></p>
+    <p>This student is 2 standard deviations above the mean.</p>
+  </div>
+
+  <h4>The Empirical Rule &mdash; Why |Z| &gt; 3 Flags Outliers</h4>
+  <p>For a normally distributed dataset, the fraction of data within each Z-score band follows a fixed pattern called the Empirical Rule (68-95-99.7 rule):</p>
+  <div class="chart-wrap">
+    <div class="chart-title">Empirical Rule &mdash; Normal Distribution (&mu;=70, &sigma;=10)</div>
+    <canvas id="empiricalChart"></canvas>
+  </div>
+  <table>
+    <tr><th>Range</th><th>Z-Score Band</th><th>% of Data Inside</th><th>% Outside</th></tr>
+    <tr><td>&mu; &plusmn; 1&sigma;</td><td>|Z| &le; 1</td><td>~68.3%</td><td>31.7%</td></tr>
+    <tr><td>&mu; &plusmn; 2&sigma;</td><td>|Z| &le; 2</td><td>~95.4%</td><td>4.6%</td></tr>
+    <tr><td>&mu; &plusmn; 3&sigma;</td><td>|Z| &le; 3</td><td>~99.7%</td><td><strong>0.3%</strong></td></tr>
+  </table>
+  <p>Only 0.3% of data naturally falls beyond |Z|=3. When you see a point that far out, it's so rare that it's more likely an anomaly. This is a <strong>probability argument</strong>, not a hard law.</p>
+  <div class="callout warn">
+    <span class="icon">&#9888;&#65039;</span>
+    <div><strong>Scale with dataset size.</strong> With n=10,000 data points, you'd expect ~30 points beyond |Z|=3 by pure chance. For large datasets, use |Z|&gt;4, or IQR-based methods (more robust to heavy tails).<br><br>
+    <strong>Never blindly remove outliers in fraud detection</strong> &mdash; extreme transactions are often <em>the</em> signal you want to catch. Removing them trains a model that never sees fraud patterns.</div>
+  </div>
+  <div class="callout info">
+    <span class="icon">&#128161;</span>
+    <div><strong>Z-score in ML:</strong><br>
+    &bull; <strong>StandardScaler:</strong> applies Z=(x&minus;&mu;)/&sigma; to every feature. Critical for linear models, KNN, SVM, any distance-based method.<br>
+    &bull; <strong>BatchNorm:</strong> computes Z-scores per feature per mini-batch, then learns scale (&gamma;) and shift (&beta;) &mdash; learned standardization.<br>
+    &bull; <strong>Anomaly detection:</strong> flag |Z|&gt;3 in production monitoring systems.<br>
+    &bull; <strong>A/B testing:</strong> the test statistic in a z-test IS the Z-score of the observed difference.</div>
+  </div>
+
+  <h3>Skewness</h3>
+  <p>Skewness measures <strong>how much a distribution is pulled to one side by extreme values</strong>. A perfectly symmetric distribution has mean = median = mode all coinciding. Skewness quantifies departure from this symmetry.</p>
+  <p>Think of a see-saw: symmetric data balances perfectly. A few very large values on the right drag the mean rightward past the median &mdash; positive skew. The tail always points in the direction of the skew.</p>
+  <div class="formula">
+    <span class="label">Skewness Formula</span>
+    Skew = (1/n) &times; &Sigma;[(x&#8522; &minus; &mu;)&sup3;] / &sigma;&sup3;
+    <br><br>
+    <span class="comment">// Why 3rd power? Preserves the SIGN (direction) of the deviation. 2nd power makes everything positive (that's variance). 3rd power tells you WHICH side the asymmetry pulls toward.</span>
+    <br><span class="comment">// Why divide by &sigma;&sup3;? Makes result unitless &mdash; comparable across datasets with different scales.</span>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Skewness &mdash; Right-Skewed vs Symmetric vs Left-Skewed</div>
+    <canvas id="skewChart"></canvas>
+  </div>
+  <table>
+    <tr><th>Value</th><th>Interpretation</th><th>Mean vs Median</th><th>Real Example</th></tr>
+    <tr><td>= 0</td><td>Perfectly symmetric</td><td>Mean = Median = Mode</td><td>Normal distribution</td></tr>
+    <tr><td>0 to 0.5</td><td>Mild right skew</td><td>Mean slightly &gt; Median</td><td>Heights</td></tr>
+    <tr><td>0.5 to 1</td><td>Moderate right skew</td><td>Mean &gt; Median</td><td>Daily web traffic</td></tr>
+    <tr><td>&gt; 1</td><td>High right skew</td><td>Mean &gg; Median</td><td>Income, house prices, transaction amounts</td></tr>
+    <tr><td>&lt; &minus;1</td><td>High left skew</td><td>Mean &ll; Median</td><td>Age at retirement, easy exam scores</td></tr>
+  </table>
+  <div class="callout info">
+    <span class="icon">&#128161;</span>
+    <div><strong>Quick EDA check:</strong> Mean &gt; Median &rarr; right-skewed. Mean &lt; Median &rarr; left-skewed. The mean is always pulled toward the tail because it's sensitive to extreme values; the median is not (it's a rank-based statistic).</div>
+  </div>
+  <h4>What To Do With Skewed Features in ML</h4>
+  <table>
+    <tr><th>Transform</th><th>Formula</th><th>Best For</th><th>Caveat</th></tr>
+    <tr><td>Log transform</td><td><code>log(x+1)</code></td><td>Income, prices &mdash; strong right skew</td><td>Only for positive values; +1 handles zeros</td></tr>
+    <tr><td>Square root</td><td><code>&radic;x</code></td><td>Milder right skew, count data</td><td>Gentler than log</td></tr>
+    <tr><td>Box-Cox</td><td>Finds optimal power &lambda;</td><td>When unsure which transform fits</td><td>Requires strictly positive values</td></tr>
+    <tr><td>Winsorization</td><td>Cap at 99th / 1st pct</td><td>When log distorts interpretability</td><td>Loses information at extremes</td></tr>
+  </table>
+  <div class="callout danger">
+    <span class="icon">&#128680;</span>
+    <div><strong>Don't just remove outliers on skewed data.</strong><br>
+    In fraud detection, transaction amounts are right-skewed AND the large transactions may be the fraudulent ones you're trying to catch. Removing them loses the very signal you need.<br><br>
+    <strong>Better approach:</strong> (1) Apply log1p transform to compress the tail for the model. (2) Engineer a binary feature <code>is_large_transaction = (amount &gt; 99th_pct)</code> to explicitly preserve the extreme-value signal.</div>
+  </div>
+
+  <h3>Kurtosis</h3>
+  <p>Kurtosis measures <strong>tail heaviness</strong> &mdash; how frequently extreme values occur compared to a normal distribution. Two distributions can have identical mean, variance, and skewness but very different kurtosis. The higher-kurtosis one has more data in the tails and the peak, less in the shoulders.</p>
+  <p><em>Mental image:</em> Compare two bell curves of equal width. The high-kurtosis one is taller and sharper at center with fatter tails. The low-kurtosis one is flatter and more spread &mdash; like a plateau.</p>
+  <div class="formula">
+    <span class="label">Kurtosis Formula</span>
+    Kurt = (1/n) &times; &Sigma;[(x&#8522; &minus; &mu;)&sup4;] / &sigma;&sup4;
+    <br><br>
+    <span class="comment">// Why 4th power? Always positive (direction doesn't matter, only magnitude). The 4th power amplifies large deviations enormously.</span>
+    <br><span class="comment">// Example: 3&sup4; = 81 vs 1&sup4; = 1. A value 3&sigma; away contributes 81&times; more to kurtosis than a value 1&sigma; away.</span>
+    <br><br>
+    <span class="label">Excess Kurtosis (what scipy, pandas actually return)</span>
+    Excess Kurt = Kurt &minus; 3
+    <br><span class="comment">// Normal distribution has raw kurtosis=3. Subtracting 3 makes Normal the reference at 0.</span>
+    <br><span class="comment">// When someone says "kurtosis=15" in practice, they almost always mean EXCESS kurtosis=15.</span>
+  </div>
+  <table>
+    <tr><th>Type</th><th>Excess Kurtosis</th><th>Shape</th><th>Example</th></tr>
+    <tr><td><strong>Mesokurtic</strong></td><td>= 0</td><td>Normal bell curve</td><td>Normal distribution</td></tr>
+    <tr><td><strong>Leptokurtic</strong></td><td>&gt; 0</td><td>Tall peak, fat tails &mdash; more extreme values</td><td>Stock returns, financial crises</td></tr>
+    <tr><td><strong>Platykurtic</strong></td><td>&lt; 0</td><td>Flat, thin tails &mdash; fewer extremes</td><td>Uniform distribution</td></tr>
+  </table>
+  <div class="example">
+    <div class="example-tag">Real-World Significance &mdash; Why Kurtosis Matters</div>
+    <p><strong>Transaction data: skewness=2.8, excess kurtosis=15</strong></p>
+    <p>Reading all four statistics together:</p>
+    <ul>
+      <li>Mean=$850 vs Median=$120 &rarr; mean is 7&times; the median. Extreme right skew.</li>
+      <li>Skewness=2.8 (&gt;1) &rarr; highly right-skewed. Most transactions are small, a few enormous.</li>
+      <li>Excess kurtosis=15 &rarr; fat tails. Extreme transactions occur far more often than a Normal would predict. This is NOT just a few outliers &mdash; the ENTIRE tail is fat.</li>
+    </ul>
+    <p><strong>Wrong interview answer:</strong> "Remove the outliers and check if normally distributed."</p>
+    <p><strong>Right interview answer:</strong> "Apply log1p transform + engineer is_large_transaction binary feature + verify with Q-Q plot."</p>
+  </div>
+  <div class="callout danger">
+    <span class="icon">&#128680;</span>
+    <div><strong>High kurtosis problems in ML:</strong><br>
+    &bull; Linear/logistic regression: MSE/cross-entropy dominated by extreme errors<br>
+    &bull; Neural networks: activation saturation (sigmoid/tanh), exploding gradients, broken BatchNorm statistics<br>
+    &bull; KNN/SVM: extreme feature values distort all distance calculations<br><br>
+    <strong>Fix:</strong> log1p &rarr; winsorization &rarr; RobustScaler (uses IQR) &rarr; QuantileTransformer. For neural nets, add gradient clipping as a safety net.</div>
+  </div>
+  <h4>Skewness vs Kurtosis &mdash; Side by Side</h4>
+  <table>
+    <tr><th>Property</th><th>Skewness</th><th>Kurtosis</th></tr>
+    <tr><td>Measures</td><td>Asymmetry / direction of tail</td><td>Tail heaviness / frequency of extremes</td></tr>
+    <tr><td>Power used</td><td>3rd &mdash; preserves sign (direction)</td><td>4th &mdash; always positive (magnitude only)</td></tr>
+    <tr><td>Reference value</td><td>0 = symmetric</td><td>0 excess = Normal tails</td></tr>
+    <tr><td>Sensitive to</td><td>Direction of outliers</td><td>Magnitude of outliers</td></tr>
+    <tr><td>ML fix</td><td>Log/sqrt/Box-Cox transform</td><td>Winsorization, RobustScaler</td></tr>
+  </table>
+</section>
+
+<!-- ====== TOPIC 2 ====== -->
+<section class="topic" id="topic2">
+  <div class="topic-header">
+    <span class="topic-number">TOPIC 02</span>
+    <h2>Probability Fundamentals</h2>
+  </div>
+  <p>Probability fundamentals underpin everything: Naive Bayes, A/B testing, hypothesis testing, model calibration, and Bayesian optimization all build directly on these concepts.</p>
+
+  <h3>Frequentist vs Bayesian Interpretation</h3>
+  <p>Both frameworks agree on the math &mdash; Bayes' theorem is just math, both camps use it. The disagreement is philosophical: <em>what is probability actually measuring?</em></p>
+
+  <h4>Frequentist Interpretation</h4>
+  <p>Probability is the <strong>long-run frequency</strong> of an event over infinite repeated trials under identical conditions. "Probability exists in the world &mdash; it's a property of the physical process, not your beliefs."</p>
+  <p>P(heads) = 0.5 means: flip this coin 1,000,000 times &rarr; you'll get very close to 500,000 heads. As trials &rarr; &infin;, frequency converges to 0.5. The probability 0.5 is NOT your belief about the next flip &mdash; it's a statement about the coin's long-run physical behavior.</p>
+  <div class="callout danger">
+    <span class="icon">&#128680;</span>
+    <div><strong>Critical Constraint &mdash; Only Repeatable Events:</strong><br>
+    &check; "What fraction of patients with these symptoms have disease X?" &mdash; repeatable population query<br>
+    &cross; "What's the probability <em>this specific patient</em> has disease X?" &mdash; one unique individual, can't repeat<br>
+    &cross; "What's the probability the Fed raises rates next month?" &mdash; one-time future event<br><br>
+    For a Frequentist, the last two are not well-formed probability statements. Probability doesn't apply to one-time events. This is the fundamental limitation Bayesian thinking solves.</div>
+  </div>
+  <p>Frequentists treat parameters (e.g., true population mean) as <strong>fixed but unknown constants</strong> &mdash; not random. They never put probability distributions over parameters. Instead: confidence intervals, p-values, MLE.</p>
+
+  <h4>Bayesian Interpretation</h4>
+  <p>Probability is a <strong>degree of belief</strong> &mdash; a numerical measure of uncertainty, updated as new evidence arrives. "Probability lives in your head &mdash; it's a statement about what you know, not the world."</p>
+  <p>A Bayesian CAN assign probability to one-time events: "Given this patient's symptoms and history, I believe there's a 30% chance they have disease X." After seeing a test result, they update that belief. This is coherent and actionable.</p>
+  <p>The Bayesian process always follows three steps:</p>
+  <div class="step-grid">
+    <div class="step-card">
+      <div class="snum">STEP 1</div>
+      <div class="stitle">Prior P(&theta;)</div>
+      <p>Your belief before seeing data. Encodes domain knowledge or expresses ignorance (flat prior).</p>
+    </div>
+    <div class="step-card">
+      <div class="snum">STEP 2</div>
+      <div class="stitle">Likelihood P(data|&theta;)</div>
+      <p>How probable is this observed data if parameter &theta; were true?</p>
+    </div>
+    <div class="step-card">
+      <div class="snum">STEP 3</div>
+      <div class="stitle">Posterior P(&theta;|data)</div>
+      <p>Updated belief after incorporating the evidence. This is what you want &mdash; and your new prior for next observation.</p>
+    </div>
+  </div>
+
+  <h4>Full Comparison</h4>
+  <table>
+    <tr><th>Dimension</th><th>Frequentist</th><th>Bayesian</th></tr>
+    <tr><td>What is probability?</td><td>Long-run frequency of repeatable events</td><td>Degree of belief, updated with evidence</td></tr>
+    <tr><td>Parameters</td><td>Fixed unknown constants</td><td>Random variables with probability distributions</td></tr>
+    <tr><td>Prior knowledge</td><td>Not incorporated</td><td>Explicitly encoded as prior P(&theta;)</td></tr>
+    <tr><td>One-time events?</td><td>&#10060; Not valid</td><td>&#10003; Fully valid</td></tr>
+    <tr><td>Output</td><td>Point estimate + confidence interval</td><td>Full posterior distribution over parameter</td></tr>
+    <tr><td>Data requirement</td><td>Needs substantial data</td><td>Works with small data (prior compensates)</td></tr>
+    <tr><td>Computation</td><td>Usually cheap (closed-form MLE)</td><td>Often expensive (MCMC, variational inference)</td></tr>
+  </table>
+
+  <h4>Where Each Dominates in ML</h4>
+  <table>
+    <tr><th>Use Case</th><th>Approach</th><th>Why</th></tr>
+    <tr><td>Neural network training (SGD)</td><td><strong>Frequentist</strong></td><td>MLE &mdash; finds single point estimate of weights, no distribution</td></tr>
+    <tr><td>Classical hypothesis testing / A/B test</td><td><strong>Frequentist</strong></td><td>p-values, binary reject/fail-to-reject</td></tr>
+    <tr><td>Hyperparameter optimization</td><td><strong>Bayesian</strong></td><td>Optuna/Spearmint updates belief about loss surface after each trial</td></tr>
+    <tr><td>Small data (clinical trials, n=50)</td><td><strong>Bayesian</strong></td><td>Prior from prior studies compensates for data scarcity</td></tr>
+    <tr><td>Uncertainty quantification</td><td><strong>Bayesian</strong></td><td>Posterior gives distribution over predictions, not just a point</td></tr>
+    <tr><td>Multi-armed bandits / recommendation</td><td><strong>Bayesian</strong></td><td>Thompson Sampling updates per-arm belief after every interaction</td></tr>
+    <tr><td>Personalized medicine</td><td><strong>Bayesian</strong></td><td>Individual-level inference, not population-level frequency</td></tr>
+  </table>
+
+  <div class="callout success">
+    <span class="icon">&#9989;</span>
+    <div><strong>Top interview question: "Is training a neural network Frequentist or Bayesian?"</strong><br>
+    <strong>Frequentist.</strong> You minimize cross-entropy loss via SGD &mdash; this is Maximum Likelihood Estimation. You find a single point estimate of weights. There is no distribution over weights in standard training.<br><br>
+    <strong>Exception:</strong> MC Dropout at test time (sampling different dropout masks) approximates a Bayesian model average. Bayesian Neural Networks explicitly maintain weight distributions but are computationally expensive and rarely used in production.</div>
+  </div>
+  <div class="callout info">
+    <span class="icon">&#128161;</span>
+    <div><strong>Where Frequentist and Bayesian converge:</strong><br>
+    With massive data, both approaches give the same answer regardless of prior choice. The likelihood P(data|&theta;) dominates and "washes out" the prior. With 10 data points, the prior is everything. With 10 million, it's irrelevant. This is why deep learning (huge data) rarely needs Bayesian training methods, while clinical trials (tiny data) depend on them. L2 regularization = Gaussian prior on weights. L1 = Laplace prior. Regularization IS Bayesian thinking embedded in Frequentist training.</div>
+  </div>
+
+  <h3>Conditional Probability</h3>
+  <p>P(A|B) answers: "Given that B has already occurred, what is the probability of A?" Knowing B happened <strong>restricts your sample space</strong> to only outcomes where B is true. You then ask: of those, what fraction include A?</p>
+  <div class="formula">
+    <span class="label">Conditional Probability</span>
+    P(A | B) = P(A &cap; B) / P(B)
+    <br><br>
+    <span class="comment">// Numerator: outcomes where BOTH A and B occur</span>
+    <br><span class="comment">// Denominator: ALL outcomes where B occurs (your restricted universe)</span>
+    <br><span class="comment">// Ratio: of all times B happened, what fraction also had A?</span>
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example &mdash; E-commerce Conversion</div>
+    <p>1,000 customers: 200 bought, 150 clicked an ad, 120 both clicked AND bought.</p>
+    <p>P(Buy | Click) = P(Buy &cap; Click) / P(Click) = (120/1000) / (150/1000) = 120/150 = <strong>0.80</strong></p>
+    <p>80% of users who clicked bought. This is the exact calculation behind conversion rate analysis, funnel metrics, and click-through modeling in recommendation systems.</p>
+  </div>
+
+  <h3>Independence</h3>
+  <p>A and B are independent if knowing one tells you nothing about the other.</p>
+  <div class="formula">
+    <span class="label">Independence</span>
+    P(A &cap; B) = P(A) &times; P(B)
+    <br>Equivalently: P(A | B) = P(A) &nbsp; <span class="comment">// knowing B happened doesn't change A's probability</span>
+  </div>
+  <div class="misconception">
+    <div class="mlabel">&#10060; Critical Misconception</div>
+    <p><strong>Correlation = 0 does NOT mean independence.</strong> Zero correlation only rules out linear relationships. Nonlinear dependence can still exist.<br><br>
+    <strong>Classic example:</strong> X ~ Uniform(&minus;1, 1), Y = X&sup2;. Correlation(X,Y) = 0 because the relationship is symmetric around 0 &mdash; the positive side cancels the negative side in the correlation formula. But Y is completely determined by X. They are maximally dependent.<br><br>
+    <strong>ML implication:</strong> Feature selection via correlation (Pearson's r) will miss nonlinear relationships. Use mutual information or tree-based importance instead.</p>
+  </div>
+  <div class="callout warn">
+    <span class="icon">&#9888;&#65039;</span>
+    <div><strong>Naive Bayes is "naive" because of independence.</strong> It assumes all features are conditionally independent given the class label: P(x&sub1;,x&sub2;,...,xn|y) = &prod; P(x&#8522;|y). In text, "New" and "York" are assumed independent given topic. Clearly false. Yet Naive Bayes still works because: (1) classification only needs the correct RANKING of class posteriors, not accurate absolute probabilities; (2) violations often cancel out; (3) it's extremely data-efficient with few parameters to estimate.</div>
+  </div>
+
+  <h3>Law of Total Probability</h3>
+  <p>Sometimes you can't directly compute P(A). If you can partition the sample space into mutually exclusive, exhaustive scenarios B&sub1;, B&sub2;,..., Bn &mdash; compute P(A) by summing all pathways through which A can happen, weighted by each pathway's probability.</p>
+  <div class="formula">
+    <span class="label">Law of Total Probability</span>
+    P(A) = &Sigma; P(A | B&#8522;) &times; P(B&#8522;)
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example &mdash; Factory Defects</div>
+    <p>Machine 1: 50% of production, 2% defect rate</p>
+    <p>Machine 2: 30% of production, 5% defect rate</p>
+    <p>Machine 3: 20% of production, 10% defect rate</p>
+    <p>P(Defect) = (0.02&times;0.50) + (0.05&times;0.30) + (0.10&times;0.20) = 0.010 + 0.015 + 0.020 = <strong>0.045</strong></p>
+    <p>This exact structure &mdash; summing over hidden causes &mdash; appears in Mixture Models, EM algorithm, and Hidden Markov Models.</p>
+  </div>
+
+  <h3>Bayes' Theorem</h3>
+  <p>Bayes' theorem lets you <strong>reverse conditional probabilities</strong>. You know P(evidence | cause) from data, but you want P(cause | evidence). Bayes makes this flip possible.</p>
+  <p>Classic example: a spam filter knows P(word "free" | spam). But what you want is P(spam | email contains "free"). Bayes inverts it.</p>
+  <div class="formula">
+    <span class="label">Bayes' Theorem</span>
+    P(A | B) = [ P(B | A) &times; P(A) ] / P(B)
+    <br><br>
+    Posterior &prop; Likelihood &times; Prior
+    <br><span class="comment">// P(B) is just a normalizing constant to make probabilities sum to 1</span>
+  </div>
+  <table>
+    <tr><th>Term</th><th>Name</th><th>Meaning</th></tr>
+    <tr><td>P(A|B)</td><td><strong>Posterior</strong></td><td>Updated belief after seeing evidence B &mdash; this is what you want</td></tr>
+    <tr><td>P(A)</td><td><strong>Prior</strong></td><td>Belief before seeing any evidence &mdash; encodes what you already know</td></tr>
+    <tr><td>P(B|A)</td><td><strong>Likelihood</strong></td><td>How probable is the evidence B if A were true</td></tr>
+    <tr><td>P(B)</td><td><strong>Marginal / Evidence</strong></td><td>Overall probability of seeing B &mdash; computed via Law of Total Probability</td></tr>
+  </table>
+  <div class="example">
+    <div class="example-tag">Classic Medical Test &mdash; Must Know Cold for Interviews</div>
+    <p><strong>Setup:</strong></p>
+    <ul>
+      <li>Disease affects 1% of population: P(Disease) = 0.01</li>
+      <li>Test is 95% accurate: P(Positive | Disease) = 0.95</li>
+      <li>5% false positive rate: P(Positive | No Disease) = 0.05</li>
+    </ul>
+    <p><strong>Question:</strong> You test positive. What's P(Disease | Positive)?</p>
+    <p>Most people's gut answer: "95%." This is <strong>completely wrong</strong>.</p>
+    <p><strong>Step 1 &mdash; Compute P(Positive) via Total Probability:</strong></p>
+    <p>P(Pos) = P(Pos|Disease)&times;P(Disease) + P(Pos|No Disease)&times;P(No Disease)</p>
+    <p>= (0.95&times;0.01) + (0.05&times;0.99) = 0.0095 + 0.0495 = <strong>0.059</strong></p>
+    <p><strong>Step 2 &mdash; Apply Bayes:</strong></p>
+    <p>P(Disease|Positive) = (0.95 &times; 0.01) / 0.059 = 0.0095 / 0.059 = <strong>&#8776;16.1%</strong></p>
+    <p>Despite a 95%-accurate test, a positive result only means 16% chance of actually having the disease.</p>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Why Only 16.1%? &mdash; Out of 10,000 People Tested</div>
+    <canvas id="bayesChart"></canvas>
+  </div>
+  <div class="callout danger">
+    <span class="icon">&#128680;</span>
+    <div><strong>The Base Rate Fallacy &mdash; and why it's the class imbalance problem:</strong><br>
+    The false positives from the healthy majority (9,900 &times; 5% = 495) completely swamp the true positives (100 &times; 95% = 95). The disease is RARE (1% prior), so even a good test is mostly finding false positives.<br><br>
+    This is exactly the class imbalance problem in ML. If fraud is 0.1% of transactions, a model predicting "not fraud" always achieves 99.9% accuracy. Even a good fraud model will have most of its "fraud" predictions be false positives because the prior P(fraud) is so low. Fix: use precision/recall/F1, not accuracy. Adjust decision threshold. Use class weights or SMOTE.</div>
+  </div>
+  <div class="callout info">
+    <span class="icon">&#128161;</span>
+    <div><strong>Prior choice in Bayesian ML:</strong><br>
+    &bull; <strong>Uninformative (flat) prior:</strong> No prior knowledge &mdash; let data speak entirely. Equivalent to MLE.<br>
+    &bull; <strong>Informative prior:</strong> Encode domain knowledge. "Drug X has ~40% efficacy from prior trials."<br>
+    &bull; <strong>Conjugate prior:</strong> Posterior has same distribution family as prior (Beta prior for Bernoulli likelihood). Mathematically tractable. Used in Bayesian A/B testing.<br>
+    &bull; As data grows: prior matters less and less. With infinite data, posterior converges regardless of prior choice.</div>
+  </div>
+  <div class="example">
+    <div class="example-tag">Factory Defect &mdash; Bayes Applied (Posterior Verification)</div>
+    <p>Given a defective widget, what's P(Machine 3 | Defective)?</p>
+    <p>P(M3|Defect) = P(Defect|M3) &times; P(M3) / P(Defect) = (0.10 &times; 0.20) / 0.045 = 0.020 / 0.045 = <strong>0.444</strong></p>
+    <p>All three posteriors must sum to 1 &mdash; always verify:</p>
+    <table>
+      <tr><th>Machine</th><th>P(M)</th><th>P(D|M)</th><th>P(M&cap;D)</th><th>P(M|Defect)</th></tr>
+      <tr><td>M1</td><td>0.50</td><td>0.02</td><td>0.010</td><td>0.010/0.045 = <strong>0.222</strong></td></tr>
+      <tr><td>M2</td><td>0.30</td><td>0.05</td><td>0.015</td><td>0.015/0.045 = <strong>0.333</strong></td></tr>
+      <tr><td>M3</td><td>0.20</td><td>0.10</td><td>0.020</td><td>0.020/0.045 = <strong>0.444</strong></td></tr>
+      <tr><td><strong>Total</strong></td><td></td><td></td><td><strong>0.045</strong></td><td><strong>1.000 &#10003;</strong></td></tr>
+    </table>
+    <p>Machine 3 produces only 20% of widgets but is responsible for 44.4% of defects &mdash; the Bayesian posterior reveals where to focus quality control.</p>
+  </div>
+</section>
+
+<!-- ====== TOPIC 3 ====== -->
+<section class="topic" id="topic3">
+  <div class="topic-header">
+    <span class="topic-number">TOPIC 03</span>
+    <h2>Probability Distributions</h2>
+  </div>
+  <p>A probability distribution is a complete description of uncertainty &mdash; it tells you every possible value a random variable can take and exactly how likely each value is.</p>
+
+  <h3>Discrete vs Continuous Distributions</h3>
+  <div class="two-col">
+    <div class="callout">
+      <span class="icon">&#128202;</span>
+      <div><strong>Discrete (PMF)</strong><br>Variable takes specific countable values (0,1,2,3...). P(X=x) is meaningful and sums to 1.<br><em>Examples: defect count, click count, number of transactions</em></div>
+    </div>
+    <div class="callout">
+      <span class="icon">&#128200;</span>
+      <div><strong>Continuous (PDF)</strong><br>Variable takes any value in a range. P(X = exact value) = 0. Probability only meaningful over intervals.<br><em>Examples: height, temperature, purchase amount</em></div>
+    </div>
+  </div>
+  <div class="callout warn">
+    <span class="icon">&#9888;&#65039;</span>
+    <div><strong>Common confusion:</strong> For continuous distributions, P(X = exactly 5.0000) = 0. You can never ask "what's the probability height is exactly 170.0000cm?" You ask "what's the probability height is between 169.5 and 170.5cm?" Probability = area under the PDF curve over that interval. This trips people up in interviews.</div>
+  </div>
+
+  <h3>Normal (Gaussian) Distribution</h3>
+  <p>The most important distribution in all of statistics. Describes any phenomenon that results from <strong>many small, independent random effects adding together</strong>. Its universality comes from the Central Limit Theorem (Topic 4).</p>
+  <div class="formula">
+    <span class="label">Normal PDF</span>
+    f(x) = (1 / &sigma;&radic;2&pi;) &times; exp(&minus;(x&minus;&mu;)&sup2; / 2&sigma;&sup2;)
+    <br><br>
+    <span class="comment">// &mu;: controls where the center (peak) sits</span>
+    <br><span class="comment">// &sigma;: controls width &mdash; larger &sigma; = wider, flatter curve</span>
+    <br><span class="comment">// (x&minus;&mu;)&sup2; / 2&sigma;&sup2;: squared distance from mean, scaled by variance</span>
+    <br><span class="comment">// exp(&minus;...): as distance from mean grows, probability drops exponentially fast</span>
+    <br><span class="comment">// 1/&sigma;&radic;2&pi;: normalizing constant ensuring total area = 1</span>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Normal Distribution &mdash; Effect of &mu; and &sigma;</div>
+    <canvas id="normalChart"></canvas>
+  </div>
+  <p><strong>Key properties:</strong> Perfectly symmetric (mean = median = mode). Changing &mu; shifts the bell left/right. Increasing &sigma; makes it wider and flatter. Decreasing &sigma; makes it taller and narrower.</p>
+  <p><strong>Standard Normal N(0,1):</strong> When &mu;=0 and &sigma;=1. Z-score conversion transforms ANY normal distribution into the standard normal, enabling universal comparisons.</p>
+  <h4>Normal Distribution in ML</h4>
+  <table>
+    <tr><th>ML Context</th><th>How Normal Appears</th></tr>
+    <tr><td>Linear regression</td><td>Assumes residuals are N(0, &sigma;&sup2;). Violated residuals = unreliable p-values and CIs on coefficients</td></tr>
+    <tr><td>Gaussian Naive Bayes</td><td>Assumes each feature is normally distributed within each class</td></tr>
+    <tr><td>Weight initialization (Xavier/He)</td><td>Weights drawn from N(0, 2/n). Specific variance prevents vanishing/exploding gradients</td></tr>
+    <tr><td>Gaussian Processes</td><td>Prior over functions (not just numbers). Used in Bayesian optimization</td></tr>
+    <tr><td>Anomaly detection</td><td>Points beyond &mu;&plusmn;3&sigma; flagged. Simple but effective for normally distributed metrics</td></tr>
+    <tr><td>VAE latent space</td><td>Encoder outputs mean and variance; latent space regularized to N(0,1)</td></tr>
+  </table>
+
+  <h3>Binomial Distribution</h3>
+  <p>"If I run n independent trials, each succeeding with probability p, how many successes will I get?" Each trial is independent, binary (success/failure), with constant p.</p>
+  <div class="formula">
+    <span class="label">Binomial PMF</span>
+    P(X = k) = C(n,k) &times; p&sup2; &times; (1&minus;p)^(n&minus;k)
+    <br><br>
+    <span class="comment">// C(n,k) = n! / k!(n-k)! &mdash; number of ways to arrange k successes among n trials</span>
+    <br><span class="comment">// p^k: probability of k successes in a row</span>
+    <br><span class="comment">// (1-p)^(n-k): probability of n-k failures in a row</span>
+    <br><br>
+    Mean = n&times;p &nbsp;&nbsp; Variance = n&times;p&times;(1&minus;p)
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example</div>
+    <p>Model classifies emails with 70% accuracy (p=0.7), tested on 5 emails (n=5). P(exactly 4 correct)?</p>
+    <p>P(X=4) = C(5,4) &times; 0.7&sup4; &times; 0.3&sup1; = 5 &times; 0.2401 &times; 0.3 = <strong>0.360 (36%)</strong></p>
+    <p>Expected correct = n&times;p = 5&times;0.7 = 3.5 emails on average.</p>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Binomial PMF &mdash; n=20, p=0.3 (20 recommendations, 30% click probability)</div>
+    <canvas id="binomialChart"></canvas>
+  </div>
+  <div class="callout info">
+    <span class="icon">&#128161;</span>
+    <div><strong>Binomial in ML:</strong><br>
+    &bull; Binary classification: every prediction is a Bernoulli trial. Accuracy over test set follows Binomial(n, p_true).<br>
+    &bull; A/B testing: clicks/conversions out of n impressions are Binomial.<br>
+    &bull; Confidence intervals on accuracy: the &plusmn;% you report is derived from Binomial distribution.<br>
+    &bull; Logistic regression: directly models p of a Bernoulli outcome. The likelihood it maximizes is a product of Bernoulli probabilities &mdash; fundamentally Binomial.</div>
+  </div>
+
+  <h3>Poisson Distribution</h3>
+  <p>"How many times will a rare event occur in a fixed interval of time or space?" Events happen at constant average rate &lambda;, independently of each other, with no fixed upper limit.</p>
+  <div class="formula">
+    <span class="label">Poisson PMF</span>
+    P(X = k) = (e^(&minus;&lambda;) &times; &lambda;^k) / k!
+    <br><br>
+    <span class="comment">// &lambda;: average rate &mdash; expected number of events per interval</span>
+    <br><span class="comment">// e^(-&lambda;): probability of zero events (the baseline)</span>
+    <br><span class="comment">// &lambda;^k: contribution from k events given rate &lambda;</span>
+    <br><span class="comment">// k!: order doesn't matter &mdash; accounts for all arrangements</span>
+    <br><br>
+    Mean = Variance = &lambda; &nbsp;&nbsp; <span class="comment">// This equality is a DIAGNOSTIC. If mean &ne; variance: not Poisson.</span>
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example</div>
+    <p>Website receives &lambda;=3 visits/minute. P(exactly 5 visits in next minute)?</p>
+    <p>P(X=5) = (e^(&minus;3) &times; 3&sup5;) / 5! = (0.0498 &times; 243) / 120 = <strong>0.101 (10.1%)</strong></p>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Poisson PMF &mdash; &lambda;=3 vs &lambda;=8</div>
+    <canvas id="poissonChart"></canvas>
+  </div>
+  <div class="callout warn">
+    <span class="icon">&#9888;&#65039;</span>
+    <div><strong>Overdispersion Trap:</strong> Poisson requires mean = variance. In real e-commerce data (e.g., products viewed per session), some users view 1 page and others view 50 &mdash; variance explodes far above the mean. This is overdispersion. Use <strong>Negative Binomial distribution</strong> instead. Fitting a Poisson to overdispersed data underestimates variance and produces overconfident predictions.</div>
+  </div>
+
+  <h3>Bernoulli Distribution</h3>
+  <p>The atomic unit everything else builds from. A single binary trial: 1 (success) with probability p, 0 (failure) with probability (1&minus;p).</p>
+  <div class="formula">
+    <span class="label">Bernoulli PMF</span>
+    P(X=1) = p &nbsp;&nbsp; P(X=0) = 1&minus;p
+    <br>Mean = p &nbsp;&nbsp; Variance = p(1&minus;p)
+    <br><span class="comment">// Binomial is just n independent Bernoulli trials summed. Logistic regression models the Bernoulli p directly.</span>
+  </div>
+
+  <h3>When to Use Which Distribution</h3>
+  <table>
+    <tr><th>Scenario</th><th>Distribution</th><th>Parameters</th></tr>
+    <tr><td>Single binary outcome (clicked / not clicked)</td><td><strong>Bernoulli</strong></td><td>p = click probability</td></tr>
+    <tr><td>k successes out of n binary trials</td><td><strong>Binomial</strong></td><td>n = trials, p = success rate</td></tr>
+    <tr><td>Count of events in fixed interval, no ceiling</td><td><strong>Poisson</strong></td><td>&lambda; = average rate</td></tr>
+    <tr><td>Continuous, symmetric, sum of many effects</td><td><strong>Normal</strong></td><td>&mu; = mean, &sigma; = std dev</td></tr>
+    <tr><td>Continuous, right-skewed, positive values only</td><td><strong>Log-Normal</strong></td><td>Model log(x) as Normal</td></tr>
+    <tr><td>Large n, tiny p in Binomial (np &lt; 10)</td><td>Approximate with <strong>Poisson</strong></td><td>&lambda; = np</td></tr>
+    <tr><td>Large n, moderate p in Binomial</td><td>Approximate with <strong>Normal</strong></td><td>&mu;=np, &sigma;&sup2;=np(1&minus;p)</td></tr>
+    <tr><td>Count data with variance &gg; mean</td><td><strong>Negative Binomial</strong></td><td>r, p parameters</td></tr>
+  </table>
+  <div class="example">
+    <div class="example-tag">E-commerce Classification Exercise (from our session)</div>
+    <table>
+      <tr><th>Scenario</th><th>Distribution</th><th>Why not the others</th></tr>
+      <tr><td>User clicks on recommendation (yes/no)</td><td>Bernoulli(p)</td><td>Single trial. Not Binomial (no n). Not Normal (binary).</td></tr>
+      <tr><td>Products viewed per session (avg=4)</td><td>Poisson(&lambda;=4)</td><td>Count with no ceiling. Not Binomial (no fixed n). Not Normal (discrete, can't be negative).</td></tr>
+      <tr><td>Total purchase amount in a transaction</td><td>Log-Normal (model log(amount) as Normal)</td><td>Continuous but right-skewed in practice. Raw amount often not Normal.</td></tr>
+      <tr><td>Successful clicks out of 20 recommendations, p=0.3</td><td>Binomial(n=20, p=0.3)</td><td>Fixed n=20 ceiling. Not Poisson (fixed upper bound exists). Not Normal (n=20 too small).</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ====== TOPIC 4 ====== -->
+<section class="topic" id="topic4">
+  <div class="topic-header">
+    <span class="topic-number">TOPIC 04</span>
+    <h2>Sampling &amp; Central Limit Theorem</h2>
+  </div>
+  <p>The CLT is the theorem that explains why the Normal distribution appears everywhere, why hypothesis tests work, why confidence intervals are valid, and why neural network weight initialization is designed the way it is.</p>
+
+  <h3>Three Distributions to Keep Separate</h3>
+  <p>This is where most students get confused. There are three distinct distributions:</p>
+  <table>
+    <tr><th>Distribution</th><th>What It Is</th><th>Shape</th></tr>
+    <tr><td><strong>Population distribution</strong></td><td>True distribution of all raw data in the full population</td><td>Could be anything &mdash; skewed, bimodal, uniform</td></tr>
+    <tr><td><strong>Sample distribution</strong></td><td>Distribution of your one specific observed sample</td><td>Looks like population if n is large enough</td></tr>
+    <tr><td><strong>Sampling distribution of the mean</strong></td><td>Distribution of x&#772; values across infinitely repeated samples of size n</td><td><strong>This is what CLT describes. Always becomes Normal.</strong></td></tr>
+  </table>
+  <div class="callout danger">
+    <span class="icon">&#128680;</span>
+    <div><strong>The #1 CLT Misconception:</strong> "CLT says the data becomes Normal with large n."<br>
+    <strong>Completely wrong.</strong> CLT says the <em>sampling distribution of the mean</em> becomes Normal. The raw data keeps its original shape regardless of n. If your data is right-skewed, individual observations remain right-skewed with n=1,000,000. CLT says the <em>average of those observations</em> follows a Normal distribution.</div>
+  </div>
+
+  <h3>The Central Limit Theorem</h3>
+  <p>Given a population with mean &mu; and <strong>finite variance</strong> &sigma;&sup2;, if you draw random samples of size n, the distribution of sample means x&#772; approaches Normal as n &rarr; &infin;, regardless of the population's shape.</p>
+  <div class="formula">
+    <span class="label">CLT Statement</span>
+    x&#772; ~ N(&mu;, &sigma;&sup2;/n) &nbsp; as n &rarr; &infin;
+    <br><br>
+    <span class="comment">// 1. Mean of sample means = population mean &mu; (unbiased estimator)</span>
+    <br><span class="comment">// 2. Variance of sample means = &sigma;&sup2;/n (gets smaller as n grows)</span>
+    <br><span class="comment">// 3. Shape converges to Normal regardless of population shape</span>
+    <br><br>
+    Standard Error: SE = &sigma; / &radic;n
+    <br><span class="comment">// SE = std dev of the sampling distribution. Measures how far x&#772; is likely to be from &mu;.</span>
+  </div>
+  <div class="example">
+    <div class="example-tag">Numerical Example</div>
+    <p>Customer purchase amounts: &mu; = $500, &sigma; = $200, sample size n = 100</p>
+    <p>SE = 200 / &radic;100 = 200 / 10 = <strong>$20</strong></p>
+    <p>x&#772; ~ N(500, 400) &mdash; your sample mean will typically be within $20 of the true $500 mean.</p>
+    <ul>
+      <li>68% of sample means fall between $480 and $520</li>
+      <li>95% of sample means fall between $460 and $540</li>
+      <li>99.7% of sample means fall between $440 and $560</li>
+    </ul>
+    <p>Increase to n=400: SE = 200/&radic;400 = 200/20 = <strong>$10</strong>. 4&times; the data &rarr; 2&times; the precision.</p>
+  </div>
+
+  <h3>The &radic;n Law &mdash; Diminishing Returns of More Data</h3>
+  <p>SE = &sigma;/&radic;n. This square root relationship has profound implications for data collection strategy:</p>
+  <div class="chart-wrap">
+    <div class="chart-title">Standard Error Shrinks as n Grows &mdash; But With Diminishing Returns (&sigma;=$200)</div>
+    <canvas id="cltChart"></canvas>
+  </div>
+  <table>
+    <tr><th>Sample Size</th><th>SE (&sigma;=$200)</th><th>Data Cost vs n=100</th><th>Precision Improvement</th></tr>
+    <tr><td>n = 100</td><td>$20.00</td><td>1&times;</td><td>baseline</td></tr>
+    <tr><td>n = 400</td><td>$10.00</td><td>4&times; more</td><td>2&times; better</td></tr>
+    <tr><td>n = 1,600</td><td>$5.00</td><td>16&times; more</td><td>4&times; better</td></tr>
+    <tr><td>n = 10,000</td><td>$2.00</td><td>100&times; more</td><td>10&times; better</td></tr>
+  </table>
+  <div class="callout warn">
+    <span class="icon">&#9888;&#65039;</span>
+    <div>To halve your uncertainty, you need to <strong>quadruple</strong> your sample size. This explains why in ML, after a certain point, collecting more data yields smaller and smaller accuracy improvements. The benefit of more data follows a square root law &mdash; diminishing returns are baked into the math.</div>
+  </div>
+
+  <h3>How Large is "Large Enough"?</h3>
+  <p>The rule of thumb "n=30 is enough" is dangerously oversimplified. Convergence depends on the population's skewness:</p>
+  <table>
+    <tr><th>Population Shape</th><th>n Needed for CLT to Apply</th></tr>
+    <tr><td>Already Normal</td><td>n = 1 (already there)</td></tr>
+    <tr><td>Roughly symmetric</td><td>n &approx; 15&ndash;20</td></tr>
+    <tr><td>Moderately skewed</td><td>n &approx; 30</td></tr>
+    <tr><td>Heavily skewed (income, prices)</td><td>n &approx; 50&ndash;100</td></tr>
+    <tr><td>Extremely fat-tailed / heavy skew</td><td>n &gt; 100, sometimes much more</td></tr>
+    <tr><td>Infinite variance (Cauchy distribution)</td><td>CLT never applies &mdash; sample means never converge to Normal</td></tr>
+  </table>
+  <div class="callout danger">
+    <span class="icon">&#128680;</span>
+    <div><strong>When running A/B tests on revenue-per-user</strong> (which is right-skewed with high kurtosis), n=30 per group is dangerously insufficient. You need thousands. The combination of right skew AND fat tails means the CLT convergence is very slow. This is why many A/B tests at tech companies require running for weeks with thousands of users per variant before concluding anything.</div>
+  </div>
+
+  <h3>CLT Misconceptions &mdash; Interviewers Test All of These</h3>
+  <div class="misconception">
+    <div class="mlabel">&#10060; Misconception 1</div>
+    <p><strong>"CLT says the data becomes Normal with large n."</strong><br>Truth: CLT applies to the sampling distribution of the MEAN, not raw data. Raw data retains its original shape at any n.</p>
+  </div>
+  <div class="misconception">
+    <div class="mlabel">&#10060; Misconception 2</div>
+    <p><strong>"n=30 is always enough for CLT."</strong><br>Truth: Depends on skewness and tail heaviness. For heavily right-skewed data (e.g., transaction amounts with high kurtosis), you may need n&gt;100 or much more.</p>
+  </div>
+  <div class="misconception">
+    <div class="mlabel">&#10060; Misconception 3</div>
+    <p><strong>"CLT applies to any statistic."</strong><br>Truth: CLT strictly applies to means and sums. The sampling distribution of the median converges differently (requires the Delta method). The distribution of the maximum follows Extreme Value Theory, not CLT.</p>
+  </div>
+  <div class="misconception">
+    <div class="mlabel">&#10060; Misconception 4</div>
+    <p><strong>"Any distribution satisfies CLT with enough data."</strong><br>Truth: CLT requires <strong>finite variance</strong>. The Cauchy distribution has undefined (infinite) variance &mdash; its sample means do NOT converge to Normal regardless of n. The mean of n Cauchy samples follows the same Cauchy distribution.</p>
+  </div>
+
+  <h3>CLT in ML &mdash; Direct Applications</h3>
+  <table>
+    <tr><th>ML Concept</th><th>How CLT Applies</th></tr>
+    <tr><td>Mini-batch gradient descent</td><td>Gradient = mean over batch. By CLT, larger batches &rarr; smaller SE &rarr; more accurate gradient estimates &rarr; more stable training. Small batches add noise that acts as implicit regularization &mdash; helps find flatter minima that generalize better.</td></tr>
+    <tr><td>Xavier / He weight initialization</td><td>Variance set to 1/n (Xavier) or 2/n (He) where n = fan-in. This is the CLT's &sigma;&sup2;/n ensuring signal variance stays controlled as it passes through many neurons (each activation is a weighted sum &mdash; a mean).</td></tr>
+    <tr><td>Confidence intervals on accuracy</td><td>CI = x&#772; &plusmn; z&times;(&sigma;/&radic;n). Valid because CLT guarantees sample accuracy is approximately Normal. The &plusmn;% you report uses SE = &radic;(p(1&minus;p)/n).</td></tr>
+    <tr><td>Bootstrap resampling</td><td>Resample with replacement, compute statistic each time. The distribution of those statistics is approximately Normal by CLT &mdash; gives valid CIs for any statistic without closed-form derivation.</td></tr>
+    <tr><td>A/B test sample size calculation</td><td>"How many users do I need?" is answered by: n must be large enough that SE is small enough to detect the target effect size. This is directly from CLT's SE = &sigma;/&radic;n.</td></tr>
+  </table>
+
+  <div class="callout success">
+    <span class="icon">&#9989;</span>
+    <div><strong>The correct answer to the "right-skewed data, can we use Normal tests?" question:</strong><br>
+    "For tests on the mean with n=1,000, yes &mdash; CLT guarantees the sampling distribution of the mean is approximately Normal even though raw data is right-skewed. SE = &sigma;/&radic;1000 is well-defined. However, for tests on non-mean statistics (median, variance, extremes), or if we suspect infinite variance, use non-parametric alternatives like the bootstrap or Mann-Whitney U test."</div>
+  </div>
+</section>
+
+<!-- ====== INTERVIEW Q&A ====== -->
+<section class="interview-section" id="interview">
+  <div class="hero-tag" style="margin-bottom:1rem">// Interview Preparation</div>
+  <h2>20 Interview Questions</h2>
+  <p class="subtitle">Covers Topics 1&ndash;4. Click any question to reveal the full answer. Easy &rarr; Medium &rarr; Hard.</p>
+
+  <div class="q-group">
+    <span class="q-group-label easy">Easy &mdash; Foundation</span>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q1</span><span class="q-text">What is the difference between variance and standard deviation? When would you prefer one over the other?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Variance (&sigma;&sup2;) is the average squared deviation from the mean. Standard deviation (&sigma;) is its square root, returning units to the original scale.<br><br>
+      <strong>Prefer std dev</strong> when communicating spread in original units ("salaries deviate by $5,000"). <strong>Prefer variance</strong> in mathematics &mdash; it's additive: Var(X+Y) = Var(X) + Var(Y) for independent variables. Std dev doesn't have this property. Neural network weight initialization (Xavier, He) specifies variance rather than std dev for this exact reason.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q2</span><span class="q-text">Why do we divide by n&minus;1 instead of n when computing sample variance?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">This is Bessel's Correction. When computing sample variance, you first compute the sample mean x&#772;. The deviations from x&#772; always sum to exactly zero &mdash; so the last deviation is completely determined by the others. One degree of freedom is consumed. Dividing by n produces a biased (underestimated) result. Dividing by (n&minus;1) corrects this bias and makes sample variance an unbiased estimator of population variance.<br><br>
+      <strong>Practical note:</strong> np.var() uses n by default. np.std(ddof=1) and sklearn's StandardScaler use (n&minus;1). Always know which one you're calling.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q3</span><span class="q-text">What is a Z-score and why does |Z| > 3 indicate an outlier?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Z = (x &minus; &mu;) / &sigma;. It measures how many standard deviations an observation is from the mean.<br><br>
+      By the Empirical Rule, 99.7% of data in a normal distribution falls within |Z| &le; 3. Only 0.3% of observations naturally fall beyond this band. A point at |Z|&gt;3 is so statistically rare that it's more likely to be an anomaly than a legitimate observation. This is a probability argument, not a hard rule.<br><br>
+      <strong>Scale with dataset size:</strong> With n=10,000, expect ~30 points beyond |Z|=3 by chance. Use |Z|&gt;4 or IQR-based methods for large datasets. Never blindly remove outliers in fraud detection &mdash; they may be the signal.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q4</span><span class="q-text">What does it mean for a distribution to be right-skewed? What's a quick way to check for skewness?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Right-skewed means most values cluster at the lower end, but a few very large values create a long tail on the right, pulling the mean above the median.<br><br>
+      <strong>Quick check:</strong> Mean &gt; Median &rarr; right-skewed. Mean &lt; Median &rarr; left-skewed. The mean is sensitive to extreme values (pulled toward the tail); the median is a rank-based statistic and is not.<br><br>
+      <strong>Real examples:</strong> Income (most earn modest amounts; billionaires create a long right tail), house prices, transaction amounts, time-to-failure in reliability engineering.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q5</span><span class="q-text">What is conditional probability? Write the formula and give an intuitive explanation.</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">P(A|B) = P(A &cap; B) / P(B) &mdash; the probability of A given B has already occurred.<br><br>
+      <strong>Intuition:</strong> Knowing B restricts your universe to only outcomes where B is true. You then ask: of those outcomes, what fraction also include A? The denominator P(B) normalizes by this restricted universe.<br><br>
+      <strong>Example:</strong> 1,000 customers, 150 clicked an ad, 120 of those clicked AND bought. P(buy|click) = 120/150 = 80%. You're only looking at clickers (restricted universe) and asking what fraction bought.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q6</span><span class="q-text">What is the Central Limit Theorem and why does it matter?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Regardless of the shape of the population distribution (skewed, bimodal, uniform), if you take repeated samples of size n and compute the mean of each, those sample means follow an approximately Normal distribution as n grows large.<br><br>
+      The sampling distribution of the mean has: center = population mean &mu;, standard deviation (Standard Error) = &sigma;/&radic;n.<br><br>
+      <strong>Why it matters:</strong> It's why the Normal distribution appears everywhere in statistics. It's the foundation of hypothesis tests (z-tests, t-tests), confidence intervals, A/B test sample size calculations, and explains why neural network gradient estimates are approximately Normal (each gradient is a mean over the batch).</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q7</span><span class="q-text">What is Standard Error and how does it differ from Standard Deviation?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>Standard Deviation (&sigma;):</strong> measures the spread of individual data points around the mean. A property of the population or sample's raw values.<br><br>
+      <strong>Standard Error (SE = &sigma;/&radic;n):</strong> measures how much a sample mean is likely to deviate from the true population mean. A property of the sampling process itself. It answers: "how reliable is my sample mean as an estimate of &mu;?"<br><br>
+      SE shrinks as n grows (by the square root law). If &sigma;=$200 and n=100, SE=$20 &mdash; your sample mean will typically be within &plusmn;$20 of the true mean. Quadruple n to 400 &rarr; SE halves to $10.</div>
+    </div>
+  </div>
+
+  <div class="q-group">
+    <span class="q-group-label medium">Medium &mdash; Applied</span>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q8</span><span class="q-text">Explain Bayes' theorem. What is the base rate fallacy and where does it appear in ML?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Bayes: P(A|B) = P(B|A) &times; P(A) / P(B). It reverses conditional probabilities &mdash; you know P(evidence|cause) from data, but you want P(cause|evidence).<br><br>
+      <strong>Base rate fallacy:</strong> Ignoring the prior P(A) when updating on evidence. Classic example: a 95%-accurate test for a disease affecting 1% of people. A positive result is only ~16% likely to indicate the disease &mdash; because the rare prior makes false positives from the healthy majority (9,900 &times; 5% = 495) completely swamp true positives (100 &times; 95% = 95).<br><br>
+      <strong>In ML &mdash; class imbalance:</strong> If fraud is 0.1% of transactions, even a 99%-accurate model has terrible precision on fraud. Most "fraud" predictions are false positives because the prior P(fraud) is so low. Fix: use precision/recall/AUC-PR instead of accuracy. Adjust decision threshold. Use class weights or SMOTE.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q9</span><span class="q-text">When should you use Poisson vs Binomial? What is overdispersion?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>Binomial:</strong> Fixed n trials, each binary (success/failure) with probability p. Hard ceiling at n.<br><br>
+      <strong>Poisson:</strong> Count of events in fixed interval with no upper limit. Constant rate &lambda;, independent events.<br><br>
+      <strong>When Binomial &rarr; Poisson:</strong> When n is very large and p is tiny (rare events), Binomial(n,p) &asymp; Poisson(&lambda;=np). Example: defects in a large production batch.<br><br>
+      <strong>Overdispersion:</strong> Poisson requires mean = variance. If your count data has variance &gg; mean, the Poisson assumption is violated. This is overdispersion &mdash; common in real e-commerce (some users view 1 page, some view 50; variance explodes). Fix: use Negative Binomial distribution, which adds a dispersion parameter.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q10</span><span class="q-text">Is training a neural network Frequentist or Bayesian? Explain fully.</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>Frequentist.</strong> Standard neural network training minimizes a loss function (cross-entropy, MSE) via SGD/Adam. This is Maximum Likelihood Estimation: you find the single set of weights that maximizes the probability of the observed data. You get one point estimate of the weights &mdash; not a distribution over weights.<br><br>
+      <strong>Bayesian connections:</strong><br>
+      &bull; L2 regularization (&lambda;||w||&sup2;) = MAP estimation with a Gaussian prior on weights<br>
+      &bull; L1 regularization = MAP with a Laplace prior<br>
+      &bull; MC Dropout at test time approximates Bayesian model averaging (sampling from approximate posterior)<br>
+      &bull; Bayesian Neural Networks explicitly maintain weight distributions but are rarely used in production due to computational cost<br><br>
+      <strong>Bayesian vs Frequentist converge:</strong> With massive data (as in most deep learning), prior choice barely matters &mdash; the likelihood dominates. So Frequentist MLE works fine.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q11</span><span class="q-text">Transaction data has skewness=2.8 and excess kurtosis=15. How do you handle this before logistic regression?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Reading all signals together: mean=$850 vs median=$120 (7&times; ratio), skewness=2.8 (high right skew), excess kurtosis=15 (far above 0, extremely fat tails). Most transactions are small; extreme ones occur far more frequently than Normal predicts.<br><br>
+      <strong>Wrong answer:</strong> "Remove outliers and check if normally distributed." In fraud detection, large transactions may be the fraud you're trying to detect. Removing them destroys the signal.<br><br>
+      <strong>Right approach:</strong><br>
+      1. Apply <code>log1p(amount)</code> to compress the right tail<br>
+      2. Verify transformation with histogram and Q-Q plot (skewness should drop toward 0)<br>
+      3. Engineer <code>is_large_transaction = (amount &gt; 99th_pct)</code> binary feature to explicitly preserve the extreme-value signal<br>
+      4. For logistic regression specifically: also apply StandardScaler to the log-transformed feature<br><br>
+      <strong>Why logistic regression specifically cares:</strong> It assumes approximately linear log-odds relationships. Extreme right-skewed features violate this and can make coefficient estimates unstable.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q12</span><span class="q-text">Explain the Law of Total Probability and where it appears in ML.</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">P(A) = &Sigma; P(A|B&#8522;) &times; P(B&#8522;) &mdash; compute overall probability by summing all mutually exclusive pathways through which A can occur, weighted by each pathway's probability.<br><br>
+      <strong>In ML:</strong><br>
+      &bull; <strong>Gaussian Mixture Models:</strong> P(x) = &Sigma;k P(x|component k) &times; P(component k). Each component is a "pathway."<br>
+      &bull; <strong>EM algorithm E-step:</strong> Computes posterior probability over hidden states using exactly this formula<br>
+      &bull; <strong>Hidden Markov Models:</strong> Forward algorithm sums over all possible hidden state sequences<br>
+      &bull; <strong>Naive Bayes P(B) computation:</strong> The normalizing constant is computed via total probability over all classes<br>
+      &bull; <strong>Bayes' theorem denominator:</strong> P(evidence) = &Sigma; P(evidence|class&#8522;) &times; P(class&#8522;)</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q13</span><span class="q-text">Why does increasing batch size in deep learning often hurt generalization despite more accurate gradients?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">By CLT, larger batches produce gradient estimates with smaller SE &mdash; they're more accurate averages of the true gradient. But:<br><br>
+      <strong>Large batches converge to sharp minima.</strong> Consistent gradients let the optimizer find and stay in steep, narrow valleys in the loss landscape. Sharp minima generalize poorly &mdash; small shifts in data distribution move you off the cliff edge.<br><br>
+      <strong>Small batch noise is implicit regularization.</strong> Noisy gradient estimates help the optimizer escape sharp minima and find flatter, wider minima that generalize better. This is the "generalization gap" phenomenon.<br><br>
+      <strong>Solutions:</strong> Learning rate warmup (scale LR proportionally to batch size &mdash; the linear scaling rule), gradient noise injection with large batches, or simply accept slightly lower training loss for better generalization with smaller batches.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q14</span><span class="q-text">What is the difference between statistical independence and zero correlation?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>Independence:</strong> P(A&cap;B) = P(A)&times;P(B). Knowing one variable tells you nothing about the other &mdash; in ANY way, linear or nonlinear.<br><br>
+      <strong>Zero correlation:</strong> No linear relationship. But nonlinear dependence can still exist.<br><br>
+      <strong>Classic counterexample:</strong> X ~ Uniform(&minus;1,1), Y = X&sup2;. Pearson correlation = 0 (the symmetric nonlinear relationship cancels in the linear correlation formula). But Y is completely determined by X &mdash; maximum nonlinear dependence.<br><br>
+      <strong>ML implications:</strong><br>
+      &bull; Naive Bayes' "naive" assumption is conditional independence &mdash; much stronger than zero correlation<br>
+      &bull; Feature selection via Pearson correlation misses nonlinear relationships. Use mutual information or SHAP values instead<br>
+      &bull; Independence &Rightarrow; zero correlation, but zero correlation does NOT imply independence</div>
+    </div>
+  </div>
+
+  <div class="q-group">
+    <span class="q-group-label hard">Hard &mdash; Interview Traps &amp; Edge Cases</span>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q15</span><span class="q-text">A colleague says "n=30 is always enough for CLT." Is this correct? Give specific counterexamples.</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>Incorrect.</strong> n=30 is a rough heuristic for moderately skewed distributions, not a universal law.<br><br>
+      <strong>Counterexample 1 &mdash; Heavy right skew:</strong> Transaction amounts (skewness=2.8, excess kurtosis=15). With n=30, the sampling distribution of the mean is still noticeably non-Normal. Need n&gt;100 minimum.<br><br>
+      <strong>Counterexample 2 &mdash; Infinite variance (the hardest case):</strong> The Cauchy distribution has no finite variance &mdash; CLT doesn't apply at ALL. The mean of n Cauchy samples follows the same Cauchy distribution regardless of n. The mean never converges to Normal.<br><br>
+      <strong>Rule of thumb by skewness:</strong> Symmetric &rarr; n&approx;15. Moderate skew &rarr; n&approx;30. Heavy skew &rarr; n&gt;100. Extreme skew/fat tails &rarr; much more. CLT requires finite variance; without it, n=30 means nothing.<br><br>
+      <strong>Practical implication:</strong> A/B tests on revenue metrics (right-skewed) need thousands of users per variant, not 30. This is why revenue-based A/B tests run for weeks.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q16</span><span class="q-text">Excess kurtosis = 15 on a feature. What does this tell you and how do you handle it in ML?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">Excess kurtosis=15 (vs 0 for Normal) means extremely fat tails &mdash; extreme values occur far more frequently than a Normal distribution predicts. The 4th power in the formula means even a few extreme points dominate: 3&sup4;=81 vs 1&sup4;=1 (a value 3&sigma; away contributes 81&times; more than one 1&sigma; away).<br><br>
+      <strong>Problems by model type:</strong><br>
+      &bull; Linear/logistic regression: extreme values dominate MSE/cross-entropy loss, pulling coefficient estimates toward them<br>
+      &bull; Neural networks: extreme inputs saturate sigmoid/tanh activations; disrupt BatchNorm mean/variance statistics per batch; can cause exploding gradients<br>
+      &bull; KNN/SVM: extreme feature values distort ALL pairwise distance calculations, making neighbors meaningless<br><br>
+      <strong>Fixes in order of preference:</strong><br>
+      1. <code>log1p(x)</code> transform (if positive-valued) &mdash; compresses the tail most aggressively<br>
+      2. Winsorization (cap at 99th/1st percentile) &mdash; preserves all data points, just clips extremes<br>
+      3. RobustScaler (scales using IQR instead of std dev &mdash; resistant to outliers)<br>
+      4. QuantileTransformer (maps entire distribution to uniform or Normal)<br>
+      5. For neural nets: gradient clipping as a safety net regardless of feature transforms</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q17</span><span class="q-text">You built a fraud detection model with 99.5% accuracy. Your manager is thrilled. Why might this be completely misleading?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">This is the class imbalance trap, directly from Bayes' theorem and the base rate fallacy.<br><br>
+      If fraud is 0.5% of transactions, a model that <strong>always predicts "not fraud"</strong> achieves 99.5% accuracy. It has learned nothing and catches zero fraud.<br><br>
+      <strong>The Bayesian framing:</strong> The prior P(fraud) = 0.005 is very low. High accuracy exploits this prior without learning any signal. Even a model that fires correctly on fraud can have terrible precision because false positives from the massive non-fraud majority dominate.<br><br>
+      <strong>Correct metrics for imbalanced classification:</strong><br>
+      &bull; <strong>Precision:</strong> Of all predicted frauds, how many were actually fraud?<br>
+      &bull; <strong>Recall:</strong> Of all actual frauds, how many did we catch?<br>
+      &bull; <strong>F1:</strong> Harmonic mean of precision and recall<br>
+      &bull; <strong>PR-AUC:</strong> Area under Precision-Recall curve. More informative than ROC-AUC when classes are severely imbalanced<br>
+      &bull; <strong>ROC-AUC:</strong> Model's discrimination ability across all thresholds. Also better than raw accuracy.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q18</span><span class="q-text">How does prior choice affect a Bayesian model? When does it matter most vs least?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer">The posterior is: P(&theta;|data) &prop; P(data|&theta;) &times; P(&theta;). Prior influence depends on the ratio of prior strength to data volume.<br><br>
+      <strong>Prior matters most &mdash; small data:</strong> With n=10 observations, the prior can completely dominate the posterior. Clinical trials (n=50 patients) &mdash; a prior from previous trials is essential and heavily influences conclusions. The prior IS your regularization when data is scarce.<br><br>
+      <strong>Prior matters least &mdash; large data:</strong> With millions of observations, the likelihood P(data|&theta;) is so sharp it washes out any prior. Posterior converges to the same answer regardless of prior choice &mdash; this is why Frequentist (MLE) and Bayesian methods agree at large n.<br><br>
+      <strong>Prior types:</strong><br>
+      &bull; Uninformative (flat/uniform): let data speak entirely &asymp; MLE<br>
+      &bull; Informative: encode domain knowledge explicitly<br>
+      &bull; Conjugate: posterior has same family as prior (Beta &rarr; Beta for Bernoulli; Gaussian &rarr; Gaussian for Gaussian likelihood). Mathematically tractable, no MCMC needed<br>
+      &bull; Regularization = implicit Bayesian prior: L2 = Gaussian prior, L1 = Laplace prior</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q19</span><span class="q-text">Why is Naive Bayes called "naive" and why does it still work well despite the flawed assumption?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>Why naive:</strong> Assumes all features are conditionally independent given the class label: P(x&sub1;,...,xn|y) = &prod; P(x&#8522;|y). In text classification, "New" and "York" are assumed independent given topic. Clearly false in any real dataset.<br><br>
+      <strong>Why it still works:</strong><br>
+      1. <strong>Ranking not calibration:</strong> Classification only cares which class has higher posterior. Even if absolute probabilities are wrong, the correct class can still rank highest<br>
+      2. <strong>Parameter efficiency:</strong> Independence assumption means estimating n&times;k parameters instead of exponentially many joint parameters. Much more data-efficient &mdash; works well with small datasets<br>
+      3. <strong>Correlated features partially cancel:</strong> If two correlated features both strongly indicate class A, both vote for A across all classes proportionally &mdash; the decision boundary may still be correct<br>
+      4. <strong>Empirically robust:</strong> Especially in high-dimensional sparse settings (text classification), it outperforms many complex models<br><br>
+      <strong>When Naive Bayes fails:</strong> When features are strongly anti-correlated, when calibrated probabilities (not just rankings) are needed, or when feature interactions are essential for the decision boundary.</div>
+    </div>
+
+    <div class="q-card" onclick="toggleQ(this)">
+      <div class="q-header"><span class="q-num">Q20</span><span class="q-text">Transaction data has mean=$200, std dev=$500 (heavily right-skewed). DS A says "can't use Normal-based tests." DS B says "we have n=1,000, CLT applies." Who is right?</span><span class="q-toggle">&#9660;</span></div>
+      <div class="q-answer"><strong>DS B is mostly right, with important caveats.</strong><br><br>
+      <strong>DS A's error:</strong> Confusing "raw data must be Normal" with "CLT requires Normal data." CLT does NOT require normally distributed raw data. It guarantees that the <em>sampling distribution of the mean</em> becomes approximately Normal with large enough n, regardless of data shape.<br><br>
+      <strong>With n=1,000:</strong> SE = 500/&radic;1000 &asymp; $15.8. By CLT, x&#772; ~ N($200, $15.8&sup2;) approximately. Tests on the mean (t-tests, z-tests, confidence intervals for &mu;) are valid.<br><br>
+      <strong>When to side with DS A (the important caveats):</strong><br>
+      &bull; If the test requires normality of RAW observations, not the mean (e.g., some parametric tests on individual values)<br>
+      &bull; If the statistic of interest is NOT the mean (median, variance, extreme quantiles &mdash; CLT doesn't apply)<br>
+      &bull; If you suspect the distribution has infinite variance (CLT doesn't apply at all)<br>
+      &bull; If n=30 were small with this level of skew/kurtosis &mdash; CLT might not have kicked in<br><br>
+      <strong>Best interview answer:</strong> "For tests on the mean, CLT covers us at n=1,000 regardless of skewness. For tests on non-mean statistics or if infinite variance is suspected, use bootstrap or non-parametric alternatives like Mann-Whitney U."</div>
+    </div>
+
+  </div>
+</section>
+
+</div>
+<footer>Statistics Deep Dive &mdash; Topics 1&ndash;4 &nbsp;&middot;&nbsp; ML Interview Prep &nbsp;&middot;&nbsp; Built with Smart Mentor</footer>
+
+<script>
+function toggleQ(card){card.classList.toggle('open');}
+Chart.defaults.color='#94a3b8';
+Chart.defaults.borderColor='#252a38';
+const A='#4f9cf9',A2='#a78bfa',A3='#34d399',W='#f59e0b',D='#f87171';
+function nPDF(x,mu,s){return(1/(s*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*((x-mu)/s)**2);}
+
+// Empirical Rule
+(function(){
+  const xs=[],y1=[],y2=[],y3=[],yB=[];
+  for(let x=30;x<=110;x+=0.5){
+    xs.push(x);const v=nPDF(x,70,10);yB.push(v);
+    y1.push(Math.abs(x-70)<=10?v:null);
+    y2.push(Math.abs(x-70)>10&&Math.abs(x-70)<=20?v:null);
+    y3.push(Math.abs(x-70)>20&&Math.abs(x-70)<=30?v:null);
+  }
+  new Chart(document.getElementById('empiricalChart'),{type:'line',data:{labels:xs,datasets:[
+    {label:'μ±1σ (68%)',data:y1,fill:true,backgroundColor:'rgba(52,211,153,0.3)',borderColor:'transparent',pointRadius:0,tension:0.4},
+    {label:'μ±2σ (95%)',data:y2,fill:true,backgroundColor:'rgba(79,156,249,0.25)',borderColor:'transparent',pointRadius:0,tension:0.4},
+    {label:'μ±3σ (99.7%)',data:y3,fill:true,backgroundColor:'rgba(167,139,250,0.2)',borderColor:'transparent',pointRadius:0,tension:0.4},
+    {label:'Normal curve',data:yB,fill:false,borderColor:'#e2e8f0',borderWidth:2,pointRadius:0,tension:0.4}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{x:{ticks:{maxTicksLimit:10}},y:{display:false}}}});
+})();
+
+// Skew
+(function(){
+  const xs=[];for(let x=0;x<=20;x+=0.2)xs.push(Math.round(x*10)/10);
+  function sR(x){return x<8?nPDF(x,3,1.5)*2.5:Math.exp(-0.18*x)*0.18;}
+  function sS(x){return nPDF(x,10,2);}
+  function sL(x){return x>12?nPDF(x,17,1.5)*2.5:Math.exp(-0.18*(20-x))*0.18;}
+  new Chart(document.getElementById('skewChart'),{type:'line',data:{labels:xs,datasets:[
+    {label:'Right-skewed (skew > 0)',data:xs.map(sR),borderColor:D,borderWidth:2,fill:false,pointRadius:0,tension:0.4},
+    {label:'Symmetric (skew ≈ 0)',data:xs.map(sS),borderColor:A3,borderWidth:2,fill:false,pointRadius:0,tension:0.4},
+    {label:'Left-skewed (skew < 0)',data:xs.map(sL),borderColor:A2,borderWidth:2,fill:false,pointRadius:0,tension:0.4}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{display:false},x:{display:false}}}});
+})();
+
+// Bayes Bar
+(function(){
+  new Chart(document.getElementById('bayesChart'),{type:'bar',data:{
+    labels:['True Positives\n(have disease, test +)','False Positives\n(no disease, test +)','True Negatives\n(no disease, test −)','False Negatives\n(have disease, test −)'],
+    datasets:[{label:'Count out of 10,000',data:[95,495,9405,5],
+      backgroundColor:[A3,D,'rgba(79,156,249,0.4)',W],borderColor:[A3,D,A,W],borderWidth:1}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+})();
+
+// Normal
+(function(){
+  const xs=[];for(let x=-4;x<=4;x+=0.1)xs.push(Math.round(x*10)/10);
+  new Chart(document.getElementById('normalChart'),{type:'line',data:{labels:xs,datasets:[
+    {label:'N(0,1) — narrow',data:xs.map(x=>nPDF(x,0,1)),borderColor:A,borderWidth:2,fill:true,backgroundColor:'rgba(79,156,249,0.1)',pointRadius:0,tension:0.4},
+    {label:'N(0,2) — wide',data:xs.map(x=>nPDF(x,0,2)),borderColor:A2,borderWidth:2,fill:false,pointRadius:0,tension:0.4},
+    {label:'N(1,1) — shifted',data:xs.map(x=>nPDF(x,1,1)),borderColor:A3,borderWidth:2,fill:false,pointRadius:0,tension:0.4}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{display:false}}}});
+})();
+
+// Binomial
+(function(){
+  function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+  function comb(n,k){return fact(n)/(fact(k)*fact(n-k));}
+  function bPMF(n,k,p){return comb(n,k)*Math.pow(p,k)*Math.pow(1-p,n-k);}
+  const ks=Array.from({length:21},(_,i)=>i);
+  new Chart(document.getElementById('binomialChart'),{type:'bar',data:{labels:ks,datasets:[{
+    label:'P(X=k)',data:ks.map(k=>Math.round(bPMF(20,k,0.3)*1000)/1000),
+    backgroundColor:ks.map(k=>k===6?A3:'rgba(79,156,249,0.5)'),
+    borderColor:ks.map(k=>k===6?A3:A),borderWidth:1
+  }]},options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,title:{display:true,text:'Probability'}},x:{title:{display:true,text:'k successes'}}}}});
+})();
+
+// Poisson
+(function(){
+  function pPMF(l,k){let r=-l+k*Math.log(l);for(let i=1;i<=k;i++)r-=Math.log(i);return Math.exp(r);}
+  const ks=Array.from({length:20},(_,i)=>i);
+  new Chart(document.getElementById('poissonChart'),{type:'bar',data:{labels:ks,datasets:[
+    {label:'Poisson(λ=3)',data:ks.map(k=>Math.round(pPMF(3,k)*1000)/1000),backgroundColor:'rgba(79,156,249,0.6)',borderColor:A,borderWidth:1},
+    {label:'Poisson(λ=8)',data:ks.map(k=>Math.round(pPMF(8,k)*1000)/1000),backgroundColor:'rgba(167,139,250,0.5)',borderColor:A2,borderWidth:1}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+})();
+
+// CLT
+(function(){
+  const ns=[10,25,50,100,200,400,900,1600];
+  new Chart(document.getElementById('cltChart'),{type:'line',data:{labels:ns,datasets:[{
+    label:'SE = σ/√n (σ=$200)',
+    data:ns.map(n=>Math.round(200/Math.sqrt(n)*10)/10),
+    borderColor:A,borderWidth:2.5,backgroundColor:'rgba(79,156,249,0.1)',fill:true,
+    pointBackgroundColor:A,pointRadius:5,tension:0.3
+  }]},options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{x:{title:{display:true,text:'Sample Size (n)'}},y:{title:{display:true,text:'Standard Error ($)'},beginAtZero:true}}}});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regularization Across Models — A Deep Dive</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+  chtml: { scale: 1.15, matchFontHeight: false, displayAlign: 'left' },
+  options: { renderActions: { addMenu: [] } }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700;8..60,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F6F8;
+  --paper-raised:#FFFFFF;
+  --ink:#1B1E2B;
+  --ink-muted:#5B6270;
+  --ink-faint:#9096A3;
+  --rule:#DEE1E7;
+  --rule-strong:#C7CBD4;
+  --blue:#2D5FA6;
+  --blue-deep:#1C3E70;
+  --blue-tint:#E9F0F8;
+  --rust:#A5461C;
+  --rust-tint:#F6EAE1;
+  --green:#3E6B4E;
+  --green-tint:#E8F1EB;
+  --plum:#6B4A8C;
+  --plum-tint:#F0E8F6;
+  --slate:#5B6270;
+  --slate-tint:#E9EAEE;
+  --code-bg:#EDEFF3;
+  --math-bg:#EEF1F5;
+  --font-serif:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:'IBM Plex Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-serif);
+  line-height:1.75;
+  font-size:18px;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--blue); color:#fff;}
+.wrap{max-width:760px; margin:0 auto; padding:64px 24px 120px;}
+
+/* Hero */
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:0.78rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--blue);
+  font-weight:500;
+  display:flex; align-items:center; gap:10px;
+  margin:0 0 18px;
+}
+.eyebrow::before{content:""; width:28px; height:1px; background:var(--blue); display:inline-block; flex-shrink:0;}
+h1{
+  font-family:var(--font-serif);
+  font-weight:700;
+  font-size:2.7rem;
+  letter-spacing:-0.02em;
+  line-height:1.1;
+  color:var(--ink);
+  margin:0 0 0.35em;
+}
+.subtitle{
+  font-family:var(--font-sans);
+  color:var(--ink-muted);
+  font-size:1.1rem;
+  line-height:1.65;
+  max-width:56ch;
+  margin:0;
+}
+.hero-figure{margin:2.6em 0 0.6em; display:flex; justify-content:center;}
+.hero-figure svg{width:100%; max-width:420px; height:auto;}
+.hero-caption{
+  font-family:var(--font-mono);
+  font-size:0.74rem;
+  color:var(--ink-faint);
+  text-align:center;
+  letter-spacing:0.02em;
+  margin:0 0 2.6em;
+}
+
+h2,h3,h4{font-family:var(--font-serif); color:var(--ink); line-height:1.3;}
+h2{
+  font-size:1.65rem;
+  font-weight:700;
+  letter-spacing:-0.01em;
+  margin-top:3.2em;
+  padding-top:1.3em;
+  border-top:1px solid var(--rule);
+  position:relative;
+}
+h2::before{content:""; position:absolute; top:-1px; left:0; width:52px; height:2px; background:var(--blue);}
+h3{font-size:1.28rem; margin-top:2em; font-weight:600; color:var(--ink);}
+h4{
+  font-family:var(--font-sans);
+  font-size:0.76rem;
+  text-transform:uppercase;
+  letter-spacing:0.09em;
+  margin-top:2.2em;
+  color:var(--ink-muted);
+  font-weight:600;
+}
+p{margin:1em 0;}
+a{color:var(--blue); text-decoration:underline; text-decoration-color:var(--rule-strong); text-underline-offset:3px;}
+a:hover{text-decoration-color:var(--blue);}
+ul,ol{padding-left:1.3em;}
+li{margin:0.4em 0;}
+code{
+  font-family:var(--font-mono);
+  background:var(--code-bg);
+  color:var(--blue-deep);
+  padding:0.15em 0.4em;
+  border-radius:4px;
+  font-size:0.82em;
+}
+
+/* TOC */
+.toc{
+  background:var(--paper-raised);
+  border:1px solid var(--rule);
+  border-radius:10px;
+  padding:6px 28px 22px;
+  font-family:var(--font-sans);
+}
+.toc h2{border:none; margin:1.3em 0 0.7em; padding-top:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-muted); font-weight:600;}
+.toc h2::before{display:none;}
+.toc ol{list-style:none; padding:0; margin:0; counter-reset:toc; display:grid; grid-template-columns:1fr 1fr; gap:2px 28px;}
+.toc li{counter-increment:toc; margin:0;}
+.toc li:nth-child(5){grid-column:1 / -1;}
+.toc a{
+  text-decoration:none;
+  color:var(--ink);
+  font-weight:500;
+  font-size:0.96rem;
+  display:flex;
+  gap:11px;
+  align-items:baseline;
+  padding:9px 6px;
+  border-radius:6px;
+}
+.toc a::before{
+  content:counter(toc, decimal-leading-zero);
+  font-family:var(--font-mono);
+  color:var(--blue);
+  font-weight:500;
+  font-size:0.82rem;
+}
+.toc a:hover{background:var(--blue-tint);}
+.toc .sub{font-weight:400; font-size:0.85em; margin:6px 0 4px 39px; color:var(--ink-muted); display:block; line-height:1.85;}
+
+/* Boxes */
+.box{
+  border-radius:8px;
+  padding:20px 24px;
+  margin:1.7em 0;
+  font-family:var(--font-sans);
+  font-size:0.94rem;
+  border-left-width:3px;
+  border-left-style:solid;
+}
+.box p{margin:0.6em 0;}
+.box .label{
+  font-family:var(--font-mono);
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-size:0.7rem;
+  display:block;
+  margin-bottom:0.7em;
+}
+.example{background:var(--blue-tint); border:1px solid var(--blue-tint); border-left:3px solid var(--blue);}
+.example .label{color:var(--blue);}
+.trap{background:var(--rust-tint); border:1px solid var(--rust-tint); border-left:3px solid var(--rust);}
+.trap .label{color:var(--rust);}
+.callback{background:var(--plum-tint); border:1px dashed #DAC5EE; border-left:3px dashed var(--plum);}
+.callback .label{color:var(--plum);}
+
+/* Tables */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:1.8em 0;
+  font-family:var(--font-sans);
+  font-size:0.85rem;
+  background:var(--paper-raised);
+  border:1px solid var(--rule);
+  border-radius:8px;
+  overflow:hidden;
+}
+th,td{border-bottom:1px solid var(--rule); padding:13px 14px; text-align:left; vertical-align:top;}
+th{background:var(--ink); color:#fff; font-weight:600; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.05em;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even) td{background:#FAFBFC;}
+hr{border:none; border-top:1px solid var(--rule); margin:3.4em 0;}
+
+/* Mechanism tags */
+.tag{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:0.7rem;
+  font-weight:600;
+  letter-spacing:0.02em;
+  padding:3px 9px;
+  border-radius:20px;
+  white-space:nowrap;
+}
+.tag-soft{background:var(--blue-tint); color:var(--blue-deep);}
+.tag-hard{background:var(--rust-tint); color:var(--rust);}
+.tag-ensemble{background:var(--green-tint); color:var(--green);}
+.tag-data{background:var(--plum-tint); color:var(--plum);}
+.tag-implicit{background:var(--slate-tint); color:var(--slate);}
+.tag-note{display:block; font-family:var(--font-sans); font-size:0.76rem; color:var(--ink-muted); margin-top:5px;}
+.tag-legend{margin:0 0 1em; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+.tag-legend span.tag-legend-label{font-family:var(--font-sans); font-size:0.82rem; color:var(--ink-muted); margin-right:4px;}
+
+/* Math */
+mjx-container{color:var(--ink) !important; font-size:1.02em !important;}
+mjx-container[display="true"]{
+  background:var(--math-bg);
+  border:none;
+  border-top:1px solid var(--rule-strong);
+  border-bottom:1px solid var(--rule-strong);
+  border-radius:0;
+  padding:18px 6px !important;
+  margin:1.3em 0 !important;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+
+/* Q&A */
+.qa-intro{font-family:var(--font-sans); color:var(--ink-muted); font-size:0.95rem; margin-bottom:1.6em;}
+details.qa{
+  border:1px solid var(--rule);
+  border-radius:8px;
+  padding:2px 22px;
+  margin:10px 0;
+  background:var(--paper-raised);
+  transition:border-color 0.15s ease;
+}
+details.qa[open]{border-color:var(--blue);}
+details.qa summary{
+  cursor:pointer;
+  list-style:none;
+  padding:16px 0;
+  font-family:var(--font-sans);
+  font-weight:600;
+  font-size:0.98rem;
+  color:var(--ink);
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+}
+details.qa summary::-webkit-details-marker{display:none;}
+details.qa summary::before{
+  content:"+";
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px; height:24px;
+  border-radius:6px;
+  background:var(--blue-tint);
+  color:var(--blue);
+  font-size:1rem;
+  font-weight:700;
+  font-family:var(--font-mono);
+  margin-top:2px;
+}
+details.qa[open] summary::before{content:"–"; background:var(--blue); color:#fff;}
+details.qa .qnum{font-family:var(--font-mono); color:var(--ink-faint); font-weight:600; font-size:0.82rem; white-space:nowrap; margin-top:3px;}
+details.qa .a{padding:0 0 20px 38px; font-size:0.98rem;}
+details.qa .a p{margin:0.5em 0;}
+
+.backtotop{
+  display:inline-block;
+  margin-top:2.2em;
+  font-family:var(--font-sans);
+  font-size:0.82rem;
+  text-decoration:none;
+  color:var(--ink-faint);
+  border-bottom:1px solid transparent;
+}
+.backtotop:hover{color:var(--blue); border-color:var(--blue);}
+.meta{font-family:var(--font-sans); color:var(--ink-faint); font-size:0.86rem;}
+
+@media (max-width:640px){
+  .wrap{padding:40px 18px 90px;}
+  h1{font-size:2.05rem;}
+  .toc ol{grid-template-columns:1fr;}
+  .toc li:nth-child(5){grid-column:auto;}
+  h2{font-size:1.35rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="eyebrow">Interview-ready ML reference</p>
+<h1>Regularization Across Models</h1>
+<p class="subtitle">A complete deep dive: why it works, and how it shows up differently in linear models, trees, ensembles, and neural networks — with worked numerical examples for every formula.</p>
+
+<div class="hero-figure">
+<svg viewBox="0 0 440 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram comparing the L1 diamond and L2 circle constraint regions, each with elliptical loss contours touching the boundary">
+  <g>
+    <line x1="110" y1="18" x2="110" y2="198" stroke="#C7CBD4" stroke-width="1"/>
+    <line x1="18" y1="110" x2="202" y2="110" stroke="#C7CBD4" stroke-width="1"/>
+    <ellipse cx="150" cy="72" rx="72" ry="40" transform="rotate(-25 150 72)" fill="none" stroke="#D3D6DD" stroke-width="1"/>
+    <ellipse cx="150" cy="72" rx="51" ry="28" transform="rotate(-25 150 72)" fill="none" stroke="#BFC4CE" stroke-width="1"/>
+    <ellipse cx="150" cy="72" rx="30" ry="16" transform="rotate(-25 150 72)" fill="none" stroke="#9AA0AD" stroke-width="1.2"/>
+    <path d="M110 55 L165 110 L110 165 L55 110 Z" fill="#A5461C" fill-opacity="0.07" stroke="#A5461C" stroke-width="2"/>
+    <circle cx="110" cy="55" r="4.5" fill="#1B1E2B"/>
+    <text x="110" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="#A5461C" font-weight="600">L1 · LASSO</text>
+  </g>
+  <g>
+    <line x1="330" y1="18" x2="330" y2="198" stroke="#C7CBD4" stroke-width="1"/>
+    <line x1="238" y1="110" x2="422" y2="110" stroke="#C7CBD4" stroke-width="1"/>
+    <ellipse cx="368" cy="78" rx="70" ry="38" transform="rotate(-20 368 78)" fill="none" stroke="#D3D6DD" stroke-width="1"/>
+    <ellipse cx="368" cy="78" rx="49" ry="26" transform="rotate(-20 368 78)" fill="none" stroke="#BFC4CE" stroke-width="1"/>
+    <ellipse cx="368" cy="78" rx="28" ry="15" transform="rotate(-20 368 78)" fill="none" stroke="#9AA0AD" stroke-width="1.2"/>
+    <circle cx="330" cy="110" r="55" fill="#2D5FA6" fill-opacity="0.07" stroke="#2D5FA6" stroke-width="2"/>
+    <circle cx="365" cy="68" r="4.5" fill="#1B1E2B"/>
+    <text x="330" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="#2D5FA6" font-weight="600">L2 · RIDGE</text>
+  </g>
+</svg>
+</div>
+<p class="hero-caption">Same loss contours, different constraint shapes — a corner lands exactly on zero; a curve never does.</p>
+
+<div class="toc" id="top">
+<h2>Contents</h2>
+<ol>
+<li><a href="#s1">Core idea — the bias-variance tradeoff</a></li>
+<li><a href="#s2">L1 vs L2 (Lasso vs Ridge)</a></li>
+<li><a href="#s3">Elastic Net</a></li>
+<li><a href="#s4">Regularization in Logistic Regression / GLMs</a></li>
+<li><a href="#s5">Regularization in tree-based models</a>
+  <div class="sub">
+  5a. Single decision trees &nbsp;•&nbsp;
+  5b. Cost-complexity pruning &nbsp;•&nbsp;
+  5c. Random Forests &nbsp;•&nbsp;
+  5d. Gradient Boosting &nbsp;•&nbsp;
+  5e. XGBoost / LightGBM specifics
+  </div>
+</li>
+<li><a href="#s6">Data-level regularization</a></li>
+<li><a href="#s7">Regularization in Neural Networks</a></li>
+<li><a href="#s8">Comparison table across model families</a></li>
+<li><a href="#s9">Interview traps &amp; edge cases</a></li>
+<li><a href="#qa">30 Interview Questions &amp; Answers (click to expand)</a></li>
+</ol>
+</div>
+
+<h2 id="s1">1. Core idea — the bias-variance tradeoff</h2>
+
+<p><strong>Intuition.</strong> Every model's prediction error decomposes into three pieces: <em>bias</em> (how wrong the model is on average), <em>variance</em> (how much predictions swing across different training sets), and irreducible noise. A model that's too simple underfits (high bias). A model that's too flexible memorizes training noise (high variance). Regularization is a deliberate trade: accept a little more bias in exchange for a lot less variance — worth it whenever the variance drop outweighs the bias cost, which is most of the time when data is limited relative to model complexity.</p>
+
+<p><strong>The math.</strong> For a model \(\hat f\) trained on a random training set \(D\), at a fixed point \(x\) with true relationship \(y = f(x)+\epsilon\), \(\epsilon\sim\mathcal N(0,\sigma^2)\):</p>
+
+$$\mathbb{E}_D\left[(y-\hat f(x))^2\right] = \underbrace{\left(f(x)-\mathbb{E}_D[\hat f(x)]\right)^2}_{\text{Bias}^2} + \underbrace{\mathbb{E}_D\left[(\hat f(x)-\mathbb{E}_D[\hat f(x)])^2\right]}_{\text{Variance}} + \sigma^2$$
+
+<ul>
+<li><strong>Bias:</strong> how far the <em>average</em> prediction (averaged over many resampled training sets) sits from the truth.</li>
+<li><strong>Variance:</strong> how much the prediction jitters if you retrain on a different sample from the same distribution.</li>
+<li><strong>\(\sigma^2\):</strong> irreducible noise — no model fixes this.</li>
+</ul>
+
+<p>Regularization shrinks/constrains \(\hat f\), pulling the average prediction slightly away from the truth (bias ↑) but making the prediction far less sensitive to exactly which training sample you drew (variance ↓↓). Net error drops when the variance reduction dominates.</p>
+
+<div class="box example">
+<span class="label">Worked example</span>
+<p>True value \(f(x)=3\). Fit the same model on 5 bootstrap samples, unregularized predictions: \(\{1,5,2,6,1\}\).</p>
+<p>Average \(=3.0\) → Bias\(^2 = (3-3.0)^2 = 0\). Variance \(=\frac{1}{5}[(1-3)^2+(5-3)^2+(2-3)^2+(6-3)^2+(1-3)^2]=\frac{1}{5}[4+4+1+9+4]=4.4\). Total error contribution \(= 0+4.4=4.4\).</p>
+<p>Now add L2 regularization and refit on the same 5 samples: predictions \(\{2, 3.5, 2.2, 3.8, 2.3\}\). Average \(=2.76\) → Bias\(^2=(3-2.76)^2=0.058\). Variance \(=\frac{1}{5}[0.578+0.548+0.314+1.082+0.212]=0.547\). Total \(=0.058+0.547=0.605\).</p>
+<p><strong>Interpretation:</strong> a tiny bias increase (0 → 0.058) bought a massive variance decrease (4.4 → 0.547). Net error dropped from 4.4 to 0.605 — a huge win. This is why a slightly-biased regularized model routinely beats an unbiased-but-wild unregularized one on held-out data.</p>
+</div>
+
+<p><strong>When regularization does <em>not</em> help:</strong> if \(n \gg p\) (e.g. 500,000 samples, 10 features), coefficient variance is already tiny — \(\text{Var}(\hat\beta)=\sigma^2(X^TX)^{-1}\), and a huge \(X^TX\) makes this near zero regardless of penalty. Adding a penalty here only injects bias with nothing to offset it. Regularization matters most when model capacity is large <em>relative to</em> effective sample size (e.g. \(p\) close to or exceeding \(n\)), and matters least when data is abundant relative to capacity.</p>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s2">2. L1 vs L2 Regularization (Lasso vs Ridge)</h2>
+
+<p><strong>Intuition.</strong> Both penalize large coefficients, but "large" is punished differently. L2 (Ridge) penalizes the <em>squared</em> magnitude — big coefficients get hit disproportionately, aggressively shrinking them, but almost never exactly to zero. L1 (Lasso) penalizes the <em>absolute</em> magnitude — a constant pull toward zero regardless of size — which is strong enough to zero coefficients out completely, giving automatic feature selection (sparsity).</p>
+
+<h4>The math</h4>
+<p>Ridge: $$J(\beta)=\sum_{i=1}^n(y_i-x_i^T\beta)^2+\lambda\sum_{j=1}^p\beta_j^2$$</p>
+<p>Lasso: $$J(\beta)=\sum_{i=1}^n(y_i-x_i^T\beta)^2+\lambda\sum_{j=1}^p|\beta_j|$$</p>
+<p>\(\lambda\) (sklearn: \(\alpha\)) controls strength — \(\lambda=0\) recovers OLS, \(\lambda\to\infty\) shrinks everything to 0. The penalty is never applied to the intercept.</p>
+
+<h4>Why L1 gives sparsity — the derivative argument</h4>
+<p>L2 penalty gradient: \(\frac{\partial}{\partial\beta_j}(\lambda\beta_j^2)=2\lambda\beta_j\) — proportional pull, shrinks toward zero but the pull weakens as \(\beta_j\to 0\) (like friction proportional to speed — asymptotically approaches zero, rarely lands exactly on it).</p>
+<p>L1 penalty gradient: \(\frac{\partial}{\partial\beta_j}(\lambda|\beta_j|)=\lambda\cdot\text{sign}(\beta_j)\) — a <em>constant</em> pull regardless of how small \(\beta_j\) already is (constant friction), strong enough to drive weak coefficients to exactly 0.</p>
+
+<h4>Geometric picture</h4>
+<p>Ridge's constraint region \(\sum\beta_j^2\le t\) is a circle/sphere — no corners, so the optimum touches it at a smooth point where every coordinate is generically nonzero. Lasso's region \(\sum|\beta_j|\le t\) is a diamond — corners sit exactly on the axes (where one coefficient = 0), and the error contours are far more likely to first touch a corner than a flat edge, landing the solution with some coefficients exactly zero.</p>
+
+<div class="box example">
+<span class="label">Worked example</span>
+<p>OLS gives \(\beta=(4, 0.1)\) for two standardized features. Lasso's coordinate-descent closed form (soft-thresholding): \(\hat\beta_j^{Lasso}=\text{sign}(\beta_j^{OLS})\cdot\max(|\beta_j^{OLS}|-\lambda, 0)\).</p>
+<p>With \(\lambda=0.5\): \(\beta_1 = \text{sign}(4)\max(4-0.5,0)=3.5\). \(\beta_2=\text{sign}(0.1)\max(0.1-0.5,0)=\max(-0.4,0)=\mathbf{0}\) — feature dropped entirely.</p>
+<p>Ridge closed form (single feature, standardized): \(\hat\beta_j^{Ridge}=\frac{\beta_j^{OLS}}{1+\lambda}\). With \(\lambda=0.5\): \(\beta_1=4/1.5=2.67\), \(\beta_2=0.1/1.5=0.067\) — shrunk, but never zero.</p>
+<p><strong>Interpretation:</strong> Lasso did automatic feature selection; Ridge kept every feature alive at reduced weight. Use Lasso when you believe true signal is sparse (few strong predictors); use Ridge when you believe signal is dense (many small contributors).</p>
+</div>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s3">3. Elastic Net — Combining L1 and L2</h2>
+
+<p><strong>Intuition.</strong> Lasso has a specific failure mode: with highly correlated features, it arbitrarily picks <em>one</em> and zeros out the rest — even if all are genuinely predictive — and which one survives is unstable across resamples. Ridge doesn't have this issue (it spreads weight across correlated features — the "grouping effect") but never gives sparsity. Elastic Net blends both penalties to get sparsity <em>and</em> grouping stability.</p>
+
+<h4>The math</h4>
+$$J(\beta)=\sum_{i=1}^n(y_i-x_i^T\beta)^2+\lambda\left[\alpha\sum_{j=1}^p|\beta_j|+(1-\alpha)\sum_{j=1}^p\beta_j^2\right]$$
+<p>\(\alpha\in[0,1]\) (sklearn's <code>l1_ratio</code> — note sklearn's own <code>alpha</code> parameter is actually \(\lambda\), a naming mismatch and a classic interview trap). \(\alpha=1\) → pure Lasso, \(\alpha=0\) → pure Ridge.</p>
+
+<div class="box example">
+<span class="label">Worked example</span>
+<p>Two nearly-identical correlated features (\(x_1,x_2\), correlation ≈ 0.99), true combined effect \(\beta_1+\beta_2\approx 2\).</p>
+<p>Parent 6-sample dataset, correlated columns. Pure Lasso (\(\alpha=1\)) picks a corner solution: \(\beta=(1.8, 0)\) — one feature survives, arbitrarily. Refit on a slightly different bootstrap sample and it could flip to \((0, 1.8)\) — unstable.</p>
+<p>Elastic Net (\(\alpha=0.5,\ \lambda=0.4\)) blends the pulls: \(\beta=(1.1, 0.9)\) — both correlated features retained with similar weight, stable across resamples. A genuinely irrelevant third feature would still get pushed to exactly 0, thanks to the retained L1 corner.</p>
+</div>
+
+<div class="box callback">
+<span class="label">Why this matters when p &gt; n</span>
+<p>With \(p=500\) features and \(n=200\) samples, \(X^TX\) is rank-deficient (not invertible) — OLS has infinitely many solutions that perfectly interpolate training data, with catastrophic test variance. Adding the \(\lambda\sum\beta_j^2\) term makes \(X^TX+\lambda I\) invertible regardless of rank, guaranteeing a unique, stable solution — regularization here is not optional, it's what makes the problem solvable at all. The L1 component additionally bounds the number of nonzero coefficients to at most \(\min(n,p)\).</p>
+<p>Rigor note: "effective degrees of freedom" formalizes this — for Ridge, \(\text{trace}(X(X^TX+\lambda I)^{-1}X^T)\le p\), shrinking toward 0 as \(\lambda\to\infty\); for Lasso, it's simply the count of nonzero coefficients.</p>
+</div>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s4">4. Regularization in Logistic Regression / GLMs</h2>
+
+<p><strong>Intuition (plain-language version).</strong> Logistic regression draws a boundary that separates class 0 from class 1, and reports a confidence percentage for each point. Picture a "volume knob" that controls how steep the transition is from "definitely 0" to "definitely 1" as you cross the boundary. If the data is <em>perfectly separable</em>, turning that knob up always reduces loss a little more — there's no point where it starts hurting. So an unregularized optimizer just keeps turning the knob to infinity, chasing an ever-smaller improvement forever, and the coefficient never settles at a finite value. Regularization adds a "tax" for turning the knob up — eventually the tax outweighs the tiny fit improvement, and training stops at a sane, finite value.</p>
+
+<h4>The math</h4>
+$$J(\beta)=-\sum_{i=1}^n\left[y_i\log(p_i)+(1-y_i)\log(1-p_i)\right]+\lambda\sum_{j=1}^p\beta_j^2\quad(\text{L2 case})$$
+<p>where \(p_i=\sigma(x_i^T\beta)=\frac{1}{1+e^{-x_i^T\beta}}\).</p>
+
+<div class="box example">
+<span class="label">Worked example — why unregularized logistic regression can literally fail to converge</span>
+<p>1D perfectly separable data: \(x=[-2,-1,1,2]\), \(y=[0,0,1,1]\).</p>
+<p>At \(\beta=1\): \(\sigma(\beta x) = 0.119, 0.269, 0.731, 0.881\). Per-point loss: \(0.127, 0.313, 0.313, 0.127\). Total ≈ <strong>0.88</strong>.</p>
+<p>At \(\beta=5\): \(\sigma(\beta x)\approx 0.000045, 0.0067, 0.9933, 0.99995\). Per-point loss: ≈0.000045, 0.0067, 0.0067, 0.000045. Total ≈ <strong>0.0134</strong>.</p>
+<p>Loss keeps dropping as \(\beta\) grows, approaching 0 but never reaching a minimum at any finite value — the unregularized objective has no maximizer. Add an L2 penalty \(\lambda\beta^2\): now the total objective is (loss → 0) + (penalty → ∞ as \(\beta\to\infty\)), so the sum has a genuine finite minimum. Regularization here makes the optimization well-posed, not just "less overfit."</p>
+</div>
+
+<h4>The <code>C</code> vs \(\lambda\) trap — simplified</h4>
+<p>sklearn's <code>LogisticRegression</code> uses <code>C = 1/λ</code> — the <em>inverse</em> of regularization strength. Think of <code>C</code> as "how much freedom the model has to use big coefficients":</p>
+<ul>
+<li><strong>Big <code>C</code></strong> = lots of freedom = <strong>weak</strong> regularization = coefficients close to raw, unconstrained MLE values.</li>
+<li><strong>Small <code>C</code></strong> = little freedom = <strong>strong</strong> regularization = coefficients squeezed hard toward zero.</li>
+</ul>
+<p>It's backwards from \(\lambda\)-intuition purely because of the \(C=1/\lambda\) naming convention. Example: <code>C=0.001</code> → \(\lambda=1000\) → strong penalty → small, cautious coefficients. <code>C=100</code> → \(\lambda=0.01\) → weak penalty → bold coefficients close to unregularized MLE.</p>
+<p>Also worth knowing: sklearn's <code>LogisticRegression</code> applies L2 regularization <strong>by default</strong> (<code>C=1.0</code>). Many practitioners run "plain logistic regression" without realizing it's already regularized — matters if comparing against <code>statsmodels</code>, which defaults to no penalty.</p>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s5">5. Regularization in Tree-Based Models</h2>
+
+<h3 id="s5a">5a. Single decision trees</h3>
+<p><strong>Intuition.</strong> Trees have no penalty term added to a loss function — regularization here means <strong>architectural constraints on tree growth</strong>. An unconstrained tree keeps splitting until every leaf is pure (or has one sample) — zero training error, the most extreme overfitting/high-variance regime possible. The regularization knobs are literally rules that say "stop growing here."</p>
+
+<h4>The mechanism</h4>
+<p>At every candidate split, the algorithm measures impurity reduction:</p>
+$$\Delta\text{Impurity}=\text{Impurity}_{\text{parent}}-\left(\frac{N_L}{N_{\text{parent}}}\text{Impurity}_L+\frac{N_R}{N_{\text{parent}}}\text{Impurity}_R\right)$$
+<p>Regression impurity = MSE within a node: \(\frac{1}{N_m}\sum_i(y_i-\bar y_m)^2\). Classification impurity = Gini: \(1-\sum_k p_k^2\).</p>
+
+<p>Key stopping-rule hyperparameters:</p>
+<ul>
+<li><code>max_depth</code>: caps depth \(d\); a binary tree can have at most \(2^d\) leaves, directly bounding capacity.</li>
+<li><code>min_samples_split</code>: node needs ≥ this many samples to even be considered for splitting.</li>
+<li><code>min_samples_leaf</code>: both children after a split must have ≥ this many samples, else the split is rejected outright.</li>
+<li><code>min_impurity_decrease</code>: split only proceeds if \(\Delta\text{Impurity}\) clears this threshold.</li>
+</ul>
+
+<div class="box example">
+<span class="label">Worked example</span>
+<p>Regression data: \(x=[1,2,3,4,5,20]\), \(y=[2,2.1,2.2,2.3,2.4,50]\) (one outlier).</p>
+<p>Parent MSE: mean \(\bar y=10.17\), \(\text{MSE}_{\text{parent}}\approx 317.4\).</p>
+<p>Split at \(x<17.5\): left \(=\{2,2.1,2.2,2.3,2.4\}\) (5 samples), right \(=\{50\}\) (1 sample). Left MSE \(=0.02\), right MSE \(=0\) (single point, perfect fit). Weighted post-split MSE \(=\frac56(0.02)+\frac16(0)\approx0.017\).</p>
+<p>\(\Delta\text{Impurity}\approx 317.4-0.017\approx 317.4\) — huge, because isolating one outlier trivially drives its leaf's impurity to 0. This is exactly why greedy trees "love" splitting off single-point leaves.</p>
+<p>Apply <code>min_samples_leaf=2</code>: the right child has only 1 sample → <strong>split rejected outright</strong>, regardless of its impurity score, forcing the tree to generalize instead of memorizing the outlier.</p>
+</div>
+
+<div class="box trap">
+<span class="label">Bias cost of over-constraining</span>
+<p>If a real, meaningful subgroup of only 6 samples exists but <code>min_samples_leaf=10</code>, the tree cannot isolate it — those 6 points get folded into a larger, more diverse leaf, and predictions for them are blended toward that leaf's average. This is a genuine <strong>bias</strong> cost, not just noise suppression: <code>min_samples_leaf</code> can't distinguish "6 samples of noise" from "6 samples of real signal," so over-aggressive tree regularization can hurt as much as too little.</p>
+</div>
+
+<h3 id="s5b">5b. Cost-complexity pruning (CCP)</h3>
+<p><strong>Intuition.</strong> 5a's constraints are all <strong>pre-pruning</strong> — stopping growth before it happens. This is myopic: a split that looks mediocre alone might enable a great split one level deeper, and pre-pruning can never see that. CCP flips the order — <strong>grow the tree fully</strong>, then prune back branches that aren't earning their keep, using global information pre-pruning never had.</p>
+
+<h4>The math</h4>
+$$R_\alpha(T)=R(T)+\alpha|T|$$
+<p>\(R(T)\) = total training error of subtree \(T\) (summed leaf errors); \(|T|\) = number of leaves (complexity, directly analogous to \(\sum|\beta_j|\) in Lasso); \(\alpha\) plays the same role as \(\lambda\).</p>
+
+<div class="box example">
+<span class="label">Worked example</span>
+<p>Fully grown tree \(T_0\): 4 pure leaves, \(R(T_0)=0\), \(|T_0|=4\). Collapse two sibling leaves into one, giving \(T_1\): \(|T_1|=3\), and the merge introduces 2 misclassifications: \(R(T_1)=2\).</p>
+<p>\(R_\alpha(T_0)=0+4\alpha\), \(R_\alpha(T_1)=2+3\alpha\). Crossover: \(4\alpha=2+3\alpha\Rightarrow\alpha=2\).</p>
+<p>General formula: \(\alpha_{\text{eff}}=\frac{R(T_1)-R(T_0)}{|T_0|-|T_1|}=\frac{2-0}{4-3}=2\) — "error cost paid per leaf removed." For \(\alpha<2\), keep the leaf; for \(\alpha>2\), prune it.</p>
+</div>
+
+<p>Algorithm: compute this effective-\(\alpha\) crossover for every prunable node, always pruning the "weakest link" (smallest \(\alpha_{\text{eff}}\)) first — producing a nested sequence \(T_0\supset T_1\supset\dots\supset\{\text{root}\}\). Final \(\alpha\) (sklearn's <code>ccp_alpha</code>) is chosen via cross-validation, sometimes with the "1-SE rule" (pick the simplest tree within 1 standard error of the best CV score).</p>
+
+<h3 id="s5c">5c. Random Forests — bagging &amp; feature subsampling</h3>
+<p><strong>Intuition.</strong> A completely different strategy: let individual trees grow <strong>fully</strong> (high variance, low bias — the opposite of pruning), and reduce variance by <strong>averaging many such trees</strong> instead of constraining any one of them.</p>
+
+<h4>The math</h4>
+<p>Averaging \(B\) i.i.d. variables each with variance \(\sigma^2\) gives \(\text{Var}(\bar X)=\sigma^2/B\). But bootstrap trees are correlated (overlapping samples, similar dominant features). With pairwise correlation \(\rho\):</p>
+$$\text{Var}(\bar X)=\rho\sigma^2+\frac{1-\rho}{B}\sigma^2$$
+<p>As \(B\to\infty\), the second term vanishes but the first does <strong>not</strong> — variance converges to a floor of \(\rho\sigma^2\). The bottleneck is \(\rho\), not \(B\). <code>max_features</code> (random feature subsampling at each split, e.g. \(\sqrt p\) for classification) directly decorrelates trees by forcing them to sometimes split on different, weaker features — attacking \(\rho\) directly, beyond what bagging alone achieves.</p>
+
+<div class="box example">
+<span class="label">Worked example</span>
+<p>Single fully-grown tree variance \(\sigma^2=100\), \(B=100\) trees.</p>
+<p>Bagging only (<code>max_features=p</code>), trees fairly correlated: \(\rho=0.5\). \(\text{Var}=0.5(100)+\frac{0.5}{100}(100)=50+0.5=50.5\).</p>
+<p>Bagging + feature subsampling: \(\rho=0.1\). \(\text{Var}=0.1(100)+\frac{0.9}{100}(100)=10+0.9=10.9\).</p>
+<p>Going from \(B=1\to100\) barely helps if \(\rho\) stays 0.5 (stuck near the 50 floor); lowering \(\rho\) from 0.5 to 0.1 nearly 5×'s the variance reduction. <code>max_features</code> is often more impactful than <code>n_estimators</code> past a point.</p>
+</div>
+
+<div class="box callback">
+<span class="label">RF vs Boosting — terminology trap</span>
+<p>Random Forest trees are intentionally <strong>deep, low-bias, high-variance strong learners</strong> — the opposite of boosting's shallow "weak learners" (5d). Mixing these terms up is a common interview slip. Also: adding more RF trees essentially never overfits — it just approaches the \(\rho\sigma^2\) floor; more trees only ever helps or plateaus.</p>
+</div>
+
+<h3 id="s5d">5d. Gradient Boosting — shrinkage, subsampling, tree constraints</h3>
+<p><strong>Intuition.</strong> RF builds trees in parallel and reduces variance via averaging. Boosting builds trees <strong>sequentially</strong>, and each new tree's entire job is to fit whatever residual (error) the current ensemble still has. Every tree reduces <strong>bias</strong>, chasing down whatever's left — including, eventually, pure noise. Unlike RF, <strong>boosting can and will overfit</strong> if run too long, which is why it needs several distinct regularization levers RF doesn't.</p>
+
+<h4>The mechanism</h4>
+$$F_m(x)=F_{m-1}(x)+\eta\cdot h_m(x)$$
+<p>\(h_m(x)\) = new tree fit to the current residual/negative gradient; \(\eta\in(0,1]\) = shrinkage/learning rate.</p>
+<ol>
+<li><strong>Shrinkage (\(\eta\)):</strong> scales down each tree's contribution — smaller steps, smoother final function, needs more rounds \(M\) to converge.</li>
+<li><strong>Row subsampling (<code>subsample</code>):</strong> each tree trains on a random fraction of rows (0.5–0.8) — same spirit as RF's bagging.</li>
+<li><strong>Column subsampling (<code>colsample_bytree</code>):</strong> same idea as RF's <code>max_features</code>.</li>
+<li><strong>Per-tree constraints (<code>max_depth</code>, <code>min_child_weight</code>):</strong> boosting trees are deliberately kept shallow (depth 3–6) — true weak learners, so no single tree can overfit any one residual too aggressively.</li>
+<li><strong>Number of rounds \(M\) / early stopping:</strong> \(M\) is itself a regularization parameter (like NN epochs) — monitor validation loss and stop once it stops improving.</li>
+</ol>
+
+<div class="box example">
+<span class="label">Worked example — the effect of shrinkage</span>
+<p>Residual after round 1: \(r=10\). A shallow tree can easily overfit and predict \(h(x)=10\) exactly.</p>
+<p>No shrinkage (\(\eta=1\)): \(F_2(x)=F_1(x)+1\times10\) — the ensemble absorbs the whole residual in one step, baking in any noise permanently.</p>
+<p>Shrinkage (\(\eta=0.1\)): \(F_2(x)=F_1(x)+0.1\times10=F_1(x)+1\) — only a small step; 9 units remain for future rounds, which will only reinforce the correction if it's a real, persistent pattern across resampled residuals — a one-off noisy residual gets diluted rather than fully committed.</p>
+</div>
+
+<p><strong>The classic overfitting curve:</strong> training error monotonically decreases with \(M\); validation error decreases, bottoms out at some \(M^*\), then rises as later rounds fit training-specific noise. Early stopping halts around \(M^*\).</p>
+
+<div class="box callback">
+<span class="label">Why boosting overfits but RF doesn't</span>
+<p>RF trees are fit <strong>independently</strong> to model the whole target; each tree's errors (including noise) are roughly uncorrelated with the others', so averaging <strong>cancels them out</strong> — this doesn't get worse with more trees. Boosting trees fit the <strong>residual left by the previous ensemble</strong>, and each correction is permanently added: \(F_m=F_{m-1}+\eta h_m\). There's no "average away the noise" step — once a correction is added, it's locked in. Early rounds correct real signal; late rounds increasingly correct pure noise, and that gets baked in irreversibly. <strong>Errors accumulate irreversibly in boosting; they cancel via averaging in RF.</strong></p>
+</div>
+
+<h3 id="s5e">5e. XGBoost / LightGBM specifics</h3>
+<p><strong>Intuition.</strong> XGBoost formalizes gradient boosting with an explicit regularized objective (via a second-order Taylor expansion), unifying tree-based regularization with the penalized-loss framework from Ridge/Lasso.</p>
+
+<h4>The math</h4>
+$$\text{Obj}=\sum_i l(y_i,\hat y_i)+\sum_k\Omega(f_k),\qquad \Omega(f)=\gamma T+\frac12\lambda\sum_{j=1}^Tw_j^2\ (+\alpha\sum_j|w_j|\text{ for L1})$$
+<p>\(T\)=number of leaves; \(w_j\)=leaf output value (analogous to \(\beta_j\), but it's a tree output, not an input-feature coefficient); \(\gamma\)=fixed cost per leaf (discourages splits that don't earn their keep); \(\lambda,\alpha\)=L2/L1 penalties on leaf weights.</p>
+<p>Using gradient/Hessian sums \(G,H\) within a leaf, the optimal leaf weight has closed form:</p>
+$$w_j^*=-\frac{G_j}{H_j+\lambda}$$
+<p>— directly comparable to Ridge's \(\hat\beta^{Ridge}=\beta^{OLS}/(1+\lambda)\): same shrinkage structure, applied to a leaf output instead of a coefficient.</p>
+<p>Split gain: $$\text{Gain}=\frac12\left[\frac{G_L^2}{H_L+\lambda}+\frac{G_R^2}{H_R+\lambda}-\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}\right]-\gamma$$</p>
+<p>A split only proceeds if \(\text{Gain}>0\) — the statistical improvement must exceed the fixed cost \(\gamma\).</p>
+
+<div class="box example">
+<span class="label">Worked example — leaf weight shrinkage</span>
+<p>Leaf with \(G=10, H=4\): \(\lambda=0\Rightarrow w^*=-2.5\). \(\lambda=1\Rightarrow w^*=-2.0\). \(\lambda=4\Rightarrow w^*=-1.25\) — larger \(\lambda\) pulls the leaf's contribution toward 0, exactly like Ridge.</p>
+</div>
+
+<div class="box example">
+<span class="label">Worked example — gamma gatekeeping a split</span>
+<p>\(G_L=10,H_L=4;\ G_R=-2,H_R=4;\ \lambda=1\). Raw gain (before \(\gamma\)): \(\frac12\left[\frac{100}{5}+\frac{4}{5}-\frac{64}{9}\right]=\frac12[20+0.8-7.11]=6.84\).</p>
+<p>\(\gamma=2\): final gain \(=6.84-2=4.84>0\) → split proceeds. \(\gamma=8\): final gain \(=6.84-8=-1.16<0\) → <strong>split rejected</strong>, even though the raw statistical improvement was real.</p>
+</div>
+
+<div class="box callback">
+<span class="label">Shrinkage is strongest where evidence is weakest</span>
+<p>\(H\) (Hessian sum) is a proxy for how much data backs a leaf's estimate — for squared-error loss, \(H\) is literally the sample count. Leaf A (\(H=1\), few samples): \(w=-10/1=-10\) unregularized, \(-10/2=-5\) with \(\lambda=1\) — <strong>50% shrinkage</strong>. Leaf B (\(H=100\), many samples): \(-10/100=-0.1\) unregularized, \(-10/101\approx-0.099\) with \(\lambda=1\) — <strong>~1% shrinkage</strong>. A fixed \(\lambda\) shrinks proportionally far more where evidence is weak — the same logic behind Bayesian / James-Stein shrinkage.</p>
+<p><strong>Note:</strong> \(\gamma\) is a <em>hard structural gate</em> (binary split/no-split decision) even though it's written inside the objective formula — functionally identical to CCP's pruning rule, unlike \(\lambda\) which does genuinely continuous, soft shrinkage.</p>
+</div>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s6">6. Data-Level Regularization</h2>
+<p><strong>Intuition.</strong> A different axis entirely: instead of restricting what the model is <em>allowed</em> to do, change what the model <em>sees</em> during training, so memorizing the training set becomes a losing strategy.</p>
+
+<h4>Data augmentation</h4>
+<p>Generate label-preserving synthetic variations (rotation/crop/flip, paraphrasing, pitch-shift). Effectively increases \(n\) — but the copies are correlated with each other, so returns are limited by the same \(\rho\sigma^2\)-style logic as Random Forest (5c): 1,000 images × 5 augmentations ≈ 5,000 samples per epoch, but not as good as 5,000 truly independent samples.</p>
+
+<h4>Noise injection</h4>
+<p>Adding small random noise to inputs during training is, to first order, <strong>mathematically equivalent to an L2/Tikhonov-style penalty</strong> on the derivatives of the learned function (Bishop, 1995) — it penalizes functions that change too sharply for small input changes. Not just "a different trick" — provably the same spirit as L2, implemented via perturbing data instead of adding a penalty term.</p>
+
+<h4>Label smoothing</h4>
+$$y_{\text{smooth}}=y_{\text{hard}}(1-\epsilon)+\frac{\epsilon}{K}$$
+<div class="box example">
+<span class="label">Worked example</span>
+<p>3-class problem, true class = 1, hard label \([1,0,0]\), \(\epsilon=0.1\), \(K=3\):</p>
+<p>$$y_{\text{smooth}}=[1,0,0](0.9)+\frac{0.1}{3}=[0.9,0,0]+[0.033,0.033,0.033]=[0.933,0.033,0.033]$$</p>
+</div>
+<div class="box callback">
+<span class="label">Direct callback to Section 4</span>
+<p>This solves the exact same "unbounded confidence" problem as separable-data logistic regression divergence — but from a different angle. With hard labels, a classifier can keep reducing loss forever by pushing predicted probability toward 1.0 (logits/coefficients → ∞). With label smoothing, the <em>target itself</em> is capped at 0.933 — loss is minimized at a finite logit value, removing the incentive for unbounded confidence entirely. L2 constrains the <em>model</em> (weights); label smoothing changes what "correct" <em>means</em> (the target) — different levers, same fix, and label smoothing tends to give more uniformly calibrated confidence across the whole input space since every prediction is trained against the same capped ceiling regardless of region.</p>
+</div>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s7">7. Regularization in Neural Networks</h2>
+
+<h4>Weight decay</h4>
+$$J(\theta)=\mathcal{L}(\theta)+\frac{\lambda}{2}\|\theta\|_2^2 \quad\Rightarrow\quad \theta_{t+1}=(1-\eta\lambda)\theta_t-\eta\nabla\mathcal L(\theta_t)$$
+<div class="box example">
+<span class="label">Worked example</span>
+<p>\(\theta_t=2.0\), \(\nabla\mathcal L=0.5\), \(\eta=0.1\), \(\lambda=0.1\). Without decay: \(\theta_{t+1}=2.0-0.1(0.5)=1.95\). With decay: \(\theta_{t+1}=(0.99)(2.0)-0.05=1.93\) — every step multiplicatively shrinks the weight toward 0, in addition to the normal gradient step.</p>
+</div>
+
+<h4>Dropout</h4>
+<p>Randomly zero each neuron's activation with probability \(p\) during training. Prevents co-adaptation — a neuron can't rely on any specific other neuron always being present — forcing redundant, robust representations.</p>
+<div class="box callback">
+<span class="label">Callback to Section 5c</span>
+<p>Every dropout mask defines a different subnetwork. Training with random masks approximates an ensemble of \(2^n\) subnetworks with shared weights — exactly the bagging/averaging variance-reduction idea from Random Forest, implemented inside one network via random architectural subsampling instead of separate trees.</p>
+</div>
+<p>Inverted dropout: sample \(m_i\sim\text{Bernoulli}(q)\), \(q=1-p\); scale surviving activations: \(\tilde h_i=\frac{m_i}{q}h_i\). At test time: no masking, no scaling.</p>
+<div class="box example">
+<span class="label">Worked example</span>
+<p>4 units, each contributing 2 when active, \(p=0.5\) (\(q=0.5\)). Train time: scaled value when active \(=\frac{1}{0.5}\times2=4\); expected contribution per unit \(=0.5(4)+0.5(0)=2\); total \(=8\).</p>
+<p>Test time (no dropout): each unit contributes 2 directly; total \(=8\). <strong>Matches exactly.</strong></p>
+<p>Now try \(p=0.75\) (\(q=0.25\)): scaled value when active \(=\frac{1}{0.25}\times2=8\). Expected contribution per unit \(=\mathbf{0.25}(8)+0.75(0)=2\) — same as before! The train/test equivalence holds for <em>any</em> \(p\), by design of inverted dropout's \(1/q\) scaling.</p>
+</div>
+
+<h4>BatchNorm as an incidental regularizer</h4>
+<p>Primary purpose: optimization stability (normalizes activations using mini-batch statistics, smooths the loss landscape). Side effect: mini-batch statistics are a noisy estimate of true population statistics, especially with small batches — this injects mild stochastic noise into activations, structurally the same idea as Section 6's noise injection, just accidental. Part of why BatchNorm architectures often need less Dropout.</p>
+
+<h4>Early stopping</h4>
+<p>Monitor validation loss across epochs, stop once it stops improving — the exact same idea as boosting's \(M\) (Section 5d), except the "rounds" are gradient descent epochs. For linear models under gradient descent, early stopping is approximately equivalent to L2 regularization: fewer iterations keep weights closer to their (near-zero) initialization, mimicking Ridge's shrinkage without an explicit penalty term.</p>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s8">8. Comparison Table Across Model Families</h2>
+<p class="tag-legend"><span class="tag-legend-label">Mechanism key:</span><span class="tag tag-soft">Soft Penalty</span><span class="tag tag-hard">Hard Constraint</span><span class="tag tag-ensemble">Ensemble Avg.</span><span class="tag tag-data">Data-Level</span><span class="tag tag-implicit">Implicit</span></p>
+<table>
+<tr><th>Model / Technique</th><th>What's controlled</th><th>Mechanism type</th><th>Key hyperparameter(s)</th><th>↑ strength means</th></tr>
+<tr><td>Ridge</td><td>Coefficient magnitude (\(\beta^2\))</td><td><span class="tag tag-soft">Soft Penalty</span><span class="tag-note">in loss</span></td><td>\(\lambda\)</td><td>\(\lambda\uparrow\)</td></tr>
+<tr><td>Lasso</td><td>Coefficient magnitude (\(|\beta|\)), sparsity</td><td><span class="tag tag-soft">Soft Penalty</span><span class="tag-note">in loss</span></td><td>\(\lambda\)</td><td>\(\lambda\uparrow\)</td></tr>
+<tr><td>Elastic Net</td><td>Both + correlated-feature grouping</td><td><span class="tag tag-soft">Soft Penalty</span><span class="tag-note">in loss</span></td><td>\(\lambda\), <code>l1_ratio</code></td><td>\(\lambda\uparrow\)</td></tr>
+<tr><td>Logistic Regression</td><td>Coefficient magnitude; prevents divergence</td><td><span class="tag tag-soft">Soft Penalty</span><span class="tag-note">in loss</span></td><td><code>C</code> (inverse \(\lambda\))</td><td>\(C\downarrow\)</td></tr>
+<tr><td>Single Decision Tree</td><td>Tree structure/depth</td><td><span class="tag tag-hard">Hard Constraint</span><span class="tag-note">structural</span></td><td><code>max_depth</code>, <code>min_samples_leaf</code></td><td>constraints tighter</td></tr>
+<tr><td>CCP-pruned Tree</td><td>Leaf count after full growth</td><td><span class="tag tag-soft">Soft Penalty</span><span class="tag-note">on structure</span></td><td><code>ccp_alpha</code></td><td>\(\alpha\uparrow\)</td></tr>
+<tr><td>Random Forest</td><td>Ensemble variance</td><td><span class="tag tag-ensemble">Ensemble Avg.</span><span class="tag-note">decorrelation</span></td><td><code>max_features</code>, <code>n_estimators</code></td><td><code>max_features</code>\(\downarrow\)</td></tr>
+<tr><td>Gradient Boosting</td><td>Cumulative bias-reduction process</td><td><span class="tag tag-implicit">Sequential</span><span class="tag-note">step-size + early stop</span></td><td><code>learning_rate</code>, <code>n_estimators</code></td><td>\(\eta\downarrow\), fewer rounds</td></tr>
+<tr><td>XGBoost</td><td>Leaf outputs + split admission</td><td><span class="tag tag-soft">Soft</span> <span class="tag tag-hard">+ Hard</span><span class="tag-note">penalty and gate</span></td><td>\(\lambda,\alpha,\gamma\)</td><td>all \(\uparrow\)</td></tr>
+<tr><td>Data Augmentation</td><td>Effective sample diversity</td><td><span class="tag tag-data">Data-Level</span></td><td>augmentation strength/count</td><td>more/stronger</td></tr>
+<tr><td>Label Smoothing</td><td>Target confidence ceiling</td><td><span class="tag tag-data">Data-Level</span></td><td>\(\epsilon\)</td><td>\(\epsilon\uparrow\)</td></tr>
+<tr><td>Weight Decay (NN)</td><td>Weight magnitude</td><td><span class="tag tag-soft">Soft Penalty</span><span class="tag-note">≈L2 under SGD</span></td><td>\(\lambda\)</td><td>\(\lambda\uparrow\)</td></tr>
+<tr><td>Dropout</td><td>Co-adaptation between units</td><td><span class="tag tag-ensemble">Ensemble Avg.</span><span class="tag-note">implicit</span></td><td>\(p\)</td><td>\(p\uparrow\)</td></tr>
+<tr><td>BatchNorm</td><td>Incidental — noisy batch stats</td><td><span class="tag tag-data">Data-Level</span><span class="tag-note">accidental noise</span></td><td>batch size</td><td>smaller batch</td></tr>
+<tr><td>Early Stopping</td><td>Distance from initialization</td><td><span class="tag tag-implicit">Implicit</span><span class="tag-note">via truncation</span></td><td>epochs / patience</td><td>fewer epochs</td></tr>
+</table>
+<p><strong>The meta-pattern:</strong> every technique answers the same question — "how much effective capacity should the model use, relative to how much data supports it?" — via different levers: penalize the objective directly (Ridge/Lasso/weight decay/XGBoost \(\lambda\)), hard-constrain structure (tree depth, CCP, XGBoost \(\gamma\)), average away variance across decorrelated models (RF, Dropout), or change the data/targets themselves (augmentation, label smoothing, BatchNorm's side effect).</p>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<h2 id="s9">9. Interview Traps &amp; Edge Cases</h2>
+
+<h3>Weight decay ≠ L2 regularization in Adam</h3>
+<p>For plain SGD, L2-in-loss and weight-decay-in-update are mathematically identical. This breaks for Adam, whose update divides the gradient by an adaptive per-parameter term: \(\theta_{t+1}=\theta_t-\eta\frac{\hat m_t}{\sqrt{\hat v_t}+\epsilon}\).</p>
+<p>Naive implementation adds \(\lambda\theta_t\) to the gradient <em>before</em> this adaptive division: \(g_t=\nabla\mathcal L(\theta_t)+\lambda\theta_t\). The effective decay then gets divided by \(\sqrt{\hat v_t}\), which differs per parameter based on historical gradient noise.</p>
+<div class="box example">
+<span class="label">Worked example</span>
+<p>Two parameters, both \(\theta=2\), \(\lambda=0.1\), \(\eta=0.1\), tiny loss gradient ≈0.01 for both.</p>
+<p>Param A (stable gradients): \(\hat v_A=0.01\Rightarrow\sqrt{\hat v_A}=0.1\). Param B (noisy gradients): \(\hat v_B=4\Rightarrow\sqrt{\hat v_B}=2\).</p>
+<p>Combined gradient (same for both): \(g=0.01+0.1(2)=0.21\).</p>
+<p>Update\(_A\approx0.1(0.21)/0.1=0.21\). Update\(_B\approx0.1(0.21)/2=0.0105\).</p>
+<p><strong>Param A gets 20× more shrinkage than Param B</strong>, despite identical weight value and identical nominal penalty — exactly backwards from intent (the noisy, overfit-prone parameter gets shrunk <em>least</em>).</p>
+</div>
+<p><strong>Fix — AdamW</strong> (Loshchilov &amp; Hutter, 2017): decouple weight decay entirely from the adaptive path: $$\theta_{t+1}=\theta_t-\eta\frac{\hat m_t}{\sqrt{\hat v_t}+\epsilon}-\eta\lambda\theta_t$$ Now both parameters get the same \(\eta\lambda\theta=0.02\) decay regardless of \(\hat v_t\). In PyTorch: <code>torch.optim.Adam(weight_decay=...)</code> is the flawed naive version; <code>torch.optim.AdamW(weight_decay=...)</code> is the correct decoupled version.</p>
+
+<h3>Other rapid-fire traps</h3>
+<ul>
+<li><strong>Never regularize the bias/intercept.</strong> Penalizing \(\beta_0\) constrains the model's baseline output, not its complexity. Standard implementations exclude it by convention.</li>
+<li><strong>L1/L2 require feature scaling first.</strong> Penalty is applied to raw coefficient magnitude — unscaled features (millions vs. single digits) get penalized unfairly relative to their actual importance.</li>
+<li><strong>Regularization doesn't always help.</strong> If \(n\gg p\), variance is already tiny; adding a penalty just injects bias for nothing (Section 1 callback).</li>
+<li><strong>Double descent.</strong> The classical U-shaped bias-variance curve assumes test error rises monotonically past the capacity "sweet spot." Heavily overparameterized models (far past the point of perfectly interpolating training data) can see test error come back <em>down</em> again past that interpolation threshold — a second descent (Belkin et al., 2019). Complicates the simple "regularize to avoid overfitting" story for very large models; active research-adjacent topic.</li>
+</ul>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+<hr>
+
+<h2 id="qa">30 Interview Questions &amp; Answers</h2>
+<p class="meta">Click any question to reveal the answer.</p>
+
+<details class="qa"><summary><span class="qnum">1.</span>What is the bias-variance tradeoff?</summary>
+<div class="a"><p>Test error decomposes as \(\text{Bias}^2+\text{Variance}+\sigma^2\). Bias = systematic error from an overly simple model; variance = sensitivity of predictions to which training sample you drew; \(\sigma^2\) = irreducible noise. Regularization increases bias slightly to buy a larger variance reduction.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">2.</span>Why does regularization trade bias for variance rather than eliminating error entirely?</summary>
+<div class="a"><p>Shrinking/constraining a model pulls its average prediction away from the true function (bias↑) but makes it far less sensitive to the specific training sample (variance↓↓). It's a trade, not a free lunch — worthwhile only when the variance drop outweighs the bias cost.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">3.</span>When does regularization fail to help, or even hurt?</summary>
+<div class="a"><p>When \(n\gg p\) — e.g. 500,000 samples, 10 features. Coefficient variance \(\sigma^2(X^TX)^{-1}\) is already tiny because \(X^TX\) is huge, so there's little variance to reduce; adding a penalty only injects bias with no offsetting benefit.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">4.</span>Geometrically, why does Lasso produce sparse solutions but Ridge doesn't?</summary>
+<div class="a"><p>Ridge's constraint region (\(\sum\beta_j^2\le t\)) is a circle/sphere with no corners. Lasso's region (\(\sum|\beta_j|\le t\)) is a diamond with corners exactly on the coordinate axes. Error contours are far more likely to first touch a corner than a smooth edge, landing the solution with some coefficients at exactly zero.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">5.</span>Why does L1's penalty gradient induce sparsity while L2's doesn't?</summary>
+<div class="a"><p>L2's gradient is \(2\lambda\beta_j\) — proportional, weakens as \(\beta_j\to0\), asymptotically approaches but rarely reaches zero. L1's gradient is \(\lambda\cdot\text{sign}(\beta_j)\) — constant regardless of magnitude, strong enough to drive small coefficients all the way to exactly 0 (soft-thresholding).</p></div></details>
+
+<details class="qa"><summary><span class="qnum">6.</span>What is Elastic Net and when should you use it over pure Lasso?</summary>
+<div class="a"><p>A weighted blend of L1 and L2 penalties: \(\lambda[\alpha\sum|\beta_j|+(1-\alpha)\sum\beta_j^2]\). Use it when features are highly correlated — pure Lasso arbitrarily zeroes out all but one feature in a correlated group (unstable across resamples), while Elastic Net's L2 component spreads weight across the group (grouping effect) while still zeroing out genuinely irrelevant features.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">7.</span>Why does Lasso behave unstably with highly correlated features?</summary>
+<div class="a"><p>If \(x_1,x_2\) are nearly identical, Lasso is indifferent among many solutions giving the same fit and the same \(\sum|\beta|\), but its corner-seeking geometry pushes it to an arbitrary sparse extreme (e.g. \((2,0)\) vs \((0,2)\)) — a tiny data perturbation can flip which feature "wins."</p></div></details>
+
+<details class="qa"><summary><span class="qnum">8.</span>Why is regularization essentially mandatory for logistic regression on separable data?</summary>
+<div class="a"><p>With perfectly separable data, pushing the coefficient (and thus predicted confidence) toward infinity always reduces the log-loss a little more — the unregularized MLE has no finite maximizer, so gradient ascent diverges. Adding an L2 penalty (which grows unboundedly as \(\beta\to\infty\)) makes the total objective have a genuine finite minimum.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">9.</span>In sklearn, what does the <code>C</code> parameter in <code>LogisticRegression</code> actually control?</summary>
+<div class="a"><p><code>C=1/λ</code> — the inverse of regularization strength. Large <code>C</code> = weak regularization (bold coefficients close to raw MLE); small <code>C</code> = strong regularization (coefficients squeezed toward zero). This is the opposite direction of \(\lambda\)-intuition, a common source of confusion.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">10.</span>Is sklearn's default <code>LogisticRegression</code> actually unregularized?</summary>
+<div class="a"><p>No — it applies L2 regularization by default (<code>C=1.0</code>, i.e. \(\lambda=1\)). This differs from <code>statsmodels</code>, which defaults to no penalty — worth knowing when replicating textbook MLE results or comparing libraries.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">11.</span>What are the main ways to regularize a single decision tree?</summary>
+<div class="a"><p>Hard structural stopping rules applied during greedy growth: <code>max_depth</code> (caps depth, bounding leaves to \(\le2^d\)), <code>min_samples_split</code> (min samples to consider splitting), <code>min_samples_leaf</code> (min samples required in both children post-split), and <code>min_impurity_decrease</code> (minimum required impurity reduction to accept a split).</p></div></details>
+
+<details class="qa"><summary><span class="qnum">12.</span>Why do unconstrained decision trees achieve zero training error, and why is that bad?</summary>
+<div class="a"><p>A tree can keep splitting until every leaf is pure or has one sample, trivially fitting every training point exactly — the ultimate high-variance regime. It's bad because such a tree has memorized noise along with signal and will generalize poorly to new data.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">13.</span>What is cost-complexity pruning, and what's the formula?</summary>
+<div class="a"><p>\(R_\alpha(T)=R(T)+\alpha|T|\), where \(R(T)\) is total training error and \(|T|\) is leaf count. Grow the tree fully, then prune whichever branch has the smallest "error cost per leaf removed" (\(\alpha_{\text{eff}}=\frac{R(T_{\text{pruned}})-R(T_{\text{full}})}{|T_{\text{full}}|-|T_{\text{pruned}}|}\)) first, producing a nested sequence of subtrees; pick the final \(\alpha\) via cross-validation.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">14.</span>What's the difference between pre-pruning and post-pruning (CCP)?</summary>
+<div class="a"><p>Pre-pruning (<code>max_depth</code>, etc.) stops growth early and is myopic — it can't see that a locally weak split might enable a great split deeper down. CCP grows the full tree first, then prunes using global information about the whole tree's structure, avoiding that blind spot.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">15.</span>How does Random Forest reduce variance without pruning or constraining individual trees?</summary>
+<div class="a"><p>It lets each tree grow fully (high variance, low bias) and averages many of them. \(\text{Var}(\bar X)=\rho\sigma^2+\frac{1-\rho}{B}\sigma^2\) — averaging cancels uncorrelated per-tree errors, driving variance down toward a floor set by \(\rho\), the correlation between trees.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">16.</span>Why doesn't adding more trees to a Random Forest keep reducing variance indefinitely?</summary>
+<div class="a"><p>Because variance converges to a floor of \(\rho\sigma^2\) as \(B\to\infty\) — the \(\frac{1-\rho}{B}\) term vanishes, but the \(\rho\sigma^2\) term does not. More trees only chips away at the vanishing term; it can't fix a high floor caused by correlated trees.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">17.</span>What is <code>max_features</code> doing mechanistically in Random Forest?</summary>
+<div class="a"><p>Restricting each split to a random subset of features (e.g. \(\sqrt p\)) forces different trees to sometimes split on different, weaker features rather than all converging on the same dominant predictor — directly lowering the pairwise tree correlation \(\rho\), which attacks the dominant term in the variance floor.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">18.</span>Why can Random Forest not really overfit by adding trees, while Boosting can?</summary>
+<div class="a"><p>RF trees are fit independently to the whole target; their errors (including noise fit) are roughly uncorrelated and cancel via averaging — this doesn't worsen with more trees. Boosting trees fit the residual left by prior trees and their corrections are permanently added (\(F_m=F_{m-1}+\eta h_m\)); once a noise-driven correction is added, it's locked in, so too many rounds cause errors to accumulate irreversibly.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">19.</span>What is shrinkage (learning rate) in Gradient Boosting, and what does it trade off against?</summary>
+<div class="a"><p>\(F_m=F_{m-1}+\eta h_m\), \(\eta\in(0,1]\), scales down each new tree's contribution. Small \(\eta\) means smoother, more regularized final ensembles but requires more rounds \(M\) to converge — the classic \(\eta\)-vs-\(M\) tradeoff, usually resolved with small \(\eta\) + large \(M\) + early stopping.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">20.</span>Why are boosting trees typically shallow ("weak learners"), unlike Random Forest's deep trees?</summary>
+<div class="a"><p>Because each boosting tree directly and permanently steers the cumulative fit — a deep, high-variance tree fit to a residual would overfit that residual (including its noise) aggressively, and that error can never be averaged away later. Shallow trees limit how much damage any one round can do.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">21.</span>Why is early stopping necessary in boosting but optional in Random Forest?</summary>
+<div class="a"><p>Boosting keeps reducing bias every round by fitting whatever residual remains — including noise once real signal is exhausted — so training error keeps falling while validation error eventually rises. RF's variance floor means more trees essentially never hurts, so there's no comparable "too many trees" failure mode to guard against.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">22.</span>What is XGBoost's regularized objective, and how does it differ from vanilla CART?</summary>
+<div class="a"><p>\(\Omega(f)=\gamma T+\frac12\lambda\sum w_j^2\) added directly to the loss, optimized via a second-order Taylor expansion at each split. Unlike vanilla CART (procedural stopping rules only), XGBoost has an explicit penalty term on leaf outputs, giving true Ridge/Lasso-style shrinkage plus a formal per-leaf complexity cost computed live during construction.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">23.</span>What is the closed-form optimal leaf weight in XGBoost, and how is it analogous to Ridge?</summary>
+<div class="a"><p>\(w_j^*=-G_j/(H_j+\lambda)\) — directly parallel to Ridge's \(\hat\beta^{Ridge}=\beta^{OLS}/(1+\lambda)\): \(\lambda\) sits in the denominator, shrinking the estimate toward zero as it grows, just applied to a leaf's output rather than an input-feature coefficient.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">24.</span>What does \(\gamma\) do in XGBoost, and how does it differ mechanically from \(\lambda\)?</summary>
+<div class="a"><p>\(\gamma\) is a fixed cost per leaf — a split is only made if \(\text{Gain}>0\) after subtracting \(\gamma\), i.e. it's a hard, binary keep/reject gate on splits (functionally identical to CCP's pruning rule), while \(\lambda\) does continuous, graded shrinkage of leaf weights (a genuinely soft penalty, like Ridge). Both appear in the same objective formula, but they behave differently.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">25.</span>Why does the same \(\lambda\) shrink a leaf with few samples more than a leaf with many samples in XGBoost?</summary>
+<div class="a"><p>\(H\) (Hessian sum) approximates the amount of evidence backing the leaf's estimate — for squared loss it's literally the sample count. A fixed \(\lambda\) dominates a small denominator (\(H+\lambda\)) proportionally more than a large one, so low-evidence leaves get shrunk hardest — the same logic as Bayesian/James-Stein shrinkage: regularize more where you have less evidence.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">26.</span>What is data augmentation, and why does it act as a regularizer?</summary>
+<div class="a"><p>Generating label-preserving synthetic variations of training data (rotations, crops, paraphrases, etc.). It forces the model to learn invariant, generalizable features rather than memorizing exact input values — effectively raising the sample size, though with diminishing/correlated returns similar to Random Forest's \(\rho\sigma^2\) floor, since augmented copies are correlated with their originals.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">27.</span>What's the theoretical connection between noise injection and L2 regularization?</summary>
+<div class="a"><p>Bishop (1995) showed that training with small additive Gaussian input noise is, to first order, equivalent to adding a smoothness penalty on the derivatives of the learned function — a Tikhonov/L2-style penalty — even though no explicit penalty term is written down.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">28.</span>How does label smoothing prevent overconfident predictions, and how is this related to the logistic regression divergence problem?</summary>
+<div class="a"><p>\(y_{\text{smooth}}=y_{\text{hard}}(1-\epsilon)+\epsilon/K\) caps the training target below 1.0 (e.g. 0.933 with \(\epsilon=0.1,K=3\)). This removes the incentive for logits/coefficients to grow unboundedly — the same "confidence blows up to infinity" problem seen with separable logistic regression data, but fixed by capping the target instead of penalizing the weights.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">29.</span>What is weight decay in neural networks, and how is it implemented under vanilla SGD?</summary>
+<div class="a"><p>Adding \(\frac{\lambda}{2}\|\theta\|^2\) to the loss, giving the update rule \(\theta_{t+1}=(1-\eta\lambda)\theta_t-\eta\nabla\mathcal L(\theta_t)\) — every step multiplicatively shrinks the weight toward zero by \((1-\eta\lambda)\), in addition to the normal gradient step. Under vanilla SGD this is exactly equivalent to L2 regularization in the loss.</p></div></details>
+
+<details class="qa"><summary><span class="qnum">30.</span>Why does weight decay stop being equivalent to L2 regularization under Adam, and what fixes it?</summary>
+<div class="a"><p>Adam divides gradients by an adaptive per-parameter term \(\sqrt{\hat v_t}\). If the L2 penalty \(\lambda\theta\) is folded into the gradient before this division, its effective strength gets rescaled inconsistently per parameter — parameters with noisy/large historical gradients (large \(\hat v_t\)) get <em>less</em> actual decay, exactly backwards from intent. AdamW (Loshchilov &amp; Hutter, 2017) fixes this by applying weight decay as a separate term <em>after</em> the adaptive step: \(\theta_{t+1}=\theta_t-\eta\frac{\hat m_t}{\sqrt{\hat v_t}+\epsilon}-\eta\lambda\theta_t\), restoring uniform shrinkage regardless of \(\hat v_t\).</p></div></details>
+
+<p class="meta" style="margin-top:3em;">Compiled as a personal reference from a structured deep-dive session. Covers linear/GLM regularization (L1, L2, Elastic Net), tree-based regularization (pre-pruning, CCP, Random Forest, Gradient Boosting, XGBoost), data-level regularization, and neural network regularization, unified through the bias-variance framework.</p>
+
+<a class="backtotop" href="#top">↑ back to contents</a>
+
+</div>
+</body>
+</html>

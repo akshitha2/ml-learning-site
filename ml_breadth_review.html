@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ML Breadth Round — Review</title>
+<style>
+  :root{
+    --bg:#0f1416;
+    --panel:#161d21;
+    --panel-alt:#1b2327;
+    --ink:#e7edf0;
+    --ink-dim:#9fb0b6;
+    --rule:#2a3438;
+    --accent:#5fb8a8;
+    --accent-soft:#213331;
+    --must:#e0a83e;
+    --must-bg:#2c2410;
+    --wrong:#c9705f;
+    --code-bg:#10161a;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --mono:'IBM Plex Mono','SF Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--serif);
+    margin:0;
+    padding:0;
+    line-height:1.55;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding:56px 28px 120px;}
+  header{margin-bottom:48px;border-bottom:1px solid var(--rule);padding-bottom:28px;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:10px;
+  }
+  h1{font-size:32px;font-weight:600;margin:0 0 8px;color:var(--ink);}
+  .meta{color:var(--ink-dim);font-size:14px;font-family:var(--mono);}
+  .toc{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:20px 24px;
+    margin-bottom:52px;
+  }
+  .toc-title{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:12px;}
+  .toc ol{margin:0;padding-left:20px;columns:2;column-gap:24px;}
+  .toc li{font-size:14px;margin-bottom:6px;break-inside:avoid;}
+  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent;}
+  .toc a:hover{border-bottom-color:var(--accent);color:var(--accent);}
+
+  .q-block{
+    margin-bottom:44px;
+    padding-bottom:44px;
+    border-bottom:1px solid var(--rule);
+    scroll-margin-top:24px;
+  }
+  .q-block:last-child{border-bottom:none;}
+  .q-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--accent);
+    letter-spacing:0.08em;
+    margin-bottom:10px;
+  }
+  .status{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:2px 8px;
+    border-radius:3px;
+    margin-left:10px;
+    vertical-align:middle;
+  }
+  .status.wrong{background:#331b17;color:var(--wrong);}
+  .status.partial{background:#2c2410;color:var(--must);}
+  .status.correct{background:#173328;color:var(--accent);}
+
+  .question{
+    font-size:19px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 18px;
+  }
+
+  .must{
+    background:var(--must-bg);
+    border-left:3px solid var(--must);
+    padding:14px 18px;
+    margin:16px 0;
+    border-radius:0 4px 4px 0;
+  }
+  .must-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--must);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .must p{margin:0;font-size:15px;color:var(--ink);}
+
+  .answer{margin-top:16px;}
+  .answer-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:8px;
+  }
+  .answer p{margin:0 0 12px;font-size:15.5px;color:#dbe4e7;}
+  .answer p:last-child{margin-bottom:0;}
+
+  code, .formula{
+    font-family:var(--mono);
+    background:var(--code-bg);
+    padding:1px 6px;
+    border-radius:3px;
+    font-size:0.92em;
+    color:#a9d6cb;
+    border:1px solid var(--rule);
+  }
+
+  .followup{
+    margin-top:16px;
+    padding:14px 18px;
+    background:var(--panel-alt);
+    border-radius:4px;
+    border:1px solid var(--rule);
+  }
+  .followup-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:6px;
+  }
+  .followup p{margin:0;font-size:14.5px;color:var(--ink-dim);}
+
+  footer{
+    margin-top:60px;
+    padding-top:24px;
+    border-top:1px solid var(--rule);
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+  a.top{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:11px;}
+
+  @media (max-width:600px){
+    .toc ol{columns:1;}
+    .wrap{padding:32px 18px 80px;}
+    h1{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Interview Prep · ML Breadth Round</div>
+  <h1>Question Bank & Elaborated Answers</h1>
+  <div class="meta">14 questions · gold boxes mark the non-negotiable part of each answer</div>
+</header>
+
+<nav class="toc">
+  <div class="toc-title">Jump to</div>
+  <ol>
+    <li><a href="#q1">Q1 — Accuracy on imbalanced data</a></li>
+    <li><a href="#q2">Q2 — ROC-AUC vs PR-AUC mechanics</a></li>
+    <li><a href="#q3">Q3 — Bagging vs boosting overfitting</a></li>
+    <li><a href="#q4">Q4 — XGBoost regularization params</a></li>
+    <li><a href="#q5">Q5 — NN zero-init symmetry breaking</a></li>
+    <li><a href="#q6">Q6 — Bias init: weights vs biases</a></li>
+    <li><a href="#q7">Q7 — L1 vs L2 geometric sparsity</a></li>
+    <li><a href="#q8">Q8 — k-fold CV bias/variance</a></li>
+    <li><a href="#q9">Q9 — Covariate shift vs concept drift</a></li>
+    <li><a href="#q10">Q10 — Temporal data leakage</a></li>
+    <li><a href="#q11">Q11 — SGD as implicit regularizer</a></li>
+    <li><a href="#q12">Q12 — Kernel trick mechanics</a></li>
+    <li><a href="#q13">Q13 — Diagnosing train/val/test gap</a></li>
+    <li><a href="#q14">Q14 — Vanishing gradients + ReLU</a></li>
+  </ol>
+</nav>
+
+<!-- Q1 -->
+<div class="q-block" id="q1">
+  <div class="q-num">QUESTION 01 <span class="status correct">Correct</span></div>
+  <p class="question">You have a logistic regression model with 95% accuracy on a fraud dataset where 2% of transactions are fraud. Is this a good model? Justify with what you'd actually look at instead.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>State that a "predict majority class always" baseline already scores ~98% accuracy here — so 95% is actually worse than doing nothing. Then name PR-AUC (not ROC-AUC) as the better metric for imbalanced classes.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>With 2% positive class, a trivial "always predict negative" model scores 98% accuracy. So 95% accuracy here is <em>worse</em> than a model that does nothing — accuracy is actively misleading, not just uninformative.</p>
+    <p>Instead, use metrics that decompose performance by class: precision, recall, F1, and specifically <span class="formula">PR-AUC</span> over the full threshold range. PR-AUC is preferred over ROC-AUC here because its axes (precision, recall) never involve the true negative count, so it isn't diluted by the size of the majority class — see Q2 for the mechanism.</p>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="q-block" id="q2">
+  <div class="q-num">QUESTION 02 <span class="status wrong">Repeated miss</span></div>
+  <p class="question">Why does ROC-AUC give a misleadingly optimistic picture on imbalanced data, but PR-AUC doesn't? Given 10,000 negatives, 200 positives, 50 false positives, and 100 of 200 frauds caught — compute FPR and precision, and say which is more alarming.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p><span class="formula">FPR = FP / (FP + TN)</span> — not TNR. With TP=100, FN=100, FP=50, TN=10000: <span class="formula">FPR = 50/10050 ≈ 0.005</span>, <span class="formula">Precision = TP/(TP+FP) = 100/150 ≈ 0.67</span>. The tiny FPR is what makes ROC-AUC deceptively optimistic; the 0.67 precision is the number that actually exposes the model's weakness.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>ROC's x-axis is <span class="formula">FPR = FP/(FP+TN)</span>. When TN is huge (majority class), FPR stays small even if the model produces many false positives in absolute terms — the huge denominator dilutes the effect. That's why ROC-AUC looks great on imbalanced data even for a mediocre model: it's measuring something the negative class overwhelms.</p>
+    <p>Precision's denominator is <span class="formula">TP+FP</span> — it never touches TN, so it isn't inflated by class size. Precision = 0.67 correctly signals "1 in 3 fraud alerts is a false alarm," which has direct business cost (analyst time), while FPR = 0.005 hides that same weakness. This is exactly why PR-AUC surfaces problems ROC-AUC conceals under imbalance.</p>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="q-block" id="q3">
+  <div class="q-num">QUESTION 03 <span class="status partial">Partial</span></div>
+  <p class="question">Explain the fundamental difference in how Random Forest and XGBoost combine trees, and why GBM is more prone to overfitting than Random Forest despite both being tree ensembles.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>Bagging = parallel, independent trees averaged → reduces <em>variance</em>, bias roughly unchanged. Boosting = sequential, fits residuals → reduces <em>bias</em>, but at the cost of increasing variance/overfitting risk if unregularized.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Random Forest trains many trees independently on bootstrap samples and averages predictions — this is variance reduction: <span class="formula">Var(average) = ρσ² + (1−ρ)σ²/n</span>, where ρ is inter-tree correlation. Bias is essentially unchanged because each tree's expectation ≈ the expectation of a tree trained on the full data; averaging doesn't shift that expectation, only shrinks the spread around it.</p>
+    <p>XGBoost trains trees sequentially, each one fitting the residual error of the ensemble so far. This directly attacks bias — training error keeps dropping — but each new tree is free to chase noise/outliers in the residuals just as eagerly as real signal, which increases variance. That's why boosting needs explicit regularization (learning rate/shrinkage, max_depth, early stopping) to keep the bias-reduction machinery from overfitting.</p>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="q-block" id="q4">
+  <div class="q-num">QUESTION 04 <span class="status wrong">Repeated miss, then corrected</span></div>
+  <p class="question">Name two XGBoost hyperparameters that control overfitting and explain their mechanism (not just "it regularizes"). What is gamma's exact role, and how does reg_lambda differ from reg_alpha?</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p><span class="formula">gamma</span> = minimum loss reduction required before a split is allowed (regularizes tree <em>structure</em>) — it is <strong>not</strong> L1. <span class="formula">reg_alpha</span> (L1) shrinks leaf weights to exactly zero (sparse). <span class="formula">reg_lambda</span> (L2) shrinks leaf weights smoothly toward zero without eliminating them.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p><span class="formula">gamma</span> is a complexity penalty on splitting: a candidate split is only made if its loss-reduction (gain) exceeds gamma; otherwise the split is pruned. It regularizes the tree's structure/depth, not the leaf output values.</p>
+    <p><span class="formula">reg_alpha</span> (L1) penalizes the leaf weight magnitudes with an absolute-value penalty, which can drive small weights exactly to zero — sparse leaf outputs. <span class="formula">reg_lambda</span> (L2) penalizes squared leaf weights, producing proportional shrinkage that gets small but never hits exactly zero.</p>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="q-block" id="q5">
+  <div class="q-num">QUESTION 05 <span class="status partial">Partial</span></div>
+  <p class="question">Why do we initialize NN weights randomly instead of all zero? Be specific about the failure mode.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>All-zero weights means every neuron in a layer receives <em>identical</em> gradients at every step (same weights + same input → same output → same backprop signal), so they stay identical forever — it's an invariant from step 1, not something they "eventually converge to."</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>If all weights in a layer start at zero, every neuron in that layer computes the exact same function of the input. Because they're identical, they receive the exact same gradient during backprop, so their updates are identical too — this holds at every subsequent step, not just at initialization. The layer is permanently stuck behaving like a single neuron regardless of how many neurons it has, since nothing ever breaks the symmetry.</p>
+  </div>
+</div>
+
+<!-- Q6 -->
+<div class="q-block" id="q6">
+  <div class="q-num">QUESTION 06 <span class="status wrong">Repeated miss, answer given</span></div>
+  <p class="question">Does the symmetry-breaking problem apply to biases too? Can biases be safely zero-initialized while weights cannot?</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>Yes, biases can safely be zero — because once <em>weights</em> are randomly initialized, neurons already receive different inputs to their activations and therefore different gradients, regardless of bias value. Symmetry is already broken by the weights; bias has nothing left to symmetrize.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Symmetry-breaking requires neurons to be identical in <em>every</em> parameter feeding their computation. With random weight init, neuron A and neuron B already have different incoming weight vectors, so they compute different pre-activations and receive different gradients — independent of whether their biases are both zero. This is why standard init schemes (Xavier, He) routinely set biases to zero while randomizing only the weights; it's standard practice, not a workaround.</p>
+  </div>
+</div>
+
+<!-- Q7 -->
+<div class="q-block" id="q7">
+  <div class="q-num">QUESTION 07 <span class="status wrong">Repeated miss, answer given</span></div>
+  <p class="question">Explain geometrically why L1 regularization produces sparse (exact-zero) solutions but L2 doesn't.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>L2's constraint region is a smooth circle/sphere — no corners, so the loss-contour tangent point generically lands where no coordinate is exactly zero. L1's constraint region is a diamond with corners sitting exactly on the axes — loss contours are much more likely to first touch at a corner, which is precisely a point where a coordinate equals zero.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Regularized regression can be framed as minimizing loss subject to a constraint on weight norm. L2's constraint <span class="formula">‖w‖₂ ≤ t</span> is a sphere — smooth everywhere, so the point where the loss's elliptical contours first touch it can be anywhere on the surface, generically off-axis (no zero coordinates).</p>
+    <p>L1's constraint <span class="formula">‖w‖₁ ≤ t</span> is a diamond with sharp vertices exactly on the coordinate axes. Loss contours are disproportionately likely to first touch at one of these corners, because corners protrude — and touching a corner means one or more coordinates are exactly zero. That's the geometric source of sparsity.</p>
+    <p>Algebraically: L2's gradient contribution is <span class="formula">−λw</span> (proportional to current weight) → multiplicative shrinkage that approaches but never reaches zero. L1's gradient contribution is <span class="formula">−λ·sign(w)</span> (constant magnitude regardless of w) → a fixed-size step that can overshoot past zero and gets clipped exactly to zero, and stays there.</p>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="q-block" id="q8">
+  <div class="q-num">QUESTION 08 <span class="status wrong">Off-topic answer</span></div>
+  <p class="question">Why does increasing k in k-fold CV reduce bias in the performance estimate but increase variance? Be specific about what changes in each fold.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>This is about bias/variance of the <em>performance estimate itself</em>, not model overfitting. Small k → less training data per fold → pessimistic bias. Large k → training folds overlap heavily (highly correlated models) and test folds are tiny → noisy, high-variance estimate.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p><strong>Bias:</strong> with small k (e.g. 5), each training fold uses 80% of the data — less than the full dataset the final model will use in production, so performance is underestimated (pessimistic bias). Larger k (e.g. 20) uses 95% of data per fold, closer to production conditions, shrinking that bias.</p>
+    <p><strong>Variance:</strong> with large k, test folds are tiny and training folds overlap almost completely across folds — the k models become highly correlated, and each fold's score is noisy due to the small test set. This makes the <em>estimate</em> (the average across folds) unstable across different random splits — higher variance, despite lower bias.</p>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="q-block" id="q9">
+  <div class="q-num">QUESTION 09 <span class="status wrong">Definitions inverted</span></div>
+  <p class="question">Explain covariate shift vs concept drift, and give one production-viable detection method for each.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>Covariate shift = <span class="formula">P(X)</span> changes, <span class="formula">P(Y|X)</span> stays the same. Concept drift = <span class="formula">P(Y|X)</span> itself changes. Detect covariate shift with PSI/KS-test on feature distributions; detect concept drift via a proxy (rolling model performance / accuracy decay), since P(Y|X) isn't directly observable without timely labels.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Covariate shift: the input distribution changes (e.g., desktop-heavy traffic shifts to mobile-heavy) but the relationship between features and outcome is unchanged. Detect by comparing feature distributions over time — Population Stability Index (PSI) or KS-test per feature between training-time and production data.</p>
+    <p>Concept drift: the same inputs now map to a different outcome (e.g., COVID changing what "normal" purchase behavior means). You can't monitor <span class="formula">P(Y|X)</span> directly without fresh labels, so use a proxy: rolling-window model accuracy/AUC as labels arrive, or monitor prediction confidence shifts and champion–challenger disagreement when labels are delayed.</p>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="q-block" id="q10">
+  <div class="q-num">QUESTION 10 <span class="status partial">Partial</span></div>
+  <p class="question">A churn model uses "average support tickets in the last 30 days" as a feature. What data leakage risk does this introduce, and how do you fix it, even assuming the 30-day window is computed with correct calendar dates?</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>This is temporal proximity leakage: ticket spikes right before churn are a <em>consequence</em> of the customer already deciding to leave, not a leading indicator. Fix with an embargo/buffer gap between the feature window and the prediction point (e.g., use days 60–90 to predict churn at day 100+).</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Even with a correctly computed, no-future-dates window, leakage can occur if the window sits too close to the churn event. Customers who are about to churn often spike support tickets right before leaving — that spike is caused by the same decision you're trying to predict, not a cause that precedes it. A model trained on this essentially memorizes "people who just churned had high tickets," which is true but useless for early prediction.</p>
+    <p>Fix: introduce a buffer/embargo gap — e.g., compute tickets over days 60–90 and predict churn at day 100+, so the feature reflects genuine leading signal rather than a trailing symptom of the label having already occurred.</p>
+  </div>
+</div>
+
+<!-- Q11 -->
+<div class="q-block" id="q11">
+  <div class="q-num">QUESTION 11 <span class="status wrong">No attempt</span></div>
+  <p class="question">Why does SGD's noisy update sometimes act as an implicit regularizer and help generalization, rather than just being "worse" optimization?</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>Full-batch GD follows the exact gradient and can settle into sharp, narrow minima that overfit training noise. SGD's per-batch gradient noise acts as perturbation, biasing the search toward flatter, wider minima, which generalize better because the loss doesn't spike for small train/test distribution shifts.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Full-batch GD computes the exact training-loss gradient at every step, letting it converge precisely into sharp minima that fit training data (including its noise) very tightly. SGD's gradient is a noisy estimate — that noise perturbs the trajectory and makes it unlikely to settle in narrow minima (small perturbations would kick it back out), so it tends to land in flat, wide minima instead.</p>
+    <p>Flat minima generalize better empirically because the loss surface doesn't change sharply for nearby weight values — small shifts between train and test distributions don't cause large loss increases. So SGD's noise isn't merely a speed/approximation trade-off; it actively biases the optimizer toward solutions that generalize better.</p>
+  </div>
+</div>
+
+<!-- Q12 -->
+<div class="q-block" id="q12">
+  <div class="q-num">QUESTION 12 <span class="status wrong">No attempt</span></div>
+  <p class="question">Explain precisely what the "kernel trick" does — not "it maps to higher dimensions," but why it avoids ever computing that mapping explicitly.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>SVM's dual formulation only ever needs dot products <span class="formula">⟨xᵢ, xⱼ⟩</span> between data points. A kernel function <span class="formula">K(xᵢ,xⱼ)</span> computes a value equal to <span class="formula">⟨φ(xᵢ), φ(xⱼ)⟩</span> directly from the original-space vectors — the high-dimensional (possibly infinite-dimensional) mapping φ is never actually materialized.</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>SVM's dual optimization problem depends only on dot products between pairs of points, never on raw feature vectors in isolation. Normally, mapping to a higher-dimensional space via some φ(x) would require explicitly computing φ(x) for every point (potentially infinite-dimensional, e.g. under an RBF-style mapping) and then taking dot products in that space — computationally infeasible.</p>
+    <p>The kernel trick exploits the existence of a function <span class="formula">K(x,z)</span> that equals <span class="formula">⟨φ(x), φ(z)⟩</span> but can be computed directly from x and z in the original space. E.g., <span class="formula">K(x,z) = exp(−γ‖x−z‖²)</span> corresponds to an infinite-dimensional feature mapping, yet is computed with a simple closed-form expression — the mapping itself is never performed.</p>
+  </div>
+</div>
+
+<!-- Q13 -->
+<div class="q-block" id="q13">
+  <div class="q-num">QUESTION 13 <span class="status wrong">Wrong diagnosis, then vague</span></div>
+  <p class="question">Train accuracy 98%, validation 97%, test (a separate, more recent batch) 65%. Is this overfitting? Diagnose, then say what you'd check first before touching the model.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>Not overfitting — train and val are nearly identical, which is the signature of good generalization within the same distribution. The gap only appears against a differently-distributed test set, which points to distribution shift. First check: compare feature distributions (PSI/KS-test) and label base rates between train/val and test — a statistical check, before investigating "why."</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Overfitting shows up as a gap between train and validation (same distribution) — e.g. train 98%, val 70%. Here train and val are nearly identical (98% vs 97%), meaning the model generalizes fine to unseen data from the <em>same</em> collection process. The failure only appears on the test batch, which is explicitly a separate, more recent collection — that's a distribution-shift signature (covariate shift, concept drift, or a labeling/process change), not overfitting.</p>
+    <p>Before touching the model: run a statistical comparison — PSI or KS-test on feature distributions between train/val and test, and check whether the label base rate itself changed. Only after confirming <em>what</em> shifted should you investigate <em>why</em> (seasonality, business changes, etc.) — jumping straight to "why" without a quantitative check first is a common mistake.</p>
+  </div>
+</div>
+
+<!-- Q14 -->
+<div class="q-block" id="q14">
+  <div class="q-num">QUESTION 14 <span class="status wrong">Mechanically wrong, then partial</span></div>
+  <p class="question">Explain "vanishing gradients" mechanically in a deep sigmoid network, layer by layer. Then explain specifically why ReLU mitigates it, referencing its derivative.</p>
+  <div class="must">
+    <div class="must-label">Must include</div>
+    <p>Sigmoid's derivative <span class="formula">σ(z)(1−σ(z))</span> maxes out at 0.25. Backprop multiplies these derivatives across L layers via the chain rule, so the gradient reaching early layers shrinks like <span class="formula">0.25^L</span> — exponential decay with depth. ReLU's derivative is exactly 1 when active (z>0), so multiplying many 1's doesn't shrink the gradient — but neurons with z≤0 get derivative 0 and can die permanently ("dying ReLU").</p>
+  </div>
+  <div class="answer">
+    <div class="answer-label">Elaborated answer</div>
+    <p>Backprop computes the gradient at an early layer via the chain rule — a product of derivative terms across every layer between it and the output. Sigmoid's derivative <span class="formula">σ(z)(1−σ(z))</span> has a maximum of 0.25 (at z=0) and shrinks further in saturated regions (z far from 0). For a network with L layers, the gradient reaching layer 1 involves multiplying ~L such terms — even in the best case that's <span class="formula">0.25^L</span>, which for L=10 is around 10⁻⁶. This is a multiplicative chain-rule effect across layers, not a shrinking forward-pass activation value.</p>
+    <p>ReLU's derivative is piecewise constant: exactly 1 for z&gt;0, exactly 0 for z≤0. When active, multiplying many 1's across layers doesn't shrink the gradient at all, avoiding the exponential decay. The trade-off: a neuron with z≤0 gets zero gradient and can never update again — "dying ReLU," a distinct failure mode from vanishing gradients.</p>
+  </div>
+</div>
+
+<footer>
+  Generated from mock interview session · ML Breadth Round · <a class="top" href="#top">back to top</a>
+</footer>
+
+</div>
+</body>
+</html>

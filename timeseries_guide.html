@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Series Mastery — ARIMA & ARIMAx End-to-End Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #13161e;
+    --card:      #181c26;
+    --border:    #242837;
+    --accent1:   #e8c547;   /* gold */
+    --accent2:   #5b9cf6;   /* blue */
+    --accent3:   #f06b6b;   /* red */
+    --accent4:   #56d9a0;   /* green */
+    --accent5:   #c084fc;   /* purple */
+    --text:      #e8eaf0;
+    --muted:     #7a8099;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Playfair Display', serif;
+    --body:      'Crimson Pro', serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(91,156,246,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,156,246,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 20s linear infinite;
+  }
+
+  @keyframes gridShift {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(60px); }
+  }
+
+  .hero-chart {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 200px; opacity: 0.15;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    color: var(--accent1);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .hero h1 span { color: var(--accent1); }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 1.5rem auto 0;
+    font-style: italic;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .hero-chips {
+    display: flex; flex-wrap: wrap; gap: 0.6rem;
+    justify-content: center;
+    margin-top: 2.5rem;
+    animation: fadeUp 0.8s 0.45s ease both;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .chip:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(24px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    position: relative; z-index: 1;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section {
+    margin-top: 5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .section h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 1.2rem;
+  }
+
+  .section h2 .hl { color: var(--accent1); }
+
+  .section > p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 680px;
+    margin-bottom: 2rem;
+  }
+
+  /* ── STEP PIPELINE ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  .pipeline::before {
+    content:'';
+    position:absolute;
+    left: 28px; top: 56px; bottom: 56px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent1), var(--accent2), var(--accent4));
+    opacity: 0.3;
+  }
+
+  .step {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    position: relative;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent1);
+    position: relative; z-index: 1;
+    transition: all 0.3s;
+  }
+
+  .step:hover .step-num {
+    border-color: var(--accent1);
+    background: rgba(232,197,71,0.1);
+    transform: scale(1.1);
+  }
+
+  .step-body { flex: 1; padding-top: 0.5rem; }
+
+  .step-body h3 {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .step-body p { color: var(--muted); font-size: 1rem; }
+
+  /* ── CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1.5rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height: 3px;
+    background: var(--card-accent, var(--accent1));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover { border-color: var(--card-accent, var(--accent1)); transform: translateY(-3px); }
+  .card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .card h4 {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card p { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    font-family: var(--mono);
+  }
+
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 1.2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-dots { display:flex; gap:6px; }
+  .code-dot {
+    width:11px; height:11px; border-radius:50%;
+  }
+  .dot-r { background: var(--accent3); }
+  .dot-y { background: var(--accent1); }
+  .dot-g { background: var(--accent4); }
+
+  .code-lang {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .code-body {
+    padding: 1.4rem 1.6rem;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    overflow-x: auto;
+    color: #c9d1d9;
+  }
+
+  .c-kw  { color: #f97583; }   /* keyword */
+  .c-fn  { color: #79b8ff; }   /* function */
+  .c-str { color: #9ecbff; }   /* string */
+  .c-cm  { color: #6a737d; font-style:italic; }  /* comment */
+  .c-num { color: #f8c555; }   /* number */
+  .c-var { color: #56d9a0; }   /* variable */
+  .c-cls { color: #c084fc; }   /* class */
+
+  /* ── FORMULA BLOCKS ── */
+  .formula {
+    background: var(--card);
+    border-left: 3px solid var(--accent1);
+    border-radius: 0 8px 8px 0;
+    padding: 1.2rem 1.5rem;
+    margin: 1.2rem 0;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--accent1);
+    letter-spacing: 0.02em;
+  }
+
+  .formula .label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  /* ── TABLES ── */
+  .tbl-wrap { overflow-x: auto; margin: 1.5rem 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th {
+    background: var(--card);
+    color: var(--accent1);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.9rem 1.2rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  td:first-child { color: var(--text); font-weight: 500; }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    display: flex; gap: 1rem; align-items: flex-start;
+    font-size: 0.97rem;
+  }
+
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display:block; margin-bottom:0.3rem; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .callout.info    { background: rgba(91,156,246,0.08);  border: 1px solid rgba(91,156,246,0.2);  }
+  .callout.info .callout-body strong    { color: var(--accent2); }
+  .callout.warn    { background: rgba(232,197,71,0.08);  border: 1px solid rgba(232,197,71,0.2);  }
+  .callout.warn .callout-body strong    { color: var(--accent1); }
+  .callout.danger  { background: rgba(240,107,107,0.08); border: 1px solid rgba(240,107,107,0.2); }
+  .callout.danger .callout-body strong  { color: var(--accent3); }
+  .callout.success { background: rgba(86,217,160,0.08);  border: 1px solid rgba(86,217,160,0.2);  }
+  .callout.success .callout-body strong { color: var(--accent4); }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+  .badge-gold   { background: rgba(232,197,71,0.15);  color: var(--accent1); }
+  .badge-blue   { background: rgba(91,156,246,0.15);  color: var(--accent2); }
+  .badge-green  { background: rgba(86,217,160,0.15);  color: var(--accent4); }
+  .badge-red    { background: rgba(240,107,107,0.15); color: var(--accent3); }
+  .badge-purple { background: rgba(192,132,252,0.15); color: var(--accent5); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .flow-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: var(--text);
+    text-align: center;
+    transition: all 0.2s;
+    min-width: 100px;
+  }
+
+  .flow-box:hover { border-color: var(--accent1); color: var(--accent1); }
+  .flow-box.highlight { border-color: var(--accent1); color: var(--accent1); background: rgba(232,197,71,0.06); }
+  .flow-arrow { color: var(--muted); font-size: 1rem; }
+
+  /* ── ASCII CHART ── */
+  .ascii {
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--accent4);
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 4rem 0;
+  }
+
+  /* ── TWO COL ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin: 1.5rem 0;
+  }
+
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .pipeline::before { display: none; }
+  }
+
+  /* ── NAV ── */
+  .toc {
+    position: sticky;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    top: 0; z-index: 100;
+    padding: 0.8rem 2rem;
+    display: flex; gap: 1.5rem; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc::-webkit-scrollbar { display:none; }
+
+  .toc a {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .toc a:hover { color: var(--accent1); }
+
+  /* ── VERDICT ── */
+  .verdict {
+    background: linear-gradient(135deg, rgba(232,197,71,0.05), rgba(91,156,246,0.05));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .verdict h3 {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .verdict p { color: var(--muted); max-width: 580px; margin: 0 auto; }
+
+  /* ── DECISION TREE ── */
+  .decision {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 2;
+    color: var(--muted);
+  }
+
+  .decision .q  { color: var(--accent2); }
+  .decision .y  { color: var(--accent4); }
+  .decision .n  { color: var(--accent3); }
+  .decision .r  { color: var(--accent1); font-weight: 600; }
+
+  /* inline highlight */
+  .hl-gold   { color: var(--accent1); }
+  .hl-blue   { color: var(--accent2); }
+  .hl-green  { color: var(--accent4); }
+  .hl-red    { color: var(--accent3); }
+  .hl-purple { color: var(--accent5); }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="toc">
+  <a href="#intro">Overview</a>
+  <a href="#example">Our Example</a>
+  <a href="#eda">EDA</a>
+  <a href="#decompose">Decomposition</a>
+  <a href="#adf">ADF Test</a>
+  <a href="#acf-pacf">ACF / PACF</a>
+  <a href="#arima">ARIMA</a>
+  <a href="#arimax">ARIMAx</a>
+  <a href="#forecast">Forecast</a>
+  <a href="#decision">Decision Tree</a>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-grid"></div>
+
+  <svg class="hero-chart" viewBox="0 0 1200 200" preserveAspectRatio="none">
+    <polyline fill="none" stroke="url(#lineGrad)" stroke-width="2"
+      points="0,180 60,160 120,170 180,140 240,130 300,145 360,110 420,90 480,105 540,80 600,60 660,75 720,50 780,30 840,45 900,20 960,35 1020,15 1080,25 1140,10 1200,5"/>
+    <defs>
+      <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#5b9cf6"/>
+        <stop offset="50%"  stop-color="#e8c547"/>
+        <stop offset="100%" stop-color="#56d9a0"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div style="position:relative; z-index:1;">
+    <p class="hero-tag">Complete Field Guide</p>
+    <h1>Time Series<br><span>From Raw Data</span><br>to Forecast</h1>
+    <p class="hero-sub">A complete walkthrough of ARIMA & ARIMAx — EDA, stationarity, decomposition, model selection, and prediction.</p>
+    <div class="hero-chips">
+      <a class="chip" href="#eda">EDA</a>
+      <a class="chip" href="#decompose">Decomposition</a>
+      <a class="chip" href="#adf">ADF Test</a>
+      <a class="chip" href="#acf-pacf">ACF / PACF</a>
+      <a class="chip" href="#arima">ARIMA(p,d,q)</a>
+      <a class="chip" href="#arimax">ARIMAx</a>
+      <a class="chip" href="#forecast">Forecasting</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── WRAPPER ── -->
+<div class="wrapper">
+
+  <!-- ── INTRO ── -->
+  <section class="section" id="intro">
+    <p class="section-label">The Big Picture</p>
+    <h2>Why does the <span class="hl">order matter</span>?</h2>
+    <p>Time series modelling is not plug-and-play. Each step reveals something about your data that directly informs the next step. Skip a step and you risk building a model on faulty foundations.</p>
+
+    <div class="pipeline">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h3>Collect & Visualise <span class="badge badge-blue">EDA</span></h3>
+          <p>Plot the raw series. Look for trend, seasonality, outliers, missing values. Get a gut feeling.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h3>Decompose <span class="badge badge-gold">Trend · Season · Residual</span></h3>
+          <p>Formally split the series into its components. Understand what kind of non-stationarity exists.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <h3>Test for Unit Root <span class="badge badge-red">ADF Test</span></h3>
+          <p>Statistically confirm whether differencing is needed. This gives you <strong>d</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <h3>ACF & PACF <span class="badge badge-purple">p and q</span></h3>
+          <p>Read the correlation plots on the stationary series to find AR order (p) and MA order (q).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-body">
+          <h3>Fit Model <span class="badge badge-green">ARIMA / ARIMAx</span></h3>
+          <p>Build ARIMA(p,d,q) or ARIMAx if external variables drive the cycles.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">06</div>
+        <div class="step-body">
+          <h3>Validate & Forecast <span class="badge badge-gold">Residual Check</span></h3>
+          <p>Residuals should be white noise. Then generate future predictions with confidence intervals.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── OUR EXAMPLE ── -->
+  <section class="section" id="example">
+    <p class="section-label">Running Example</p>
+    <h2>Mumbai Coffee Shop — <span class="hl">Monthly Revenue</span></h2>
+    <p>We will use this single example all the way through. A small coffee shop in Mumbai tracking monthly revenue (₹ thousands) over 3 years, along with one external variable — a local Consumer Confidence Index.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th><th>Revenue (₹k)</th><th>Consumer Confidence Index</th><th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jan 2022</td><td>48</td><td>52</td><td>Post-COVID reopening</td></tr>
+          <tr><td>Feb 2022</td><td>51</td><td>54</td><td></td></tr>
+          <tr><td>Mar 2022</td><td>49</td><td>53</td><td></td></tr>
+          <tr><td>Apr 2022</td><td>55</td><td>57</td><td></td></tr>
+          <tr><td>May 2022</td><td>53</td><td>56</td><td></td></tr>
+          <tr><td>Jun 2022</td><td>60</td><td>60</td><td>Summer pickup</td></tr>
+          <tr><td>Jul 2022</td><td>58</td><td>59</td><td></td></tr>
+          <tr><td>Aug 2022</td><td>62</td><td>62</td><td></td></tr>
+          <tr><td>Sep 2022</td><td>65</td><td>64</td><td></td></tr>
+          <tr><td>Oct 2022</td><td>70</td><td>67</td><td></td></tr>
+          <tr><td>Nov 2022</td><td>72</td><td>69</td><td>Festival season</td></tr>
+          <tr><td>Dec 2022</td><td>80</td><td>74</td><td>Peak month</td></tr>
+          <tr><td>...</td><td>...</td><td>...</td><td>continues to Dec 2024</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <div class="callout-body">
+        <strong>Why this example?</strong>
+        Revenue has a clear upward trend (unit root), mild seasonality (festival months), and is driven partly by an external factor (Consumer Confidence). This makes it perfect to demonstrate both ARIMA and ARIMAx.
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── EDA ── -->
+  <section class="section" id="eda">
+    <p class="section-label">Step 01</p>
+    <h2>Exploratory Data <span class="hl">Analysis</span></h2>
+    <p>Before writing a single line of modelling code, understand your data visually and statistically.</p>
+
+    <h3 style="font-family:var(--serif); margin:1.5rem 0 0.8rem; font-size:1.2rem;">What to look for when plotting</h3>
+
+    <div class="card-grid">
+      <div class="card" style="--card-accent: var(--accent1)">
+        <div class="card-icon">📈</div>
+        <h4>Trend</h4>
+        <p>Is the series moving consistently upward or downward over time? Revenue going from ₹48k to ₹120k over 3 years = clear upward trend.</p>
+      </div>
+      <div class="card" style="--card-accent: var(--accent2)">
+        <div class="card-icon">🔄</div>
+        <h4>Seasonality</h4>
+        <p>Does a pattern repeat at fixed intervals? December revenue spikes every year = seasonality with period m=12.</p>
+      </div>
+      <div class="card" style="--card-accent: var(--accent3)">
+        <div class="card-icon">⚡</div>
+        <h4>Outliers / Shocks</h4>
+        <p>Any sudden spikes or drops? COVID lockdown month = massive negative shock that should be noted.</p>
+      </div>
+      <div class="card" style="--card-accent: var(--accent4)">
+        <div class="card-icon">📊</div>
+        <h4>Variance</h4>
+        <p>Does the spread around the trend grow over time? If yes → multiplicative decomposition, consider log transform.</p>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">Python EDA Code</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — EDA</span>
+      </div>
+      <div class="code-body"><pre><span class="c-kw">import</span> pandas <span class="c-kw">as</span> <span class="c-var">pd</span>
+<span class="c-kw">import</span> matplotlib.pyplot <span class="c-kw">as</span> <span class="c-var">plt</span>
+<span class="c-kw">import</span> numpy <span class="c-kw">as</span> <span class="c-var">np</span>
+
+<span class="c-cm"># ── Load data ──────────────────────────────────</span>
+<span class="c-var">df</span> = pd.<span class="c-fn">read_csv</span>(<span class="c-str">'coffee_shop.csv'</span>, parse_dates=[<span class="c-str">'month'</span>], index_col=<span class="c-str">'month'</span>)
+<span class="c-var">y</span> = df[<span class="c-str">'revenue'</span>]
+<span class="c-var">X</span> = df[[<span class="c-str">'consumer_confidence'</span>]]
+
+<span class="c-cm"># ── Basic statistics ───────────────────────────</span>
+<span class="c-fn">print</span>(y.<span class="c-fn">describe</span>())
+<span class="c-cm"># mean, std, min, max → tells you the scale and spread</span>
+
+<span class="c-cm"># ── Plot raw series ────────────────────────────</span>
+<span class="c-var">fig</span>, <span class="c-var">axes</span> = plt.<span class="c-fn">subplots</span>(<span class="c-num">3</span>, <span class="c-num">1</span>, figsize=(<span class="c-num">12</span>, <span class="c-num">10</span>))
+
+y.<span class="c-fn">plot</span>(ax=axes[<span class="c-num">0</span>], title=<span class="c-str">'Raw Revenue (₹k)'</span>, color=<span class="c-str">'#e8c547'</span>)
+axes[<span class="c-num">0</span>].<span class="c-fn">set_ylabel</span>(<span class="c-str">'Revenue'</span>)
+
+<span class="c-cm"># Rolling mean and std to visualise non-stationarity</span>
+<span class="c-var">rolling_mean</span> = y.<span class="c-fn">rolling</span>(window=<span class="c-num">12</span>).<span class="c-fn">mean</span>()
+<span class="c-var">rolling_std</span>  = y.<span class="c-fn">rolling</span>(window=<span class="c-num">12</span>).<span class="c-fn">std</span>()
+
+axes[<span class="c-num">1</span>].<span class="c-fn">plot</span>(y,           label=<span class="c-str">'Actual'</span>,       color=<span class="c-str">'#5b9cf6'</span>, alpha=<span class="c-num">0.5</span>)
+axes[<span class="c-num">1</span>].<span class="c-fn">plot</span>(rolling_mean, label=<span class="c-str">'Rolling Mean'</span>,  color=<span class="c-str">'#e8c547'</span>)
+axes[<span class="c-num">1</span>].<span class="c-fn">plot</span>(rolling_std,  label=<span class="c-str">'Rolling Std'</span>,   color=<span class="c-str">'#f06b6b'</span>)
+axes[<span class="c-num">1</span>].<span class="c-fn">set_title</span>(<span class="c-str">'Rolling Statistics (window=12)'</span>)
+axes[<span class="c-num">1</span>].<span class="c-fn">legend</span>()
+
+<span class="c-cm"># Plot first difference to preview stationarity</span>
+y.<span class="c-fn">diff</span>().<span class="c-fn">plot</span>(ax=axes[<span class="c-num">2</span>], title=<span class="c-str">'First Difference (ΔRevenue)'</span>, color=<span class="c-str">'#56d9a0'</span>)
+axes[<span class="c-num">2</span>].<span class="c-fn">axhline</span>(<span class="c-num">0</span>, color=<span class="c-str">'white'</span>, alpha=<span class="c-num">0.3</span>)
+
+plt.<span class="c-fn">tight_layout</span>()
+plt.<span class="c-fn">show</span>()</pre></div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <strong>Key Signal</strong>
+        If the <strong>rolling mean</strong> is clearly trending upward and the <strong>rolling std</strong> is also growing — you have a non-stationary series. This tells you d ≥ 1 even before running any formal test.
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">What our EDA reveals</h3>
+
+    <div class="ascii">Revenue (₹k) — 3 Year Trend
+  130 |                                              * *
+  120 |                                        * * *
+  110 |                                  * * *
+  100 |                            * * *
+   90 |                      * * *
+   80 |                * * *         ← rolling mean rising throughout
+   70 |          * * *
+   60 |    * * *
+   50 | * *
+      +------------------------------------------------→ months
+      Jan'22                                     Dec'24
+
+  Rolling std also rising → variance is growing with level → non-stationary ❌</div>
+
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── DECOMPOSITION ── -->
+  <section class="section" id="decompose">
+    <p class="section-label">Step 02</p>
+    <h2>Time Series <span class="hl">Decomposition</span></h2>
+    <p>Formally split the series into four components to understand the structure before modelling.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>What it captures</th><th>What it tells us for modelling</th></tr></thead>
+        <tbody>
+          <tr><td>📈 Trend</td><td>Long-run direction of the series</td><td>If strong → need differencing → <strong>d ≥ 1</strong></td></tr>
+          <tr><td>🔄 Seasonality</td><td>Regular repeating pattern at fixed interval</td><td>If strong → need SARIMA, not plain ARIMA</td></tr>
+          <tr><td>〰️ Cyclical</td><td>Irregular long-run oscillations</td><td>ARIMA won't capture this → consider ARIMAx with external drivers</td></tr>
+          <tr><td>🔀 Residual</td><td>Random noise after removing the above</td><td>Run ACF/PACF here to find <strong>p and q</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — Decomposition</span>
+      </div>
+      <div class="code-body"><pre><span class="c-kw">from</span> statsmodels.tsa.seasonal <span class="c-kw">import</span> <span class="c-cls">seasonal_decompose</span>
+
+<span class="c-cm"># model='additive'  → if variance is CONSTANT across time
+# model='multiplicative' → if variance GROWS with the level</span>
+<span class="c-var">result</span> = <span class="c-fn">seasonal_decompose</span>(y, model=<span class="c-str">'additive'</span>, period=<span class="c-num">12</span>)
+
+<span class="c-var">fig</span>, <span class="c-var">axes</span> = plt.<span class="c-fn">subplots</span>(<span class="c-num">4</span>, <span class="c-num">1</span>, figsize=(<span class="c-num">12</span>, <span class="c-num">10</span>))
+
+result.observed .<span class="c-fn">plot</span>(ax=axes[<span class="c-num">0</span>], title=<span class="c-str">'Observed'</span>,   color=<span class="c-str">'#e8eaf0'</span>)
+result.trend    .<span class="c-fn">plot</span>(ax=axes[<span class="c-num">1</span>], title=<span class="c-str">'Trend'</span>,      color=<span class="c-str">'#e8c547'</span>)
+result.seasonal .<span class="c-fn">plot</span>(ax=axes[<span class="c-num">2</span>], title=<span class="c-str">'Seasonality'</span>, color=<span class="c-str">'#5b9cf6'</span>)
+result.resid    .<span class="c-fn">plot</span>(ax=axes[<span class="c-num">3</span>], title=<span class="c-str">'Residual'</span>,   color=<span class="c-str">'#56d9a0'</span>)
+
+plt.<span class="c-fn">tight_layout</span>()
+plt.<span class="c-fn">show</span>()
+
+<span class="c-cm"># Save residuals for ACF/PACF later</span>
+<span class="c-var">residuals_decomp</span> = result.resid.<span class="c-fn">dropna</span>()</pre></div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">What our decomposition reveals</h3>
+
+    <div class="two-col">
+      <div class="callout success">
+        <span class="callout-icon">📈</span>
+        <div class="callout-body">
+          <strong>Trend Component</strong>
+          Steady upward trend throughout all 3 years. Confirms unit root likely present. We will need <strong>d = 1</strong>.
+        </div>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">🔄</span>
+        <div class="callout-body">
+          <strong>Seasonal Component</strong>
+          Mild December spike every year. Seasonality exists but is weak relative to trend. Plain ARIMA may be sufficient.
+        </div>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">〰️</span>
+        <div class="callout-body">
+          <strong>Cyclical (in Residual)</strong>
+          Some multi-month patterns in residual suggest a cyclical component tied to Consumer Confidence. This hints at ARIMAx.
+        </div>
+      </div>
+      <div class="callout success">
+        <span class="callout-icon">🔀</span>
+        <div class="callout-body">
+          <strong>Residual Component</strong>
+          Mostly random noise but with mild patterns. We will run ACF/PACF on this to find p and q.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── ADF TEST ── -->
+  <section class="section" id="adf">
+    <p class="section-label">Step 03</p>
+    <h2>Augmented Dickey-Fuller <span class="hl">Test</span></h2>
+    <p>Visually we suspect a unit root. Now we confirm it statistically. This gives us the value of <strong>d</strong>.</p>
+
+    <div class="formula">
+      <span class="label">ADF Test — What it fits under the hood</span>
+      ΔY_t = α + δ·Y_{t-1} + β₁·ΔY_{t-1} + β₂·ΔY_{t-2} + ... + ε_t
+
+      H₀: δ = 0  →  Unit root EXISTS  →  Non-stationary
+      H₁: δ &lt; 0  →  No unit root     →  Stationary
+
+      Decision rule:  p-value &lt; 0.05  →  Reject H₀  →  Stationary ✅
+                      p-value &gt; 0.05  →  Fail to reject H₀  →  Unit Root ❌
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — ADF Test</span>
+      </div>
+      <div class="code-body"><pre><span class="c-kw">from</span> statsmodels.tsa.stattools <span class="c-kw">import</span> <span class="c-fn">adfuller</span>
+
+<span class="c-kw">def</span> <span class="c-fn">adf_test</span>(series, name=<span class="c-str">''</span>):
+    result = <span class="c-fn">adfuller</span>(series, autolag=<span class="c-str">'AIC'</span>)
+    <span class="c-fn">print</span>(<span class="c-str">f"\n── ADF Test: {name} ──────────────"</span>)
+    <span class="c-fn">print</span>(<span class="c-str">f"  ADF Statistic : {result[0]:.4f}"</span>)
+    <span class="c-fn">print</span>(<span class="c-str">f"  p-value       : {result[1]:.4f}"</span>)
+    <span class="c-fn">print</span>(<span class="c-str">f"  Critical Values:"</span>)
+    <span class="c-kw">for</span> key, val <span class="c-kw">in</span> result[<span class="c-num">4</span>].items():
+        <span class="c-fn">print</span>(<span class="c-str">f"    {key}: {val:.4f}"</span>)
+    <span class="c-kw">if</span> result[<span class="c-num">1</span>] &lt; <span class="c-num">0.05</span>:
+        <span class="c-fn">print</span>(<span class="c-str">"  ✅ STATIONARY (reject H₀)"</span>)
+    <span class="c-kw">else</span>:
+        <span class="c-fn">print</span>(<span class="c-str">"  ❌ UNIT ROOT (fail to reject H₀)"</span>)
+
+<span class="c-cm"># ── Test raw series ────────────────────────────</span>
+<span class="c-fn">adf_test</span>(y, <span class="c-str">'Raw Revenue'</span>)
+<span class="c-cm"># Expected: p-value > 0.05 → UNIT ROOT</span>
+
+<span class="c-cm"># ── Test first difference ──────────────────────</span>
+<span class="c-fn">adf_test</span>(y.<span class="c-fn">diff</span>().<span class="c-fn">dropna</span>(), <span class="c-str">'First Difference ΔRevenue'</span>)
+<span class="c-cm"># Expected: p-value < 0.05 → STATIONARY ✅
+# This confirms d = 1</span>
+
+<span class="c-cm"># ── Also test X variable ──────────────────────</span>
+<span class="c-fn">adf_test</span>(X[<span class="c-str">'consumer_confidence'</span>], <span class="c-str">'Consumer Confidence'</span>)
+<span class="c-fn">adf_test</span>(X[<span class="c-str">'consumer_confidence'</span>].<span class="c-fn">diff</span>().<span class="c-fn">dropna</span>(), <span class="c-str">'ΔConsumer Confidence'</span>)</pre></div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">Our ADF Results</h3>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Series Tested</th><th>ADF Stat</th><th>p-value</th><th>Verdict</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Raw Revenue (Y)</td><td>-1.23</td><td>0.661</td>
+            <td><span class="badge badge-red">Unit Root ❌</span></td>
+            <td>Difference once</td>
+          </tr>
+          <tr>
+            <td>ΔRevenue (Y differenced)</td><td>-5.81</td><td>0.000</td>
+            <td><span class="badge badge-green">Stationary ✅</span></td>
+            <td>d = 1 confirmed</td>
+          </tr>
+          <tr>
+            <td>Consumer Confidence (X)</td><td>-1.45</td><td>0.552</td>
+            <td><span class="badge badge-red">Unit Root ❌</span></td>
+            <td>Difference X too</td>
+          </tr>
+          <tr>
+            <td>ΔConsumer Confidence</td><td>-6.12</td><td>0.000</td>
+            <td><span class="badge badge-green">Stationary ✅</span></td>
+            <td>Use differenced X in ARIMAx</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout success">
+      <span class="callout-icon">✅</span>
+      <div class="callout-body">
+        <strong>Conclusion from ADF</strong>
+        Both Y and X are I(1) — they have unit roots and become stationary after one round of differencing. Therefore <strong>d = 1</strong>. In ARIMAx, we will use differenced X as the exogenous variable.
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── ACF / PACF ── -->
+  <section class="section" id="acf-pacf">
+    <p class="section-label">Step 04</p>
+    <h2>ACF & PACF — Finding <span class="hl">p and q</span></h2>
+    <p>Now that we know d=1, we difference the series and look at ACF/PACF to find the AR order (p) and MA order (q).</p>
+
+    <div class="two-col">
+      <div class="card" style="--card-accent: var(--accent5)">
+        <div class="card-icon">📉</div>
+        <h4>PACF → gives p (AR order)</h4>
+        <p>PACF cuts off sharply after lag p. Count how many lags are significant before the cutoff. That number is p.</p>
+      </div>
+      <div class="card" style="--card-accent: var(--accent2)">
+        <div class="card-icon">📉</div>
+        <h4>ACF → gives q (MA order)</h4>
+        <p>ACF cuts off sharply after lag q. Count how many lags are significant before the cutoff. That number is q.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — ACF & PACF</span>
+      </div>
+      <div class="code-body"><pre><span class="c-kw">from</span> statsmodels.graphics.tsaplots <span class="c-kw">import</span> <span class="c-fn">plot_acf</span>, <span class="c-fn">plot_pacf</span>
+
+<span class="c-var">y_diff</span> = y.<span class="c-fn">diff</span>().<span class="c-fn">dropna</span>()
+
+<span class="c-var">fig</span>, <span class="c-var">axes</span> = plt.<span class="c-fn">subplots</span>(<span class="c-num">1</span>, <span class="c-num">2</span>, figsize=(<span class="c-num">14</span>, <span class="c-num">5</span>))
+
+<span class="c-cm"># ACF  → for MA order (q)
+# lags=20 means we inspect up to lag 20</span>
+<span class="c-fn">plot_acf</span>(y_diff, lags=<span class="c-num">20</span>, ax=axes[<span class="c-num">0</span>],
+         title=<span class="c-str">'ACF — ΔRevenue  (→ tells q)'</span>)
+
+<span class="c-cm"># PACF → for AR order (p)</span>
+<span class="c-fn">plot_pacf</span>(y_diff, lags=<span class="c-num">20</span>, ax=axes[<span class="c-num">1</span>],
+          title=<span class="c-str">'PACF — ΔRevenue  (→ tells p)'</span>)
+
+plt.<span class="c-fn">tight_layout</span>()
+plt.<span class="c-fn">show</span>()
+
+<span class="c-cm"># ── For ARIMAx: pre-whiten first ──────────────</span>
+<span class="c-kw">from</span> sklearn.linear_model <span class="c-kw">import</span> <span class="c-cls">LinearRegression</span>
+
+<span class="c-var">X_diff</span> = X.<span class="c-fn">diff</span>().<span class="c-fn">dropna</span>()
+<span class="c-var">y_diff_aligned</span> = y_diff[X_diff.index]
+
+<span class="c-var">reg</span> = <span class="c-cls">LinearRegression</span>().<span class="c-fn">fit</span>(X_diff, y_diff_aligned)
+<span class="c-var">clean_resid</span> = y_diff_aligned - reg.<span class="c-fn">predict</span>(X_diff)
+
+<span class="c-cm"># These ACF/PACF plots are more accurate for ARIMAx</span>
+<span class="c-fn">plot_acf</span> (clean_resid, lags=<span class="c-num">20</span>, title=<span class="c-str">'ACF  (pre-whitened) → q'</span>)
+<span class="c-fn">plot_pacf</span>(clean_resid, lags=<span class="c-num">20</span>, title=<span class="c-str">'PACF (pre-whitened) → p'</span>)
+plt.<span class="c-fn">show</span>()</pre></div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">Reading the plots — pattern guide</h3>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ACF Pattern</th><th>PACF Pattern</th><th>Model Suggested</th></tr></thead>
+        <tbody>
+          <tr><td>Cuts off after lag q</td><td>Decays gradually</td><td>MA(q) → set p=0, q=that lag</td></tr>
+          <tr><td>Decays gradually</td><td>Cuts off after lag p</td><td>AR(p) → set p=that lag, q=0</td></tr>
+          <tr><td>Both decay gradually</td><td>Both decay gradually</td><td>ARMA(p,q) → both non-zero</td></tr>
+          <tr><td>Significant at lag 12</td><td>Significant at lag 12</td><td>Seasonality → consider SARIMA</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <div class="callout-body">
+        <strong>Our Result</strong>
+        PACF cuts off after lag 1 → p = 1. ACF cuts off after lag 1 → q = 1. Combined with d = 1 from ADF, our starting model is <strong>ARIMA(1, 1, 1)</strong>. We will confirm with AIC.
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── ARIMA ── -->
+  <section class="section" id="arima">
+    <p class="section-label">Step 05A</p>
+    <h2>Fitting <span class="hl">ARIMA(p, d, q)</span></h2>
+    <p>We now fit the model and validate it. We also use AIC/BIC grid search to confirm our p, q choices.</p>
+
+    <div class="formula">
+      <span class="label">ARIMA(1,1,1) — What it models</span>
+      ΔRevenue_t = c + φ₁·ΔRevenue_{t-1} + ε_t + θ₁·ε_{t-1}
+
+      where:  φ₁ = AR coefficient (how much last month's change matters)
+              θ₁ = MA coefficient (how much last month's shock lingers)
+              ε_t = random shock this month
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — ARIMA Fit + AIC Grid Search</span>
+      </div>
+      <div class="code-body"><pre><span class="c-kw">from</span> statsmodels.tsa.arima.model <span class="c-kw">import</span> <span class="c-cls">ARIMA</span>
+<span class="c-kw">import</span> warnings
+warnings.<span class="c-fn">filterwarnings</span>(<span class="c-str">'ignore'</span>)
+
+<span class="c-cm"># ── Grid search for best p, q ─────────────────</span>
+<span class="c-var">best_aic</span> = <span class="c-fn">float</span>(<span class="c-str">'inf'</span>)
+<span class="c-var">best_order</span> = <span class="c-cls">None</span>
+<span class="c-var">results_table</span> = []
+
+<span class="c-kw">for</span> p <span class="c-kw">in</span> <span class="c-fn">range</span>(<span class="c-num">0</span>, <span class="c-num">4</span>):
+    <span class="c-kw">for</span> q <span class="c-kw">in</span> <span class="c-fn">range</span>(<span class="c-num">0</span>, <span class="c-num">4</span>):
+        <span class="c-kw">try</span>:
+            <span class="c-var">model</span> = <span class="c-cls">ARIMA</span>(y, order=(p, <span class="c-num">1</span>, q))
+            <span class="c-var">res</span>   = model.<span class="c-fn">fit</span>()
+            results_table.<span class="c-fn">append</span>({
+                <span class="c-str">'order'</span>: (p, <span class="c-num">1</span>, q),
+                <span class="c-str">'AIC'</span>  : <span class="c-fn">round</span>(res.aic, <span class="c-num">2</span>),
+                <span class="c-str">'BIC'</span>  : <span class="c-fn">round</span>(res.bic, <span class="c-num">2</span>)
+            })
+            <span class="c-kw">if</span> res.aic &lt; best_aic:
+                best_aic   = res.aic
+                best_order = (p, <span class="c-num">1</span>, q)
+        <span class="c-kw">except</span>:
+            <span class="c-kw">continue</span>
+
+<span class="c-fn">print</span>(<span class="c-str">f"Best order: {best_order}  AIC: {best_aic:.2f}"</span>)
+
+<span class="c-cm"># ── Fit the best model ────────────────────────</span>
+<span class="c-var">final_model</span> = <span class="c-cls">ARIMA</span>(y, order=best_order).<span class="c-fn">fit</span>()
+<span class="c-fn">print</span>(final_model.<span class="c-fn">summary</span>())
+
+<span class="c-cm"># ── Residual diagnostics ──────────────────────</span>
+<span class="c-var">residuals</span> = final_model.resid
+
+<span class="c-var">fig</span>, <span class="c-var">axes</span> = plt.<span class="c-fn">subplots</span>(<span class="c-num">2</span>, <span class="c-num">2</span>, figsize=(<span class="c-num">12</span>, <span class="c-num">8</span>))
+residuals.<span class="c-fn">plot</span>(ax=axes[<span class="c-num">0</span>,<span class="c-num">0</span>], title=<span class="c-str">'Residuals over time'</span>)
+residuals.<span class="c-fn">plot</span>(kind=<span class="c-str">'kde'</span>, ax=axes[<span class="c-num">0</span>,<span class="c-num">1</span>], title=<span class="c-str">'Residual distribution'</span>)
+<span class="c-fn">plot_acf</span>(residuals, ax=axes[<span class="c-num">1</span>,<span class="c-num">0</span>], title=<span class="c-str">'ACF of Residuals'</span>)
+<span class="c-fn">plot_pacf</span>(residuals, ax=axes[<span class="c-num">1</span>,<span class="c-num">1</span>], title=<span class="c-str">'PACF of Residuals'</span>)
+<span class="c-cm"># Goal: No significant spikes in ACF/PACF of residuals
+# That would mean all patterns are captured ✅</span>
+plt.<span class="c-fn">show</span>()</pre></div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">Residual Validation — What to check</h3>
+
+    <div class="card-grid">
+      <div class="card" style="--card-accent: var(--accent4)">
+        <div class="card-icon">✅</div>
+        <h4>Good Residual Signs</h4>
+        <p>• Random scatter around zero<br>• No visible pattern over time<br>• Normal bell curve shape<br>• ACF/PACF all within confidence bands</p>
+      </div>
+      <div class="card" style="--card-accent: var(--accent3)">
+        <div class="card-icon">❌</div>
+        <h4>Bad Residual Signs</h4>
+        <p>• Trend still visible<br>• Funnel shape (changing variance)<br>• Significant spikes in ACF/PACF<br>• Heavy tails in distribution</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── ARIMAx ── -->
+  <section class="section" id="arimax">
+    <p class="section-label">Step 05B</p>
+    <h2>Fitting <span class="hl">ARIMAx</span> with External Variables</h2>
+    <p>Since decomposition showed a cyclical component tied to Consumer Confidence, we upgrade to ARIMAx — ARIMA with an exogenous variable.</p>
+
+    <div class="formula">
+      <span class="label">ARIMAx(1,1,1) — Model equation</span>
+      ΔRevenue_t = c + φ₁·ΔRevenue_{t-1} + θ₁·ε_{t-1} + β₁·ΔConsumerConfidence_t + ε_t
+
+      β₁ tells us: "For every 1 point rise in Consumer Confidence,
+                   Revenue changes by β₁ thousand rupees,
+                   after accounting for its own time series pattern"
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — ARIMAx Full Workflow</span>
+      </div>
+      <div class="code-body"><pre><span class="c-kw">from</span> statsmodels.tsa.statespace.sarimax <span class="c-kw">import</span> <span class="c-cls">SARIMAX</span>
+
+<span class="c-cm"># ── Prepare data ──────────────────────────────</span>
+<span class="c-var">X_exog</span> = df[[<span class="c-str">'consumer_confidence'</span>]]  <span class="c-cm"># raw — SARIMAX handles d internally</span>
+
+<span class="c-cm"># ── Fit ARIMAx(1,1,1) with exogenous variable ─</span>
+<span class="c-var">arimax_model</span> = <span class="c-cls">SARIMAX</span>(
+    y,
+    exog  = X_exog,
+    order = (<span class="c-num">1</span>, <span class="c-num">1</span>, <span class="c-num">1</span>),   <span class="c-cm"># p=1, d=1, q=1</span>
+    trend = <span class="c-str">'c'</span>           <span class="c-cm"># include constant</span>
+)
+<span class="c-var">arimax_result</span> = arimax_model.<span class="c-fn">fit</span>(disp=<span class="c-cls">False</span>)
+<span class="c-fn">print</span>(arimax_result.<span class="c-fn">summary</span>())
+
+<span class="c-cm"># ── Check coefficient significance ────────────</span>
+<span class="c-cm"># Look at p-values in the summary table
+# consumer_confidence p-value < 0.05 → variable is significant ✅
+# consumer_confidence p-value > 0.05 → remove it, use plain ARIMA</span>
+
+<span class="c-cm"># ── Compare ARIMA vs ARIMAx using AIC ─────────</span>
+<span class="c-fn">print</span>(<span class="c-str">f"ARIMA   AIC: {final_model.aic:.2f}"</span>)
+<span class="c-fn">print</span>(<span class="c-str">f"ARIMAx  AIC: {arimax_result.aic:.2f}"</span>)
+<span class="c-cm"># Lower AIC = better model
+# If ARIMAx AIC is lower → external variable helps ✅
+# If ARIMA  AIC is lower → external variable not useful ❌</span>
+
+<span class="c-cm"># ── Residual check for ARIMAx ─────────────────</span>
+<span class="c-var">arimax_resid</span> = arimax_result.resid
+<span class="c-fn">plot_acf</span>(arimax_resid, lags=<span class="c-num">20</span>)
+<span class="c-cm"># No spikes → model captured all patterns ✅</span></pre></div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:1.8rem 0 0.8rem; font-size:1.2rem;">ARIMA vs ARIMAx — When to use which?</h3>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Situation</th><th>Use</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>No external drivers identified</td><td><span class="badge badge-blue">ARIMA</span></td><td>Simpler, fewer parameters</td></tr>
+          <tr><td>Clear external driver (economic index, weather)</td><td><span class="badge badge-gold">ARIMAx</span></td><td>External variable explains cyclical component</td></tr>
+          <tr><td>ARIMAx β has p-value > 0.05</td><td><span class="badge badge-blue">ARIMA</span></td><td>External variable doesn't help — remove it</td></tr>
+          <tr><td>ARIMAx AIC lower than ARIMA</td><td><span class="badge badge-gold">ARIMAx</span></td><td>External variable genuinely improves predictions</td></tr>
+          <tr><td>Strong seasonal pattern</td><td><span class="badge badge-purple">SARIMA / SARIMAX</span></td><td>Seasonal terms needed for repeating cycles</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── FORECAST ── -->
+  <section class="section" id="forecast">
+    <p class="section-label">Step 06</p>
+    <h2>Generating the <span class="hl">Forecast</span></h2>
+    <p>Final step — use the validated model to predict future revenue with confidence intervals.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+        <span class="code-lang">Python — Forecast</span>
+      </div>
+      <div class="code-body"><pre><span class="c-cm"># ── ARIMA forecast (no external variable) ─────</span>
+<span class="c-var">forecast_steps</span> = <span class="c-num">6</span>  <span class="c-cm"># predict next 6 months</span>
+
+<span class="c-var">forecast_arima</span> = final_model.<span class="c-fn">get_forecast</span>(steps=forecast_steps)
+<span class="c-var">forecast_mean</span>  = forecast_arima.predicted_mean
+<span class="c-var">conf_int</span>       = forecast_arima.<span class="c-fn">conf_int</span>(alpha=<span class="c-num">0.05</span>)  <span class="c-cm"># 95% confidence</span>
+
+<span class="c-fn">print</span>(pd.<span class="c-cls">DataFrame</span>({
+    <span class="c-str">'Forecast'</span>   : forecast_mean,
+    <span class="c-str">'Lower 95%'</span>  : conf_int.iloc[:, <span class="c-num">0</span>],
+    <span class="c-str">'Upper 95%'</span>  : conf_int.iloc[:, <span class="c-num">1</span>]
+}))
+
+<span class="c-cm"># ── ARIMAx forecast (needs future X values) ───</span>
+<span class="c-cm"># You need projected Consumer Confidence for next 6 months
+# This can come from a government forecast or your own estimate</span>
+<span class="c-var">X_future</span> = pd.<span class="c-cls">DataFrame</span>({
+    <span class="c-str">'consumer_confidence'</span>: [<span class="c-num">78</span>, <span class="c-num">80</span>, <span class="c-num">79</span>, <span class="c-num">82</span>, <span class="c-num">85</span>, <span class="c-num">84</span>]
+})
+
+<span class="c-var">forecast_arimax</span> = arimax_result.<span class="c-fn">get_forecast</span>(
+    steps = forecast_steps,
+    exog  = X_future
+)
+<span class="c-var">arimax_mean</span> = forecast_arimax.predicted_mean
+<span class="c-var">arimax_ci</span>   = forecast_arimax.<span class="c-fn">conf_int</span>()
+
+<span class="c-cm"># ── Plot both forecasts ───────────────────────</span>
+plt.<span class="c-fn">figure</span>(figsize=(<span class="c-num">13</span>, <span class="c-num">6</span>))
+plt.<span class="c-fn">plot</span>(y, label=<span class="c-str">'Actual Revenue'</span>, color=<span class="c-str">'#e8eaf0'</span>)
+plt.<span class="c-fn">plot</span>(forecast_mean,  label=<span class="c-str">'ARIMA Forecast'</span>,  color=<span class="c-str">'#5b9cf6'</span>)
+plt.<span class="c-fn">plot</span>(arimax_mean,    label=<span class="c-str">'ARIMAx Forecast'</span>, color=<span class="c-str">'#e8c547'</span>)
+plt.<span class="c-fn">fill_between</span>(arimax_ci.index,
+                 arimax_ci.iloc[:,<span class="c-num">0</span>], arimax_ci.iloc[:,<span class="c-num">1</span>],
+                 alpha=<span class="c-num">0.2</span>, color=<span class="c-str">'#e8c547'</span>, label=<span class="c-str">'95% CI'</span>)
+plt.<span class="c-fn">legend</span>()
+plt.<span class="c-fn">title</span>(<span class="c-str">'Revenue Forecast — ARIMA vs ARIMAx'</span>)
+plt.<span class="c-fn">show</span>()</pre></div>
+    </div>
+
+    <div class="ascii">Revenue Forecast — Next 6 Months
+
+  160 |                               ╔══════════╗  ← Upper 95% CI
+  150 |                              /║          ║
+  140 |                          ●--● ║ ARIMAx   ║
+  130 |                      ●--●     ║ Forecast ║
+  120 | ─────────────────●           ╚══════════╝
+  110 |                              ↑ Lower CI
+  100 |  Actual history →            
+   90 | ████████████████████
+      +--------------------------------------→ months
+      History ──────────────│── Future ──────
+                        Dec'24  Jan-Jun'25
+
+  ● = ARIMA point forecast     Shaded = Confidence Interval
+  Note: Bands widen as forecast horizon grows — honest uncertainty!</div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <strong>ARIMAx Requires Future X Values</strong>
+        To forecast with ARIMAx, you need future values of Consumer Confidence. This is a limitation — you either use official economic forecasts, or model the X variable separately first.
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── DECISION TREE ── -->
+  <section class="section" id="decision">
+    <p class="section-label">Quick Reference</p>
+    <h2>Model Selection <span class="hl">Decision Tree</span></h2>
+    <p>Use this flowchart every time you start a new time series problem.</p>
+
+    <div class="decision">
+      <div><span class="q">Q1.</span> Plot the series. Does it have a clear upward/downward trend?</div>
+      <div style="padding-left:2rem"><span class="y">YES →</span> Likely non-stationary. Run ADF test.</div>
+      <div style="padding-left:2rem"><span class="n">NO  →</span> Could be stationary. Run ADF test to confirm.</div>
+      <br>
+      <div><span class="q">Q2.</span> ADF test p-value > 0.05?</div>
+      <div style="padding-left:2rem"><span class="y">YES →</span> Unit root confirmed → <span class="r">d = 1</span>. Difference once and re-test.</div>
+      <div style="padding-left:2rem"><span class="n">NO  →</span> Stationary → <span class="r">d = 0</span>. Skip differencing.</div>
+      <br>
+      <div><span class="q">Q3.</span> Does decomposition show strong repeating seasonal pattern?</div>
+      <div style="padding-left:2rem"><span class="y">YES →</span> Use <span class="r">SARIMA(p,d,q)(P,D,Q)m</span> with seasonal terms.</div>
+      <div style="padding-left:2rem"><span class="n">NO  →</span> Plain ARIMA or ARIMAx is sufficient.</div>
+      <br>
+      <div><span class="q">Q4.</span> Do you have external variables that drive the series?</div>
+      <div style="padding-left:2rem"><span class="y">YES →</span> Test their stationarity. If significant in model → use <span class="r">ARIMAx</span>.</div>
+      <div style="padding-left:2rem"><span class="n">NO  →</span> Use plain <span class="r">ARIMA</span>.</div>
+      <br>
+      <div><span class="q">Q5.</span> Read PACF of stationary series → p. Read ACF → q.</div>
+      <div style="padding-left:2rem">Confirm with AIC/BIC grid search across p ∈ [0,3], q ∈ [0,3].</div>
+      <br>
+      <div><span class="q">Q6.</span> Fit model. Check residuals. ACF/PACF of residuals all within bands?</div>
+      <div style="padding-left:2rem"><span class="y">YES →</span> Model is good. <span class="r">Proceed to forecast ✅</span></div>
+      <div style="padding-left:2rem"><span class="n">NO  →</span> Patterns remain. Try higher p or q, or add seasonal terms.</div>
+    </div>
+
+    <h3 style="font-family:var(--serif); margin:2rem 0 0.8rem; font-size:1.2rem;">Complete flow for our coffee shop example</h3>
+
+    <div class="flow">
+      <div class="flow-box">Raw Revenue Data</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">EDA: Rolling mean rising</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Decompose: Strong trend, mild season</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box highlight">ADF: p=0.66 → Unit Root → d=1</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">PACF→p=1, ACF→q=1</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box highlight">ARIMA(1,1,1)</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Add Consumer Confidence</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box highlight">ARIMAx(1,1,1)</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">AIC: ARIMAx wins → Forecast ✅</div>
+    </div>
+
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SUMMARY ── -->
+  <div class="verdict">
+    <h3>The Golden Rules of Time Series Modelling</h3>
+    <p style="margin-bottom:1.5rem;">Never skip these steps, in this order.</p>
+    <div style="display:flex; flex-wrap:wrap; gap:0.8rem; justify-content:center; font-family:var(--mono); font-size:0.78rem;">
+      <span class="badge badge-blue" style="padding:0.5rem 1rem; font-size:0.75rem;">1. Always plot first</span>
+      <span class="badge badge-gold" style="padding:0.5rem 1rem; font-size:0.75rem;">2. Always test stationarity</span>
+      <span class="badge badge-red" style="padding:0.5rem 1rem; font-size:0.75rem;">3. Never ignore unit roots</span>
+      <span class="badge badge-green" style="padding:0.5rem 1rem; font-size:0.75rem;">4. ACF/PACF on stationary series only</span>
+      <span class="badge badge-purple" style="padding:0.5rem 1rem; font-size:0.75rem;">5. Always validate residuals</span>
+      <span class="badge badge-blue" style="padding:0.5rem 1rem; font-size:0.75rem;">6. Use AIC to compare models</span>
+      <span class="badge badge-gold" style="padding:0.5rem 1rem; font-size:0.75rem;">7. External variables → ARIMAx</span>
+      <span class="badge badge-green" style="padding:0.5rem 1rem; font-size:0.75rem;">8. Seasonality → SARIMA</span>
+    </div>
+  </div>
+
+</div><!-- end wrapper -->
+
+</body>
+</html>

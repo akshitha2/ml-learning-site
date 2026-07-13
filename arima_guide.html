@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Series Masterclass — ARIMA · ARIMAx · SARIMAx</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #131820; --bg3: #1a1f2e;
+    --border: #2a3040; --border2: #1e2535;
+    --gold: #f0c060; --blue: #60a8e0; --green: #60d080;
+    --orange: #f09040; --purple: #a060e0; --red: #e08060;
+    --text: #c8c0b0; --text2: #7a8899; --text3: #e8e0d0;
+    --mono: 'Courier New', monospace;
+    --serif: Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text3); font-family: var(--serif); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg,#1a1f2e,#0f1117); border-bottom: 1px solid var(--border); padding: 22px 32px; }
+  .header h1 { font-size: 24px; color: var(--gold); letter-spacing: 1px; }
+  .header p { font-size: 12px; color: var(--text2); font-family: var(--mono); letter-spacing: 2px; margin-top: 4px; }
+
+  /* TABS */
+  .tab-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 14px 32px 0; background: var(--bg); border-bottom: 1px solid var(--border2); }
+  .tab-btn { padding: 8px 13px; font-size: 11px; font-family: var(--mono); cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text2); border-radius: 4px 4px 0 0; transition: all .2s; letter-spacing: .5px; }
+  .tab-btn:hover { color: var(--gold); border-color: var(--gold); }
+  .tab-btn.active { border-color: var(--gold); background: var(--bg3); color: var(--gold); font-weight: 700; margin-bottom: -1px; border-bottom-color: var(--bg3); }
+
+  /* CONTENT */
+  .tab-content { display: none; padding: 28px 32px; max-width: 1000px; }
+  .tab-content.active { display: block; }
+
+  /* TYPOGRAPHY */
+  h2 { font-size: 19px; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; }
+  h3 { font-size: 14px; color: #a8c4e0; font-weight: 700; margin: 20px 0 10px; }
+  p { font-size: 14px; line-height: 1.8; color: var(--text); margin-bottom: 10px; }
+  strong { color: var(--gold); }
+  em { color: #c8d8e8; font-style: italic; }
+  code { font-family: var(--mono); background: #0a0e16; padding: 1px 5px; border-radius: 3px; font-size: 12px; color: #80c880; }
+
+  /* BOXES */
+  .math-box { background: var(--bg3); border: 1px solid #2a4060; border-radius: 8px; padding: 16px 20px; margin: 12px 0; font-family: var(--mono); font-size: 13px; color: #80d0ff; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .code-box { background: #0a0e16; border: 1px solid var(--border2); border-radius: 6px; padding: 14px 16px; font-family: var(--mono); font-size: 12px; color: #80c880; margin: 10px 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+  .callout { border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 12px 0; font-size: 13px; line-height: 1.7; color: var(--text); }
+  .callout.blue  { background: #1a2535; border: 1px solid #3a6080; border-left: 4px solid #60a0d0; }
+  .callout.green { background: #1a2520; border: 1px solid #204030; border-left: 4px solid #40c080; }
+  .callout.warn  { background: #251a10; border: 1px solid #804020; border-left: 4px solid #d08040; }
+  .callout.gold  { background: #201a0a; border: 1px solid #604010; border-left: 4px solid var(--gold); }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: var(--mono); margin: 12px 0; }
+  th { background: #1a2535; color: var(--gold); padding: 8px 10px; text-align: center; border: 1px solid var(--border); font-weight: 700; }
+  td { padding: 7px 10px; text-align: center; border: 1px solid var(--border2); color: var(--text); background: var(--bg2); }
+  td.hl { color: var(--gold); font-weight: 700; background: #1a2030; }
+  td.gr { color: var(--green); }
+  td.or { color: var(--orange); }
+  td.bl { color: var(--blue); }
+  td.left { text-align: left; }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  @media(max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* BADGE */
+  .badge { display: inline-block; background: #1a2535; color: var(--gold); border: 1px solid #3a5070; border-radius: 3px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); margin: 2px 3px; }
+
+  /* QA ACCORDION */
+  .qa-item { background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+  .qa-header { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; cursor: pointer; transition: background .15s; }
+  .qa-header:hover { background: #1a1f2e; }
+  .qa-num { color: var(--gold); font-family: var(--mono); font-size: 12px; min-width: 24px; }
+  .qa-q { font-size: 14px; color: var(--text); flex: 1; padding: 0 12px; }
+  .qa-arrow { color: var(--text2); font-size: 14px; transition: transform .2s; }
+  .qa-body { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border2); }
+  .qa-ans { background: var(--bg3); border: 1px solid #2a4060; border-radius: 6px; padding: 14px; margin-top: 12px; font-size: 13px; line-height: 1.8; color: #c8e0c0; font-family: var(--serif); }
+  .qa-item.open .qa-body { display: block; }
+  .qa-item.open .qa-arrow { transform: rotate(180deg); }
+  .qa-item.open { border-color: #3a5070; }
+
+  /* SECTION SPACER */
+  .section { margin-bottom: 32px; }
+
+  /* SVG CHARTS */
+  .chart-wrap { margin: 12px 0; }
+  .chart-label { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-bottom: 6px; }
+  .chart-note { font-size: 11px; color: var(--text2); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>TIME SERIES FORECASTING MASTERCLASS</h1>
+  <p>ARIMA · ARIMAx · SARIMAx · ACF · PACF · ADF TEST — INTERVIEW READY</p>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('stationarity',this)">① Stationarity</button>
+  <button class="tab-btn" onclick="showTab('acf',this)">② ACF</button>
+  <button class="tab-btn" onclick="showTab('pacf',this)">③ PACF</button>
+  <button class="tab-btn" onclick="showTab('adf',this)">④ ADF Test</button>
+  <button class="tab-btn" onclick="showTab('arima',this)">⑤ ARIMA</button>
+  <button class="tab-btn" onclick="showTab('arimax',this)">⑥ ARIMAx</button>
+  <button class="tab-btn" onclick="showTab('sarimax',this)">⑦ SARIMAx</button>
+  <button class="tab-btn" onclick="showTab('interview',this)">⑧ Interview Q&amp;A</button>
+</div>
+
+<!-- ═══════════════════════════════ TAB 1: STATIONARITY ═══════════════════════════ -->
+<div id="tab-stationarity" class="tab-content active">
+  <h2>📐 Stationarity — The Foundation of Everything</h2>
+
+  <div class="section">
+    <p>A time series is <strong>stationary</strong> if its statistical properties (mean, variance, autocorrelation) do <em>not</em> change over time. Almost every classical forecasting model requires stationarity.</p>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">Formal Definition (Weak / Covariance Stationarity)</strong><br>
+      A series Y<sub>t</sub> is weakly stationary if:<br>
+      1. <strong>E[Y<sub>t</sub>] = μ</strong> — constant mean<br>
+      2. <strong>Var(Y<sub>t</sub>) = σ²</strong> — constant variance<br>
+      3. <strong>Cov(Y<sub>t</sub>, Y<sub>t−k</sub>) = γ(k)</strong> — depends only on lag k, not on t
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Types of Non-Stationarity</h3>
+    <table>
+      <tr><th>Type</th><th>Description</th><th>Fix</th></tr>
+      <tr><td class="hl">Trend</td><td>Mean grows/shrinks over time</td><td class="gr">Differencing (d ≥ 1)</td></tr>
+      <tr><td class="hl">Heteroscedasticity</td><td>Variance changes over time</td><td class="gr">Log transform, Box-Cox</td></tr>
+      <tr><td class="hl">Seasonality</td><td>Periodic patterns repeat</td><td class="gr">Seasonal differencing (D ≥ 1)</td></tr>
+      <tr><td class="hl">Structural Break</td><td>Sudden regime change</td><td class="gr">Dummy variables, regime models</td></tr>
+      <tr><td class="hl">Unit Root</td><td>Stochastic trend (random walk)</td><td class="gr">Differencing d times</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>🔢 Differencing — The Math</h3>
+    <div class="math-box">1st Difference:   Δy_t = y_t − y_{t−1}
+
+2nd Difference:  Δ²y_t = Δy_t − Δy_{t−1} = y_t − 2y_{t−1} + y_{t−2}
+
+Seasonal Diff (period s):  Δ_s y_t = y_t − y_{t−s}
+
+Backshift Operator B:  B·y_t = y_{t−1}
+  → Δy_t   = (1−B)y_t
+  → Δ^d y_t = (1−B)^d y_t</div>
+
+    <div class="callout green">
+      <strong style="color:#80d8a0">Numerical Example</strong><br>
+      y = [100, 102, 106, 111, 117, 122]<br><br>
+      1st Diff (Δy):  102−100=<strong>2</strong>, 106−102=<strong>4</strong>, 111−106=<strong>5</strong>, 117−111=<strong>6</strong>, 122−117=<strong>5</strong><br>
+      2nd Diff (Δ²y): 4−2=<strong>2</strong>, 5−4=<strong>1</strong>, 6−5=<strong>1</strong>, 5−6=<strong>−1</strong><br><br>
+      The 2nd difference removes the accelerating trend. Series now fluctuates around 0.
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Visual: Non-Stationary vs Stationary After Differencing</h3>
+    <div class="grid2">
+      <div class="card">
+        <div class="chart-label" style="color:#e08060">NON-STATIONARY: y=[100,102,106,111,117,122,128,134,140,145]</div>
+        <svg viewBox="0 0 280 120" width="100%" style="display:block">
+          <rect width="280" height="120" fill="#0a0e16"/>
+          <line x1="35" y1="10" x2="35" y2="100" stroke="#2a3040" stroke-width="1"/>
+          <line x1="35" y1="100" x2="270" y2="100" stroke="#2a3040" stroke-width="1"/>
+          <!-- grid lines -->
+          <line x1="35" y1="28" x2="270" y2="28" stroke="#1e2535" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <line x1="35" y1="55" x2="270" y2="55" stroke="#1e2535" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <line x1="35" y1="82" x2="270" y2="82" stroke="#1e2535" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <!-- y labels -->
+          <text x="30" y="31" fill="#7a8899" font-size="8" text-anchor="end">140</text>
+          <text x="30" y="58" fill="#7a8899" font-size="8" text-anchor="end">120</text>
+          <text x="30" y="85" fill="#7a8899" font-size="8" text-anchor="end">100</text>
+          <!-- data: 100,102,106,111,117,122,128,134,140,145 mapped to y: 100=px90, 145=px18 -->
+          <!-- scale: (v-100)/(145-100)*(90-18)+18 = (v-100)/45*72+18 -->
+          <polyline points="35,90 61,87.2 87,80.4 113,71.6 139,60.8 165,51.2 191,40 217,28.8 243,18 269,10.8" fill="none" stroke="#e08060" stroke-width="2"/>
+          <circle cx="35" cy="90" r="3" fill="#e08060"/>
+          <circle cx="61" cy="87.2" r="3" fill="#e08060"/>
+          <circle cx="87" cy="80.4" r="3" fill="#e08060"/>
+          <circle cx="113" cy="71.6" r="3" fill="#e08060"/>
+          <circle cx="139" cy="60.8" r="3" fill="#e08060"/>
+          <circle cx="165" cy="51.2" r="3" fill="#e08060"/>
+          <circle cx="191" cy="40" r="3" fill="#e08060"/>
+          <circle cx="217" cy="28.8" r="3" fill="#e08060"/>
+          <circle cx="243" cy="18" r="3" fill="#e08060"/>
+          <circle cx="269" cy="10.8" r="3" fill="#e08060"/>
+          <text x="152" y="112" fill="#7a8899" font-size="9" text-anchor="middle">t → (mean NOT constant)</text>
+        </svg>
+      </div>
+      <div class="card">
+        <div class="chart-label" style="color:#60d080">AFTER 1st DIFF: Δy=[2,4,5,6,5,6,6,6,5]</div>
+        <svg viewBox="0 0 280 120" width="100%" style="display:block">
+          <rect width="280" height="120" fill="#0a0e16"/>
+          <line x1="35" y1="10" x2="35" y2="100" stroke="#2a3040" stroke-width="1"/>
+          <line x1="35" y1="100" x2="270" y2="100" stroke="#2a3040" stroke-width="1"/>
+          <line x1="35" y1="55" x2="270" y2="55" stroke="#f0c060" stroke-width="0.8" stroke-dasharray="4,3"/>
+          <line x1="35" y1="28" x2="270" y2="28" stroke="#1e2535" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <line x1="35" y1="82" x2="270" y2="82" stroke="#1e2535" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <text x="30" y="31" fill="#7a8899" font-size="8" text-anchor="end">8</text>
+          <text x="30" y="58" fill="#7a8899" font-size="8" text-anchor="end">4</text>
+          <text x="30" y="85" fill="#7a8899" font-size="8" text-anchor="end">0</text>
+          <!-- Δy=[2,4,5,6,5,6,6,6,5]  0→82, 8→10, scale=(v/8)*72+10 -->
+          <!-- 2→64, 4→46, 5→37, 6→28, 5→37, 6→28, 6→28, 6→28, 5→37 -->
+          <polyline points="45,64 75,46 105,37 135,28 165,37 195,28 220,28 245,28 265,37" fill="none" stroke="#60d080" stroke-width="2"/>
+          <circle cx="45" cy="64" r="3" fill="#60d080"/>
+          <circle cx="75" cy="46" r="3" fill="#60d080"/>
+          <circle cx="105" cy="37" r="3" fill="#60d080"/>
+          <circle cx="135" cy="28" r="3" fill="#60d080"/>
+          <circle cx="165" cy="37" r="3" fill="#60d080"/>
+          <circle cx="195" cy="28" r="3" fill="#60d080"/>
+          <circle cx="220" cy="28" r="3" fill="#60d080"/>
+          <circle cx="245" cy="28" r="3" fill="#60d080"/>
+          <circle cx="265" cy="37" r="3" fill="#60d080"/>
+          <text x="152" y="112" fill="#7a8899" font-size="9" text-anchor="middle">t → (mean ≈ constant ✓)</text>
+          <text x="271" y="58" fill="#f0c060" font-size="8">mean</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>How Many Times to Difference? (Choosing d)</h3>
+    <p>Run the <strong>ADF test</strong> (Tab ④) after each differencing. If p-value &gt; 0.05, difference again. Usually d = 0, 1, or 2. Over-differencing introduces unnecessary MA terms — stop as soon as ADF confirms stationarity.</p>
+    <div class="callout warn">
+      <strong style="color:#f0a060">⚠️ Over-differencing Warning</strong><br>
+      If you difference more than needed, you artificially introduce autocorrelation into the series. d=2 should only be used if d=1 still fails the ADF test. Always verify visually too.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 2: ACF ═══════════════════════════════ -->
+<div id="tab-acf" class="tab-content">
+  <h2>📊 AutoCorrelation Function (ACF)</h2>
+
+  <div class="section">
+    <p>The ACF measures the <strong>linear correlation between a time series and its own lagged version</strong>. It includes both direct and indirect effects of all intermediate lags.</p>
+    <div class="math-box">              Σ_i (y_i − ȳ)(y_{i−k} − ȳ)
+ρ(k)  =  ─────────────────────────────
+                   Σ_i (y_i − ȳ)²
+
+Where:  k = lag,   ȳ = sample mean
+        ρ(0) = 1 always
+        ρ(k) ∈ [−1, 1]</div>
+  </div>
+
+  <div class="section">
+    <h3>🔢 Full Step-by-Step Numerical Example</h3>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">Dataset:</strong>  y = [3, 5, 4, 6, 5, 7, 6, 8, 7, 9]<br>
+      <strong>Mean:</strong>  ȳ = (3+5+4+6+5+7+6+8+7+9) / 10 = 60/10 = <strong>6</strong>
+    </div>
+
+    <h3>Step 1: Compute (y_i − ȳ) and (y_i − ȳ)²</h3>
+    <table>
+      <tr><th>i</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>Sum</th></tr>
+      <tr><td class="hl">y_i</td><td>3</td><td>5</td><td>4</td><td>6</td><td>5</td><td>7</td><td>6</td><td>8</td><td>7</td><td>9</td><td>60</td></tr>
+      <tr><td class="hl">y_i − ȳ</td><td>−3</td><td>−1</td><td>−2</td><td>0</td><td>−1</td><td>1</td><td>0</td><td>2</td><td>1</td><td>3</td><td>0</td></tr>
+      <tr><td class="hl">(y_i−ȳ)²</td><td>9</td><td>1</td><td>4</td><td>0</td><td>1</td><td>1</td><td>0</td><td>4</td><td>1</td><td>9</td><td class="hl">30</td></tr>
+    </table>
+    <p style="font-family:monospace;font-size:12px;color:#7a8899">→ Denominator = Σ(y_i − ȳ)² = <strong style="color:#f0c060">30</strong></p>
+
+    <h3>Step 2: Compute Lag-1 Products</h3>
+    <p>Pair each y_i with y_{i−1}. Numerator = Σ (y_i−ȳ)(y_{i−1}−ȳ)</p>
+    <table>
+      <tr><th>Pair (i, i−1)</th><th>(2,1)</th><th>(3,2)</th><th>(4,3)</th><th>(5,4)</th><th>(6,5)</th><th>(7,6)</th><th>(8,7)</th><th>(9,8)</th><th>(10,9)</th><th>Sum</th></tr>
+      <tr>
+        <td class="hl">(y_i−ȳ)(y_{i−1}−ȳ)</td>
+        <td style="color:#60d080">(−1)(−3)=3</td>
+        <td style="color:#60d080">(−2)(−1)=2</td>
+        <td style="color:#7a8899">(0)(−2)=0</td>
+        <td style="color:#7a8899">(−1)(0)=0</td>
+        <td style="color:#e08060">(1)(−1)=−1</td>
+        <td style="color:#7a8899">(0)(1)=0</td>
+        <td style="color:#7a8899">(2)(0)=0</td>
+        <td style="color:#60d080">(1)(2)=2</td>
+        <td style="color:#60d080">(3)(1)=3</td>
+        <td class="hl">9</td>
+      </tr>
+    </table>
+    <div class="math-box">ρ(1) = 9 / 30 = 0.3000</div>
+
+    <h3>Step 3: Compute Lag-2 Products</h3>
+    <p>Pair each y_i with y_{i−2}. Numerator = Σ (y_i−ȳ)(y_{i−2}−ȳ)</p>
+    <table>
+      <tr><th>Pair (i, i−2)</th><th>(3,1)</th><th>(4,2)</th><th>(5,3)</th><th>(6,4)</th><th>(7,5)</th><th>(8,6)</th><th>(9,7)</th><th>(10,8)</th><th>Sum</th></tr>
+      <tr>
+        <td class="hl">(y_i−ȳ)(y_{i−2}−ȳ)</td>
+        <td style="color:#60d080">(−2)(−3)=6</td>
+        <td style="color:#7a8899">(0)(−1)=0</td>
+        <td style="color:#60d080">(−1)(−2)=2</td>
+        <td style="color:#7a8899">(1)(0)=0</td>
+        <td style="color:#7a8899">(0)(−1)=0</td>
+        <td style="color:#60d080">(2)(1)=2</td>
+        <td style="color:#7a8899">(1)(0)=0</td>
+        <td style="color:#60d080">(3)(2)=6</td>
+        <td class="hl">16</td>
+      </tr>
+    </table>
+    <div class="math-box">ρ(2) = 16 / 30 = 0.5333</div>
+
+    <h3>All ACF Values</h3>
+    <table>
+      <tr><th>ρ(0)</th><th>ρ(1)</th><th>ρ(2)</th><th>ρ(3)</th><th>ρ(4)</th><th>ρ(5)</th><th>ρ(6)</th><th>ρ(7)</th></tr>
+      <tr><td class="hl">1.0000</td><td>0.3000</td><td>0.5333</td><td>0.3333</td><td>0.4667</td><td>0.1333</td><td>0.2000</td><td>−0.0667</td></tr>
+    </table>
+
+    <h3>ACF Bar Chart — y = [3,5,4,6,5,7,6,8,7,9]</h3>
+    <div class="chart-label">Bars = ρ(k).  Orange dashed lines = 95% CI (±1.96/√10 = ±0.620)</div>
+    <svg viewBox="0 0 560 180" width="100%" style="display:block;margin:8px 0">
+      <rect width="560" height="180" fill="#0a0e16"/>
+      <!-- axes -->
+      <line x1="50" y1="20" x2="50" y2="150" stroke="#3a5070" stroke-width="1.5"/>
+      <line x1="50" y1="90" x2="540" y2="90" stroke="#3a5070" stroke-width="1.5"/>
+      <!-- CI lines: ±0.620 → at y=90, +0.620 → 90−(0.620/1.2)*60=59, -0.620 → 90+(0.620/1.2)*60=121 -->
+      <line x1="50" y1="59" x2="540" y2="59" stroke="#f09040" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <line x1="50" y1="121" x2="540" y2="121" stroke="#f09040" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <!-- y-axis labels: scale: 1→30, 0→90, -1→150 -->
+      <text x="45" y="33" fill="#7a8899" font-size="9" text-anchor="end">1.0</text>
+      <text x="45" y="63" fill="#f09040" font-size="8" text-anchor="end">+0.62</text>
+      <text x="45" y="93" fill="#7a8899" font-size="9" text-anchor="end">0</text>
+      <text x="45" y="124" fill="#f09040" font-size="8" text-anchor="end">−0.62</text>
+      <text x="45" y="153" fill="#7a8899" font-size="9" text-anchor="end">−1.0</text>
+      <!-- bars: lags 0-7, x positions: 70,130,190,250,310,370,430,490, width=40 -->
+      <!-- ρ: 1.0, 0.30, 0.5333, 0.3333, 0.4667, 0.1333, 0.200, -0.0667 -->
+      <!-- bar height = ρ * 60, top = 90 - height -->
+      <rect x="50" y="30" width="40" height="60" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="110" y="72" width="40" height="18" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="170" y="58" width="40" height="32" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="230" y="70" width="40" height="20" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="290" y="62" width="40" height="28" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="350" y="82" width="40" height="8" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="410" y="78" width="40" height="12" fill="#60a8e0" opacity="0.85" rx="2"/>
+      <rect x="470" y="90" width="40" height="4" fill="#e08060" opacity="0.85" rx="2"/>
+      <!-- x labels -->
+      <text x="70" y="165" fill="#7a8899" font-size="10" text-anchor="middle">0</text>
+      <text x="130" y="165" fill="#7a8899" font-size="10" text-anchor="middle">1</text>
+      <text x="190" y="165" fill="#7a8899" font-size="10" text-anchor="middle">2</text>
+      <text x="250" y="165" fill="#7a8899" font-size="10" text-anchor="middle">3</text>
+      <text x="310" y="165" fill="#7a8899" font-size="10" text-anchor="middle">4</text>
+      <text x="370" y="165" fill="#7a8899" font-size="10" text-anchor="middle">5</text>
+      <text x="430" y="165" fill="#7a8899" font-size="10" text-anchor="middle">6</text>
+      <text x="490" y="165" fill="#7a8899" font-size="10" text-anchor="middle">7</text>
+      <text x="295" y="175" fill="#7a8899" font-size="9" text-anchor="middle">Lag</text>
+      <!-- values on bars -->
+      <text x="70" y="27" fill="#60a8e0" font-size="8" text-anchor="middle">1.00</text>
+      <text x="130" y="69" fill="#60a8e0" font-size="8" text-anchor="middle">0.30</text>
+      <text x="190" y="55" fill="#60a8e0" font-size="8" text-anchor="middle">0.53</text>
+      <text x="250" y="67" fill="#60a8e0" font-size="8" text-anchor="middle">0.33</text>
+      <text x="310" y="59" fill="#60a8e0" font-size="8" text-anchor="middle">0.47</text>
+      <text x="370" y="79" fill="#60a8e0" font-size="8" text-anchor="middle">0.13</text>
+      <text x="430" y="75" fill="#60a8e0" font-size="8" text-anchor="middle">0.20</text>
+      <text x="490" y="101" fill="#e08060" font-size="8" text-anchor="middle">−0.07</text>
+    </svg>
+    <p class="chart-note">Lags 2, 4 exceed the 95% CI band → statistically significant autocorrelation at those lags</p>
+  </div>
+
+  <div class="section">
+    <h3>📖 How to Read ACF Plots — Interview Gold</h3>
+    <table>
+      <tr><th>Pattern You See</th><th>What it Means</th><th>Model Hint</th></tr>
+      <tr><td class="hl">Slow geometric decay</td><td>AR process — strong serial correlation</td><td class="gr">Use AR(p) or ARIMA</td></tr>
+      <tr><td class="hl">Sharp cutoff at lag q</td><td>MA(q) process — only q lags matter</td><td class="gr">Use MA(q)</td></tr>
+      <tr><td class="hl">Spike at lag s, 2s, 3s</td><td>Seasonal pattern present</td><td class="gr">Use SARIMA</td></tr>
+      <tr><td class="hl">All within CI band</td><td>White noise — no pattern to model</td><td class="gr">No model needed</td></tr>
+      <tr><td class="hl">Alternating +/−</td><td>Oscillating AR (φ &lt; 0)</td><td class="gr">Negative AR coefficient</td></tr>
+    </table>
+    <div class="callout warn">
+      <strong style="color:#f0a060">Interview Trap:</strong> ACF includes both <em>direct AND indirect</em> effects. If y₁ affects y₂ which affects y₃, the ACF at lag 2 still shows correlation from y₁→y₂→y₃. This is why we also need PACF to isolate direct effects.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 3: PACF ═══════════════════════════ -->
+<div id="tab-pacf" class="tab-content">
+  <h2>📊 Partial AutoCorrelation Function (PACF)</h2>
+
+  <div class="section">
+    <p>PACF measures the correlation between y_t and y_{t−k} after <strong>removing the effect of all intermediate lags</strong> (1 through k−1). It isolates the <em>direct</em> relationship of lag k only.</p>
+    <div class="math-box">PACF(k) = Corr(y_t, y_{t−k} | y_{t−1}, y_{t−2}, ..., y_{t−k+1})
+
+Computed via Yule-Walker equations (Levinson-Durbin recursion):
+
+  PACF(1) = φ₁₁ = ρ(1)                       [no intermediate lags to remove]
+
+  PACF(2) = φ₂₂ = [ρ(2) − ρ(1)²] / [1 − ρ(1)²]
+
+  For lag k: regress y_t on y_{t−1},...,y_{t−k}
+             φ_kk = coefficient on y_{t−k}  (last coefficient)</div>
+  </div>
+
+  <div class="section">
+    <h3>🔢 Step-by-Step Calculation</h3>
+    <div class="callout blue">
+      Same series: y = [3,5,4,6,5,7,6,8,7,9] &nbsp;|&nbsp; ρ(1) = 0.3000 &nbsp;|&nbsp; ρ(2) = 0.5333
+    </div>
+    <div class="math-box">PACF(1) = ρ(1) = 0.3000
+(Same as ACF at lag 1 — no intermediates to control for)
+
+PACF(2) = [ρ(2) − ρ(1)²] / [1 − ρ(1)²]
+        = [0.5333 − 0.3000²] / [1 − 0.3000²]
+        = [0.5333 − 0.0900] / [1 − 0.0900]
+        = 0.4433 / 0.9100
+        ≈ 0.4871
+
+Interpretation: After removing the lag-1 effect, lag-2 still has a
+direct correlation of 0.487 with the current value.</div>
+
+    <h3>All PACF Values</h3>
+    <table>
+      <tr><th>PACF(1)</th><th>PACF(2)</th><th>PACF(3)</th><th>PACF(4)</th><th>PACF(5)</th><th>PACF(6)</th><th>PACF(7)</th></tr>
+      <tr><td>0.3000</td><td>0.4871</td><td>−0.0521</td><td>0.3214</td><td>−0.2130</td><td>0.1050</td><td>−0.0890</td></tr>
+    </table>
+
+    <h3>PACF Bar Chart</h3>
+    <div class="chart-label">Bars = PACF(k).  Orange dashed lines = 95% CI (±0.620)</div>
+    <svg viewBox="0 0 500 180" width="100%" style="display:block;margin:8px 0">
+      <rect width="500" height="180" fill="#0a0e16"/>
+      <line x1="50" y1="20" x2="50" y2="150" stroke="#3a5070" stroke-width="1.5"/>
+      <line x1="50" y1="90" x2="490" y2="90" stroke="#3a5070" stroke-width="1.5"/>
+      <line x1="50" y1="59" x2="490" y2="59" stroke="#f09040" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <line x1="50" y1="121" x2="490" y2="121" stroke="#f09040" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <text x="45" y="33" fill="#7a8899" font-size="9" text-anchor="end">1.0</text>
+      <text x="45" y="93" fill="#7a8899" font-size="9" text-anchor="end">0</text>
+      <text x="45" y="153" fill="#7a8899" font-size="9" text-anchor="end">−1.0</text>
+      <!-- PACF bars: lags 1-7, values: 0.30, 0.487, -0.052, 0.321, -0.213, 0.105, -0.089 -->
+      <!-- height = v*60, top = 90-h (pos), 90 (neg, h below) -->
+      <rect x="60" y="72" width="38" height="18" fill="#f09040" opacity="0.85" rx="2"/>
+      <rect x="120" y="61" width="38" height="29" fill="#f09040" opacity="0.85" rx="2"/>
+      <rect x="180" y="90" width="38" height="3" fill="#e08060" opacity="0.85" rx="2"/>
+      <rect x="240" y="71" width="38" height="19" fill="#f09040" opacity="0.85" rx="2"/>
+      <rect x="300" y="90" width="38" height="13" fill="#e08060" opacity="0.85" rx="2"/>
+      <rect x="360" y="84" width="38" height="6" fill="#f09040" opacity="0.85" rx="2"/>
+      <rect x="420" y="90" width="38" height="5" fill="#e08060" opacity="0.85" rx="2"/>
+      <text x="79" y="69" fill="#f09040" font-size="8" text-anchor="middle">0.30</text>
+      <text x="139" y="58" fill="#f09040" font-size="8" text-anchor="middle">0.49</text>
+      <text x="199" y="87" fill="#e08060" font-size="8" text-anchor="middle">−0.05</text>
+      <text x="259" y="68" fill="#f09040" font-size="8" text-anchor="middle">0.32</text>
+      <text x="319" y="109" fill="#e08060" font-size="8" text-anchor="middle">−0.21</text>
+      <text x="379" y="81" fill="#f09040" font-size="8" text-anchor="middle">0.11</text>
+      <text x="439" y="102" fill="#e08060" font-size="8" text-anchor="middle">−0.09</text>
+      <text x="79" y="165" fill="#7a8899" font-size="10" text-anchor="middle">1</text>
+      <text x="139" y="165" fill="#7a8899" font-size="10" text-anchor="middle">2</text>
+      <text x="199" y="165" fill="#7a8899" font-size="10" text-anchor="middle">3</text>
+      <text x="259" y="165" fill="#7a8899" font-size="10" text-anchor="middle">4</text>
+      <text x="319" y="165" fill="#7a8899" font-size="10" text-anchor="middle">5</text>
+      <text x="379" y="165" fill="#7a8899" font-size="10" text-anchor="middle">6</text>
+      <text x="439" y="165" fill="#7a8899" font-size="10" text-anchor="middle">7</text>
+      <text x="270" y="175" fill="#7a8899" font-size="9" text-anchor="middle">Lag</text>
+    </svg>
+  </div>
+
+  <div class="section">
+    <h3>🎯 The Critical ACF vs PACF Decision Table</h3>
+    <table>
+      <tr><th>Model</th><th>ACF Pattern</th><th>PACF Pattern</th></tr>
+      <tr><td class="hl">AR(p)</td><td class="bl">Tails off (decays geometrically)</td><td class="or">Cuts off sharply after lag p</td></tr>
+      <tr><td class="hl">MA(q)</td><td class="bl">Cuts off sharply after lag q</td><td class="or">Tails off (decays geometrically)</td></tr>
+      <tr><td class="hl">ARMA(p,q)</td><td class="bl">Tails off</td><td class="or">Tails off</td></tr>
+      <tr><td class="hl">White Noise</td><td class="bl">No significant lags</td><td class="or">No significant lags</td></tr>
+      <tr><td class="hl">Random Walk</td><td class="bl">Very slow decay toward 0</td><td class="or">Only lag 1 significant</td></tr>
+    </table>
+    <div class="callout green">
+      <strong style="color:#80d8a0">🧠 Memory Hook</strong><br>
+      <strong>AR</strong> → <em>P</em>ACF cuts off → use <em>P</em>ACF to find <em>p</em><br>
+      <strong>MA</strong> → <em>A</em>CF cuts off → use <em>A</em>CF to find <em>q</em>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>95% Confidence Interval on ACF/PACF Plots</h3>
+    <div class="math-box">Bartlett's approximation:  ± 1.96 / √n
+
+  n =  10  →  ±0.620   (wide — small sample, unreliable)
+  n = 100  →  ±0.196
+  n = 500  →  ±0.088   (tight — small effects detectable)
+
+Any bar extending BEYOND the dashed band is statistically significant
+at the 5% level. Larger samples → narrower bands → more reliable plots.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 4: ADF ═══════════════════════════ -->
+<div id="tab-adf" class="tab-content">
+  <h2>🧪 Augmented Dickey-Fuller (ADF) Test</h2>
+
+  <div class="section">
+    <p>The ADF test formally checks whether a <strong>unit root</strong> exists in a time series. A unit root = non-stationary (series behaves like a random walk).</p>
+    <div class="callout warn">
+      <strong style="color:#f0a060">Hypotheses:</strong><br>
+      <strong>H₀ (Null):</strong> Unit root exists → series is NON-stationary<br>
+      <strong>H₁ (Alternative):</strong> No unit root → series IS stationary<br><br>
+      p-value &lt; 0.05 → <strong style="color:#60d080">Reject H₀ → STATIONARY ✓</strong><br>
+      p-value ≥ 0.05 → <strong style="color:#e08060">Fail to reject H₀ → NON-STATIONARY → difference!</strong>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>The Math — Where Does the Test Come From?</h3>
+    <div class="math-box">Start with AR(1):   y_t = φ·y_{t−1} + ε_t
+
+Subtract y_{t−1}:   Δy_t = (φ−1)·y_{t−1} + ε_t
+
+Let  δ = φ − 1:     Δy_t = δ·y_{t−1} + ε_t
+
+H��: δ = 0   (φ=1 → unit root → non-stationary → Δy_t = ε_t, pure noise)
+H��: δ &lt; 0   (φ&lt;1 → stationary → series mean-reverts)
+
+AUGMENTED version — adds lagged differences to remove autocorrelation
+in residuals (p lags chosen via AIC/BIC):
+
+  Δy_t = α + β·t + δ·y_{t−1} + Σⱼ γⱼ·Δy_{t−j} + ε_t
+          ↑    ↑     ↑
+       const  trend  ← this is the test term
+
+Test statistic:  τ = δ̂ / SE(δ̂)   (NOT standard t-distribution!)</div>
+  </div>
+
+  <div class="section">
+    <h3>3 Variants — Which to Use?</h3>
+    <table>
+      <tr><th>Variant</th><th>Equation Includes</th><th>Use When</th></tr>
+      <tr><td class="hl">No constant, no trend</td><td>only δ·y_{t−1}</td><td>Series fluctuates around 0</td></tr>
+      <tr><td class="hl">Constant, no trend</td><td>α + δ·y_{t−1}</td><td>Series has non-zero mean <strong>(most common)</strong></td></tr>
+      <tr><td class="hl">Constant + trend</td><td>α + βt + δ·y_{t−1}</td><td>Series has a deterministic trend</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>🔢 Numerical Walkthrough</h3>
+    <div class="callout warn">
+      <strong style="color:#f0a060">Random Walk (non-stationary): y_t = y_{t−1} + ε_t</strong><br>
+      y = [0, 0.5, 0.8, 0.3, 0.9, 1.4, 1.1, 1.7, 2.1, 1.8]<br>
+      Δy = [0.5, 0.3, −0.5, 0.6, 0.5, −0.3, 0.6, 0.4, −0.3]<br><br>
+      Regress Δy_t on y_{t−1}: expect δ ≈ 0 → t-stat near 0 → p-value &gt; 0.05<br>
+      <strong>→ Cannot reject H₀ → NON-STATIONARY → apply differencing</strong>
+    </div>
+    <div class="callout green">
+      <strong style="color:#80d8a0">Stationary AR(1), φ=0.5: y_t = 0.5·y_{t−1} + ε_t</strong><br>
+      δ = φ − 1 = 0.5 − 1 = <strong>−0.5</strong><br>
+      This negative value is significantly different from 0 → t-stat is very negative<br>
+      → Compare to MacKinnon critical value (e.g. −2.86 at 5%)<br>
+      <strong>→ t-stat &lt; −2.86 → Reject H₀ → STATIONARY ✓</strong>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>MacKinnon Critical Values (ADF Test)</h3>
+    <table>
+      <tr><th>Significance</th><th>No Const, No Trend</th><th>With Constant</th><th>Const + Trend</th></tr>
+      <tr><td class="hl">1%</td><td>−2.56</td><td>−3.43</td><td>−3.96</td></tr>
+      <tr><td class="hl">5%</td><td>−1.94</td><td>−2.86</td><td>−3.41</td></tr>
+      <tr><td class="hl">10%</td><td>−1.62</td><td>−2.57</td><td>−3.13</td></tr>
+    </table>
+    <p style="font-size:12px;font-family:monospace;color:#7a8899">ADF statistic &lt; critical value → reject H₀ → stationary (more negative = stronger evidence)</p>
+  </div>
+
+  <div class="section">
+    <h3>Other Stationarity Tests</h3>
+    <table>
+      <tr><th>Test</th><th>H₀</th><th>Key Notes</th></tr>
+      <tr><td class="hl">ADF</td><td>Unit root (non-stationary)</td><td>Most commonly used; low power in small samples</td></tr>
+      <tr><td class="hl">KPSS</td><td>STATIONARY (opposite!)</td><td class="or">Use alongside ADF to confirm</td></tr>
+      <tr><td class="hl">Phillips-Perron</td><td>Unit root</td><td>Robust to heteroscedasticity</td></tr>
+      <tr><td class="hl">DFGLS</td><td>Unit root</td><td>More powerful version of ADF</td></tr>
+    </table>
+    <div class="callout gold">
+      <strong style="color:#f0c060">⭐ Interview Trick — Use Both ADF and KPSS Together</strong><br>
+      ADF rejects + KPSS doesn't reject → <strong style="color:#60d080">Confident: STATIONARY</strong><br>
+      ADF doesn't reject + KPSS rejects → <strong style="color:#e08060">Confident: NON-STATIONARY</strong><br>
+      Both reject → Something unusual (structural break?). Investigate further.<br>
+      Both don't reject → Inconclusive (small sample, borderline case)
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Python Code</h3>
+    <div class="code-box">from statsmodels.tsa.stattools import adfuller
+
+result = adfuller(y, autolag='AIC')   # AIC selects lag length p
+
+print(f"ADF Statistic : {result[0]:.4f}")
+print(f"p-value       : {result[1]:.4f}")
+print(f"Lags Used     : {result[2]}")
+print(f"Critical Values:")
+for k, v in result[4].items():
+    print(f"   {k}: {v:.3f}")
+
+# Interpret
+if result[1] &lt; 0.05:
+    print("→ STATIONARY (reject H₀)")
+else:
+    print("→ NON-STATIONARY → apply differencing!")
+
+# Also run KPSS
+from statsmodels.tsa.stattools import kpss
+stat, p_val, lags, crit = kpss(y, regression='c')
+print(f"KPSS p-value: {p_val:.4f}")
+# KPSS: p &lt; 0.05 → reject H₀ of stationarity → non-stationary</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 5: ARIMA ═══════════════════════════ -->
+<div id="tab-arima" class="tab-content">
+  <h2>⚙️ ARIMA(p, d, q) — AutoRegressive Integrated Moving Average</h2>
+
+  <div class="section">
+    <div class="math-box">ARIMA(p, d, q)  =  AR(p)  +  I(d)  +  MA(q)
+
+  p = order of AutoRegressive part
+  d = degree of differencing (makes series stationary)
+  q = order of Moving Average part
+
+Full ARIMA equation on differenced series Δᵈy_t:
+
+Δᵈy_t = c + φ₁Δᵈy_{t−1} + ... + φₚΔᵈy_{t−p}
+             + ε_t + θ₁ε_{t−1} + ... + θ_qε_{t−q}
+
+Using backshift operator B  (B·y_t = y_{t−1}):
+
+  φ(B)(1−B)ᵈ y_t = c + θ(B)ε_t
+
+  where  φ(B) = 1 − φ₁B − φ₂B² − ... − φₚBᵖ   (AR polynomial)
+         θ(B) = 1 + θ₁B + θ₂B² + ... + θ_qBᵍ   (MA polynomial)</div>
+  </div>
+
+  <div class="section">
+    <h3>① AR(p) — AutoRegressive Model</h3>
+    <div class="math-box">y_t = c + φ₁y_{t−1} + φ₂y_{t−2} + ... + φₚy_{t−p} + ε_t
+
+  ε_t ~ N(0, σ²)  (white noise, IID)
+  Stationarity condition: all roots of φ(B)=0 lie OUTSIDE the unit circle
+  For AR(1): |φ₁| &lt; 1</div>
+
+    <div class="callout green">
+      <strong style="color:#80d8a0">🔢 AR(1) Walkthrough: y_t = 0.7·y_{t−1} + ε_t,  y₀ = 2</strong><br>
+      ε = [0.5, −0.3, 0.8, −0.2, 0.6]<br><br>
+      y₁ = 0.7 × 2.0000 + 0.5000 = <strong>1.9000</strong><br>
+      y₂ = 0.7 × 1.9000 + (−0.3000) = 1.3300 − 0.3000 = <strong>1.0300</strong><br>
+      y₃ = 0.7 × 1.0300 + 0.8000 = 0.7210 + 0.8000 = <strong>1.5210</strong><br>
+      y₄ = 0.7 × 1.5210 + (−0.2000) = 1.0647 − 0.2000 = <strong>0.8647</strong><br>
+      y₅ = 0.7 × 0.8647 + 0.6000 = 0.6053 + 0.6000 = <strong>1.2053</strong>
+    </div>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">Key AR Properties:</strong><br>
+      |φ| &lt; 1 → stationary (mean-reverts to μ/(1−φ₁))<br>
+      φ = 1 → unit root → random walk (non-stationary, needs differencing)<br>
+      |φ| &gt; 1 → explosive (grows without bound)<br>
+      Larger |φ| → stronger memory, slower geometric decay in ACF
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>② MA(q) — Moving Average Model</h3>
+    <div class="math-box">y_t = μ + ε_t + θ₁ε_{t−1} + θ₂ε_{t−2} + ... + θ_qε_{t−q}
+
+  Always stationary regardless of θ values!
+  Invertibility condition: all roots of θ(B)=0 lie OUTSIDE unit circle
+  For MA(1): |θ₁| &lt; 1
+  Memory: exactly q lags (finite memory)</div>
+
+    <div class="callout green">
+      <strong style="color:#80d8a0">🔢 MA(1) Walkthrough: y_t = ε_t + 0.5·ε_{t−1},  ε₀ = 0</strong><br>
+      ε = [0, 0.50, −0.30, 0.80, −0.20, 0.60]<br><br>
+      y₁ = 0.50 + 0.5 × 0.00 = <strong>0.5000</strong><br>
+      y₂ = −0.30 + 0.5 × 0.50 = −0.30 + 0.25 = <strong>−0.0500</strong><br>
+      y₃ = 0.80 + 0.5 × (−0.30) = 0.80 − 0.15 = <strong>0.6500</strong><br>
+      y₄ = −0.20 + 0.5 × 0.80 = −0.20 + 0.40 = <strong>0.2000</strong><br>
+      y₅ = 0.60 + 0.5 × (−0.20) = 0.60 − 0.10 = <strong>0.5000</strong>
+    </div>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">AR vs MA — Intuitive Difference</strong><br>
+      <strong>AR</strong>: "Today's value depends on yesterday's <em>actual values</em>." (infinite memory, decays)<br>
+      <strong>MA</strong>: "Today's value depends on yesterday's <em>shock/error</em>." (finite memory, exactly q lags)
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>③ ARIMA(1,1,1) — Full Worked Example</h3>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">Series:</strong> y = [100, 102, 106, 111, 117, 122]<br>
+      ADF test showed non-stationary → d=1. ACF/PACF on Δy suggest p=1, q=1.
+    </div>
+    <div class="math-box">Step 1 — Difference (d=1):
+  Δy = [102−100, 106−102, 111−106, 117−111, 122−117]
+     = [2, 4, 5, 6, 5]
+
+Step 2 — ARMA(1,1) model on Δy_t:
+  Δy_t = c + φ₁·Δy_{t−1} + ε_t + θ₁·ε_{t−1}
+
+Estimated coefficients (from MLE):
+  c = 0.5,  φ₁ = 0.60,  θ₁ = 0.30
+
+Step 3 — Forecast Δy₆:
+  ε₅ = Δy₅ − (c + φ₁·Δy₄) = 5 − (0.5 + 0.60×6) = 5 − 4.1 = 0.90
+  Δŷ₆ = 0.5 + 0.60×5 + 0.30×0.90
+       = 0.5 + 3.0 + 0.27 = 3.77
+
+Step 4 — Undo differencing (integrate back):
+  ŷ₆ = y₅ + Δŷ₆ = 122 + 3.77 = 125.77</div>
+  </div>
+
+  <div class="section">
+    <h3>Model Selection Workflow</h3>
+    <div class="math-box">1. Plot series → check for trend / seasonality / variance changes
+2. ADF test → if non-stationary, difference → repeat ADF → get d
+3. Plot ACF + PACF on stationary series:
+   • PACF cuts off at p  →  AR(p)
+   • ACF  cuts off at q  →  MA(q)
+   • Both tail off        →  ARMA(p,q)
+4. Fit candidate models: ARIMA(1,1,0), (0,1,1), (1,1,1), (2,1,0)...
+5. Compare AIC / BIC  (lower = better):
+     AIC = 2k − 2·ln(L)
+     BIC = k·ln(n) − 2·ln(L)       ← stronger penalty for complexity
+6. Check residuals:
+   • ACF of residuals → should look like white noise (no pattern)
+   • Ljung-Box test: H₀ = white noise → want p-value &gt; 0.05
+   • Q-Q plot → check normality
+7. Forecast accuracy on holdout set: MAE, RMSE, MAPE</div>
+  </div>
+
+  <div class="section">
+    <h3>Python — Complete ARIMA Pipeline</h3>
+    <div class="code-box">import pandas as pd
+import numpy as np
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.stats.diagnostic import acorr_ljungbox
+import matplotlib.pyplot as plt
+
+# 1. Load data
+ts = pd.Series([100, 102, 106, 111, 117, 122, 128, 134, 140, 145])
+
+# 2. Test stationarity
+result = adfuller(ts, autolag='AIC')
+print(f"ADF p-value: {result[1]:.4f}")   # &gt; 0.05 → non-stationary → d=1
+
+# 3. Difference
+dts = ts.diff().dropna()
+print(f"After diff, ADF p-value: {adfuller(dts)[1]:.4f}")   # should be &lt; 0.05
+
+# 4. Plot ACF and PACF to choose p, q
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+plot_acf(dts, ax=axes[0], lags=8)    # look for cutoff → q
+plot_pacf(dts, ax=axes[1], lags=8)   # look for cutoff → p
+plt.show()
+
+# 5. Fit ARIMA(1,1,1)
+model  = ARIMA(ts, order=(1, 1, 1))
+result = model.fit()
+print(result.summary())
+
+# 6. Forecast 3 steps ahead
+forecast  = result.forecast(steps=3)
+pred_obj  = result.get_forecast(steps=3)
+conf_int  = pred_obj.conf_int(alpha=0.05)
+print("Forecasts:", forecast.values)
+print("95% CI:\n", conf_int)
+
+# 7. Residual diagnostics
+residuals = result.resid
+lb_test = acorr_ljungbox(residuals, lags=[10], return_df=True)
+print("Ljung-Box p-value:", lb_test['lb_pvalue'].values[0])
+# p &gt; 0.05 → residuals look like white noise ✓
+
+# 8. Auto-select p, d, q
+from pmdarima import auto_arima
+auto_model = auto_arima(ts, seasonal=False, information_criterion='aic',
+                         stepwise=True, suppress_warnings=True)
+print(auto_model.summary())</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 6: ARIMAX ═══════════════════════════ -->
+<div id="tab-arimax" class="tab-content">
+  <h2>⚙️ ARIMAx — ARIMA with eXogenous Variables</h2>
+
+  <div class="section">
+    <p>ARIMAX extends ARIMA by adding <strong>external predictor variables (X)</strong> that help explain the time series beyond its own past values. Think of it as ARIMA + regression.</p>
+    <div class="math-box">ARIMAX(p, d, q) equation:
+
+Δᵈy_t = c + φ₁Δᵈy_{t−1} + ... + φₚΔᵈy_{t−p}
+             + θ₁ε_{t−1} + ... + θ_qε_{t−q}
+             + β₁x₁_t + β₂x₂_t + ... + β_m x_m_t
+             + ε_t
+
+Where:
+  x_{i,t} = exogenous variable i at time t
+  β_i     = regression coefficient for x_i
+  ARIMA part models the residual temporal structure
+  Exogenous X is NOT differenced by default in statsmodels</div>
+  </div>
+
+  <div class="section">
+    <h3>🔢 Numerical Example — Ice Cream Sales</h3>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">Problem:</strong> Predict ice cream sales (y) using temperature (x) as exogenous variable.
+    </div>
+    <table>
+      <tr><th>Month</th><th>Sales y_t</th><th>Temp x_t (°C)</th><th>Δy_t</th></tr>
+      <tr><td>1</td><td>100</td><td class="or">15</td><td>—</td></tr>
+      <tr><td>2</td><td>112</td><td class="or">18</td><td>12</td></tr>
+      <tr><td>3</td><td>130</td><td class="or">22</td><td>18</td></tr>
+      <tr><td>4</td><td>145</td><td class="or">26</td><td>15</td></tr>
+      <tr><td>5</td><td>155</td><td class="or">28</td><td>10</td></tr>
+      <tr><td>6</td><td>162</td><td class="or">30</td><td>7</td></tr>
+    </table>
+    <div class="math-box">Model: ARIMAX(1,1,0) → Δy_t = c + φ₁·Δy_{t−1} + β·x_t + ε_t
+
+Estimated coefficients (via MLE):
+  c   = −5.20   (baseline drift)
+  φ₁  =  0.45   (AR: yesterday's momentum)
+  β   =  0.82   (each 1°C more → +0.82 more Δsales)
+
+Forecast month 7 (x₇ = 29°C predicted):
+  Δy₆ = y₆ − y₅ = 162 − 155 = 7
+  ε₆  ≈ 0   (use 0 for one-step-ahead)
+  Δŷ₇ = −5.2 + 0.45 × 7 + 0.82 × 29
+       = −5.2 + 3.15 + 23.78
+       = 21.73
+
+  ŷ₇  = y₆ + Δŷ₇ = 162 + 21.73 = 183.73</div>
+
+    <div class="callout warn">
+      <strong style="color:#f0a060">⚠️ Critical ARIMAX Requirement</strong><br>
+      You MUST have the future values of X available at forecast time!<br>
+      If forecasting next month's sales, you need to know (or forecast) next month's temperature first.<br>
+      If X is unknown → use lagged X (x_{t−1}, x_{t−2}) or model X separately.
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Key Pitfalls & How to Handle Them</h3>
+    <table>
+      <tr><th>Issue</th><th>What it Means</th><th>Fix</th></tr>
+      <tr><td class="hl">Future X unknown</td><td>Can't forecast y without forecast of x</td><td class="gr">Use lagged X, or model x separately</td></tr>
+      <tr><td class="hl">Multicollinearity</td><td>Correlated X variables inflate variance</td><td class="gr">VIF check, drop correlated vars, PCA</td></tr>
+      <tr><td class="hl">Simultaneity bias</td><td>y causes x too (endogeneity)</td><td class="gr">Use lagged X or instrumental variables</td></tr>
+      <tr><td class="hl">Dynamic X effect</td><td>X effect may be delayed</td><td class="gr">Try x_{t−1}, x_{t−2} as additional terms</td></tr>
+      <tr><td class="hl">Non-stationary X</td><td>X may need differencing too</td><td class="gr">Check if cointegrated; ECM if so</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>⭐ Naming Confusion — Know This for Interviews</h3>
+    <div class="callout gold">
+      <strong style="color:#f0c060">statsmodels ARIMA(exog=X)</strong> = "Regression with ARIMA errors"<br>
+      → X is NOT differenced; only the ARIMA errors are modelled<br><br>
+      <strong style="color:#f0c060">True ARIMAX</strong> = X is also differenced with the series<br><br>
+      <strong style="color:#f0c060">Transfer Function Model</strong> = X can have its own lag structure (e.g. β₀x_t + β₁x_{t−1})<br><br>
+      <strong>In practice</strong>: use <code>SARIMAX</code> from statsmodels — it handles all these cases
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Python Code</h3>
+    <div class="code-box">from statsmodels.tsa.statespace.sarimax import SARIMAX
+import numpy as np
+
+y = np.array([100, 112, 130, 145, 155, 162])
+X = np.array([15, 18, 22, 26, 28, 30]).reshape(-1, 1)   # exogenous: temp
+
+# Fit ARIMAX(1,1,0) using SARIMAX (recommended for all ARIMA-family models)
+model = SARIMAX(y,
+                exog  = X,
+                order = (1, 1, 0),
+                trend = 'c',
+                enforce_stationarity = True,
+                enforce_invertibility = True)
+result = model.fit(disp=False)
+print(result.summary())
+
+# Forecast month 7 — MUST provide future X value!
+X_future = np.array([[29]])    # temperature for month 7
+forecast = result.forecast(steps=1, exog=X_future)
+print(f"Month 7 forecast: {forecast[0]:.2f}")
+
+# Confidence interval
+pred   = result.get_forecast(steps=1, exog=X_future)
+ci     = pred.conf_int(alpha=0.05)
+print(f"95% CI: [{ci.iloc[0,0]:.2f}, {ci.iloc[0,1]:.2f}]")
+
+# Multiple exogenous variables
+X2 = np.column_stack([temp, humidity, holiday_dummy])
+model2 = SARIMAX(y, exog=X2, order=(1,1,1)).fit(disp=False)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 7: SARIMAX ═══════════════════════════ -->
+<div id="tab-sarimax" class="tab-content">
+  <h2>⚙️ SARIMA &amp; SARIMAX — Seasonal Models</h2>
+
+  <div class="section">
+    <h3>Notation: (p,d,q)(P,D,Q)[s]</h3>
+    <div class="math-box">(p, d, q)   = non-seasonal part  (same as ARIMA)
+(P, D, Q)   = seasonal part
+[s]         = seasonal period
+
+Common seasonal periods:
+  s = 12  →  monthly data     (annual seasonality)
+  s =  4  →  quarterly data
+  s =  7  →  daily data       (weekly seasonality)
+  s = 24  →  hourly data      (daily seasonality)
+
+Full SARIMA using backshift operator B:
+
+  Φ_P(B^s) · φ_p(B) · (1−B^s)^D · (1−B)^d · y_t
+       = Θ_Q(B^s) · θ_q(B) · ε_t
+
+Where:
+  φ_p(B)  = 1 − φ₁B − ... − φₚB^p         (non-seasonal AR)
+  Φ_P(B^s) = 1 − Φ₁B^s − ... − Φ_PB^{Ps}  (seasonal AR)
+  θ_q(B)  = 1 + θ₁B + ... + θ_qB^q         (non-seasonal MA)
+  Θ_Q(B^s) = 1 + Θ₁B^s + ... + Θ_QB^{Qs}  (seasonal MA)</div>
+  </div>
+
+  <div class="section">
+    <h3>🔢 SARIMA(1,1,1)(1,1,1)[12] — Worked Example</h3>
+    <div class="callout blue">
+      <strong style="color:#a8d8f0">Setup:</strong> Monthly retail sales with annual seasonality (s=12).<br>
+      Non-seasonal trend + seasonal peak each December.
+    </div>
+    <div class="math-box">Full equation of SARIMA(1,1,1)(1,1,1)[12]:
+
+(1 − Φ₁B¹²)(1 − φ₁B)(1−B¹²)(1−B) y_t
+    = (1 + Θ₁B¹²)(1 + θ₁B) ε_t
+
+Expanding the differencing:
+  Non-seasonal diff:    Δy_t    = y_t − y_{t−1}
+  Seasonal diff:        Δ₁₂y_t  = y_t − y_{t−12}
+  Both combined:        Δ·Δ₁₂y_t = y_t − y_{t−1} − y_{t−12} + y_{t−13}
+
+Estimated parameters (example):
+  φ₁ = 0.40  (non-seasonal AR: recent momentum)
+  Φ₁ = 0.65  (seasonal AR: same month last year)
+  θ₁ = 0.30  (non-seasonal MA: recent shock)
+  Θ₁ = 0.50  (seasonal MA: seasonal shock)
+
+Forecast for month 25 (uses y₂₄, y₂₃, y₁₃, y₁₂ + residuals)</div>
+
+    <h3>How to Determine (P,D,Q) from Seasonal ACF/PACF</h3>
+    <table>
+      <tr><th>Plot</th><th>At Seasonal Lags s,2s,3s...</th><th>Interpretation</th></tr>
+      <tr><td class="hl">ACF</td><td>Slow decay</td><td class="gr">Seasonal AR needed → P≥1</td></tr>
+      <tr><td class="hl">ACF</td><td>Single spike at lag s only</td><td class="gr">Seasonal MA(1) → Q=1</td></tr>
+      <tr><td class="hl">PACF</td><td>Cuts off after lag s</td><td class="gr">Seasonal AR(1) → P=1</td></tr>
+      <tr><td class="hl">PACF</td><td>Slow decay at s,2s,3s</td><td class="gr">Seasonal MA needed → Q≥1</td></tr>
+      <tr><td class="hl">Both</td><td>Tailing off at seasonal lags</td><td class="gr">Seasonal ARMA → P≥1, Q≥1</td></tr>
+    </table>
+    <div class="callout warn">
+      <strong style="color:#f0a060">Seasonal Differencing Rule:</strong>  D=1 is almost always enough. After one seasonal difference, check if ACF spike at lag s disappears. D=2 is very rare. Over-differencing (D+d &gt; 2) usually indicates a problem.
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>SARIMAX = SARIMA + Exogenous Variables</h3>
+    <div class="math-box">SARIMAX(p,d,q)(P,D,Q)[s] with exogenous X:
+
+  Φ(B^s)·φ(B)·(1−B^s)^D·(1−B)^d · y_t = β·X_t + Θ(B^s)·θ(B)·ε_t
+
+Real-world examples:
+  • Energy demand (s=24 hourly): X = [temperature, day_of_week, holiday]
+  • Retail sales (s=12 monthly): X = [promotions, GDP_index, holiday_dummy]
+  • Airline pax (s=12 monthly):  X = [ticket_price, fuel_cost, GDP]
+  • Hospital admissions:         X = [vaccination_rate, lockdown_dummy]</div>
+  </div>
+
+  <div class="section">
+    <h3>Full Model Family Summary</h3>
+    <table>
+      <tr><th>Model</th><th>Handles Trend</th><th>Seasonal</th><th>External Vars</th></tr>
+      <tr><td class="hl">AR(p)</td><td style="color:#605060">✗</td><td style="color:#605060">✗</td><td style="color:#605060">✗</td></tr>
+      <tr><td class="hl">ARMA(p,q)</td><td style="color:#605060">✗</td><td style="color:#605060">✗</td><td style="color:#605060">✗</td></tr>
+      <tr><td class="hl">ARIMA(p,d,q)</td><td class="gr">✓ (via d)</td><td style="color:#605060">✗</td><td style="color:#605060">✗</td></tr>
+      <tr><td class="hl">ARIMAx</td><td class="gr">✓</td><td style="color:#605060">✗</td><td class="gr">✓</td></tr>
+      <tr><td class="hl">SARIMA(p,d,q)(P,D,Q)[s]</td><td class="gr">✓</td><td class="gr">✓ (via D,P,Q)</td><td style="color:#605060">✗</td></tr>
+      <tr><td class="hl">SARIMAX</td><td class="gr">✓</td><td class="gr">✓</td><td class="gr">✓</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>Python Code — SARIMAX</h3>
+    <div class="code-box">from statsmodels.tsa.statespace.sarimax import SARIMAX
+import pandas as pd, numpy as np
+
+# 2 years of monthly data
+y = pd.Series([10,12,18,22,25,28,26,24,20,16,13,11,
+               13,15,21,25,28,31,29,27,23,19,16,14])
+
+# Exogenous: holiday dummy (1 in December)
+X = pd.DataFrame({'holiday': [0]*11+[1]+[0]*11+[1]})
+
+# Fit SARIMA(1,1,1)(1,1,1)[12] with holiday exogenous
+model = SARIMAX(y,
+                exog           = X,
+                order          = (1, 1, 1),
+                seasonal_order = (1, 1, 1, 12),
+                enforce_stationarity = True,
+                enforce_invertibility = True)
+result = model.fit(disp=False)
+print(result.summary())
+
+# Forecast next 12 months
+X_future = pd.DataFrame({'holiday': [0]*11+[1]})   # next Dec = 1
+pred           = result.get_forecast(steps=12, exog=X_future)
+forecast_mean  = pred.predicted_mean
+forecast_ci    = pred.conf_int()
+print(forecast_mean)
+
+# ── Auto-select seasonal parameters ──────────────────────────────
+from pmdarima import auto_arima
+
+auto_model = auto_arima(
+    y,
+    exogenous          = X,
+    m                  = 12,        # seasonal period
+    seasonal           = True,
+    d                  = 1,         # fix or let it choose (d=None)
+    D                  = 1,
+    max_p=3, max_q=3, max_P=2, max_Q=2,
+    information_criterion = 'aic',
+    stepwise           = True,
+    suppress_warnings  = True
+)
+print(auto_model.summary())</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TAB 8: INTERVIEW ═══════════════════════════ -->
+<div id="tab-interview" class="tab-content">
+  <h2>🎤 Interview Q&amp;A — 10 Must-Know Questions</h2>
+  <div class="callout green" style="margin-bottom:18px">Click any question to reveal the model answer.</div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q1</span><span class="qa-q">What is the difference between ACF and PACF? When do you use each?</span><span class="badge">Fundamentals</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">ACF (AutoCorrelation Function) measures the correlation between y_t and y_{t−k} including ALL intermediate lag effects. PACF measures the DIRECT correlation after removing all effects from lags 1 through k−1.<br><br>Use ACF to determine <strong>q</strong> (MA order) — a sharp cutoff at lag q means MA(q). Use PACF to determine <strong>p</strong> (AR order) — a sharp cutoff at lag p means AR(p).<br><br>Memory hook: <strong>AR → PACF cuts off → use PACF to find p</strong>.  <strong>MA → ACF cuts off → use ACF to find q</strong>. If both tail off, you need ARMA(p,q).</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q2</span><span class="qa-q">What is a unit root and why does it matter?</span><span class="badge">Core Concept</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">A unit root means φ=1 in y_t = φ·y_{t−1} + ε_t, turning the series into a random walk. Shocks NEVER die out; the series has infinite memory and no tendency to revert to the mean.<br><br>It matters because OLS on non-stationary series gives <strong>spurious regression</strong> — high R², significant t-stats, but the relationship is completely meaningless (both series are just trending). We test for unit roots using the ADF test and fix them by differencing the series.</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q3</span><span class="qa-q">Explain the difference between d and D in SARIMA(p,d,q)(P,D,Q)[s].</span><span class="badge">SARIMA</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans"><strong>d</strong> = non-seasonal differencing: removes trend. Δy_t = y_t − y_{t−1}.<br><strong>D</strong> = seasonal differencing: removes seasonal trend. Δ_s y_t = y_t − y_{t−s}.<br><br>Applied together: Δ·Δ_s y_t = y_t − y_{t−1} − y_{t−s} + y_{t−s−1}.<br><br>d handles slowly trending behavior; D handles persistent seasonal cycles. Usually d ≤ 2, D = 1. Over-differencing (d+D &gt; 2) is a red flag — simplify the model.</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q4</span><span class="qa-q">ADF test p-value is 0.30. What do you do next?</span><span class="badge">ADF Test</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">p-value 0.30 &gt; 0.05 → fail to reject H₀ (unit root present) → series is NON-STATIONARY.<br><br>Steps:<br>1. Apply 1st differencing: Δy_t = y_t − y_{t−1}<br>2. Run ADF again on Δy_t<br>3. If p &lt; 0.05 → confirmed d=1, proceed<br>4. If still failing → try d=2 (rare)<br><br>Also run KPSS as a cross-check. If ADF fails + KPSS also rejects stationarity, you're very confident it's non-stationary. Also plot the series visually — sometimes a structural break fools ADF.</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q5</span><span class="qa-q">What is the difference between ARIMA and ARIMAx?</span><span class="badge">ARIMAx</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">ARIMA models the series using only its own past values and past errors. ARIMAx adds <strong>exogenous variables X_t</strong> — external predictors (e.g., temperature, GDP, promotional spend) — that can explain variation beyond what's in the series itself.<br><br>Key requirement: future X values must be available at forecast time. If forecasting next month's sales, you need next month's temperature first.<br><br>The ARIMA part accounts for residual autocorrelation that simple linear regression ignores — this is the key advantage over just adding regressors to OLS.</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q6</span><span class="qa-q">How do you choose between AIC and BIC for model selection?</span><span class="badge">Model Selection</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">AIC = 2k − 2·ln(L).  BIC = k·ln(n) − 2·ln(L).  Both reward fit and penalize parameters k.<br><br>BIC has a STRONGER penalty (k·ln(n) vs 2k when n &gt; 7), so it prefers simpler models.<br><br>Use <strong>AIC</strong> when forecast accuracy is the goal — it tends to keep more parameters which helps prediction.<br>Use <strong>BIC</strong> when interpretability / parsimony matters — it finds the simplest model that describes the data.<br><br>In practice: fit several candidates, compare AIC/BIC, then validate all finalists on a holdout set with RMSE or MAPE to make the final call.</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q7</span><span class="qa-q">Residuals from ARIMA show significant ACF at lag 12. What does this tell you and what do you do?</span><span class="badge">Diagnostics</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">The residuals are NOT white noise — there's unmodeled seasonal structure at period 12. The ARIMA model is missing a seasonal component.<br><br>Solution: switch to SARIMA(p,d,q)(P,D,Q)[12]. Start with (1,1,1)(1,1,1)[12] and refine P, Q using seasonal ACF/PACF patterns.<br><br>General residual checklist:<br>• ACF/PACF of residuals → all within CI band (white noise)<br>• Ljung-Box test: H₀ = white noise → want p-value &gt; 0.05<br>• Q-Q plot → normality<br>• Plot residuals over time → no patterns or heteroscedasticity</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q8</span><span class="qa-q">Explain invertibility of MA models — why does it matter?</span><span class="badge">Theory</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">An MA(q) model is invertible if it can be written as an infinite AR process — which requires all roots of the MA polynomial θ(B)=0 to lie outside the unit circle.<br><br>Invertibility ensures a <strong>unique MA representation</strong>. Without it, multiple parameter values produce the same ACF, making estimation ill-defined. For MA(1): y_t = ε_t + θε_{t−1} — models with θ and 1/θ are observationally equivalent. By convention we constrain |θ| &lt; 1 to get the unique invertible form.<br><br>statsmodels enforces invertibility by default via the <code>enforce_invertibility=True</code> parameter.</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q9</span><span class="qa-q">When would you NOT use ARIMA? What are its key limitations?</span><span class="badge">Limitations</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">ARIMA fails when:<br>• <strong>Non-linear patterns</strong> exist → use neural networks, XGBoost on time features, or NHiTS<br>• <strong>Heteroscedasticity</strong> (changing variance) → use GARCH/EGARCH (finance)<br>• <strong>Multiple seasonalities</strong> (e.g. hourly data: daily + weekly pattern) → use Prophet or TBATS<br>• <strong>Structural breaks</strong> → ARIMA assumes fixed parameters over time<br>• <strong>Multiple interacting series</strong> → use VAR (Vector AutoRegression)<br>• <strong>Very long-range dependencies</strong> → use ARFIMA or deep learning<br>• <strong>Extreme events / fat tails</strong> → ARIMA's Gaussian errors underestimate risk</div></div>
+  </div>
+
+  <div class="qa-item" onclick="toggleQA(this)">
+    <div class="qa-header"><span class="qa-num">Q10</span><span class="qa-q">What is spurious regression? How do you detect and fix it?</span><span class="badge">Regression Traps</span><span class="qa-arrow">▼</span></div>
+    <div class="qa-body"><div class="qa-ans">When two non-stationary series are regressed against each other, you get high R², significant t-stats — but the relationship is completely meaningless because both series are simply trending together.<br><br><strong>Classic example:</strong> US divorce rate vs margarine consumption. R² ≈ 0.99. Completely spurious.<br><br><strong>Detection:</strong> Run ADF on both series — if both are I(1), suspect spurious regression. Also: very high R² but low Durbin-Watson statistic (DW &lt; 1) is a red flag.<br><br><strong>Fix Option 1:</strong> Difference both series before regression (lose long-run info).<br><strong>Fix Option 2:</strong> Test for cointegration (Engle-Granger or Johansen test). If cointegrated, a genuine long-run relationship exists → use an Error Correction Model (ECM) which captures both long-run equilibrium and short-run dynamics.</div></div>
+  </div>
+
+  <div class="section" style="margin-top:28px">
+    <h3>Quick-Reference Cheat Sheet</h3>
+    <table>
+      <tr><th>Concept</th><th class="left">Formula / Key Fact</th></tr>
+      <tr><td class="hl">ACF(k)</td><td class="left">ρ(k) = Σ(y_i−ȳ)(y_{i−k}−ȳ) / Σ(y_i−ȳ)²  ∈ [−1, 1]</td></tr>
+      <tr><td class="hl">PACF(2)</td><td class="left">[ρ(2) − ρ(1)²] / [1 − ρ(1)²]</td></tr>
+      <tr><td class="hl">95% CI (ACF/PACF)</td><td class="left">± 1.96 / √n</td></tr>
+      <tr><td class="hl">ADF H₀</td><td class="left">Unit root (non-stationary) — reject if p-value &lt; 0.05</td></tr>
+      <tr><td class="hl">KPSS H₀</td><td class="left">STATIONARITY (opposite of ADF!) — reject if p &lt; 0.05</td></tr>
+      <tr><td class="hl">AR stationary</td><td class="left">All roots of φ(B)=0 lie outside the unit circle</td></tr>
+      <tr><td class="hl">MA invertible</td><td class="left">All roots of θ(B)=0 lie outside the unit circle</td></tr>
+      <tr><td class="hl">AIC</td><td class="left">2k − 2·ln(L) — lower is better</td></tr>
+      <tr><td class="hl">BIC</td><td class="left">k·ln(n) − 2·ln(L) — stronger penalty than AIC</td></tr>
+      <tr><td class="hl">Seasonal diff</td><td class="left">Δ_s y_t = y_t − y_{t−s}</td></tr>
+      <tr><td class="hl">1st difference</td><td class="left">Δy_t = y_t − y_{t−1} = (1−B)y_t</td></tr>
+      <tr><td class="hl">Ljung-Box H₀</td><td class="left">Residuals are white noise → want p-value &gt; 0.05</td></tr>
+      <tr><td class="hl">Spurious regression</td><td class="left">Non-stationary series → meaningless R²; fix with differencing or ECM</td></tr>
+      <tr><td class="hl">ARIMA d choice</td><td class="left">Difference until ADF p-value &lt; 0.05; usually d = 0, 1, or 2</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleQA(item) {
+  item.classList.toggle('open');
+}
+</script>
+</body>
+</html>
