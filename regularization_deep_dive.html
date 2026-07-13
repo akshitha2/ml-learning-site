@@ -4,49 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Regularization Across Models — A Deep Dive</title>
-<script>
-window.MathJax = {
-  tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
-  chtml: { scale: 1.15, matchFontHeight: false, displayAlign: 'left' },
-  options: { renderActions: { addMenu: [] } }
-};
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700;8..60,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="assets/style.css">
 <style>
 :root{
-  --paper:#F5F6F8;
-  --paper-raised:#FFFFFF;
-  --ink:#1B1E2B;
-  --ink-muted:#5B6270;
-  --ink-faint:#9096A3;
-  --rule:#DEE1E7;
-  --rule-strong:#C7CBD4;
-  --blue:#2D5FA6;
-  --blue-deep:#1C3E70;
-  --blue-tint:#E9F0F8;
-  --rust:#A5461C;
-  --rust-tint:#F6EAE1;
-  --green:#3E6B4E;
-  --green-tint:#E8F1EB;
-  --plum:#6B4A8C;
-  --plum-tint:#F0E8F6;
-  --slate:#5B6270;
-  --slate-tint:#E9EAEE;
-  --code-bg:#EDEFF3;
-  --math-bg:#EEF1F5;
-  --font-serif:'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --font-sans:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  --font-mono:'IBM Plex Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
+  --paper:#030712;
+  --paper-raised:#0f1420;
+  --ink:#e7ebf3;
+  --ink-muted:#97a1b3;
+  --ink-faint:#5b6472;
+  --rule:rgba(255,255,255,0.08);
+  --rule-strong:rgba(255,255,255,0.14);
+  --blue:#60a8e0;
+  --blue-deep:#bcdcf7;
+  --blue-tint:rgba(96,168,224,0.1);
+  --rust:#f07060;
+  --rust-tint:rgba(240,112,96,0.1);
+  --green:#5cb85c;
+  --green-tint:rgba(92,184,92,0.1);
+  --plum:#a594f9;
+  --plum-tint:rgba(165,148,249,0.1);
+  --slate:#97a1b3;
+  --slate-tint:rgba(151,161,179,0.08);
+  --code-bg:#0a0e1a;
+  --math-bg:#0a0e1a;
+  --font-serif:'Playfair Display', Georgia, serif;
+  --font-sans:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:'JetBrains Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
 }
 *{box-sizing:border-box;}
 body{
   margin:0;
   background:var(--paper);
   color:var(--ink);
-  font-family:var(--font-serif);
+  font-family:var(--font-sans);
   line-height:1.75;
   font-size:18px;
   -webkit-font-smoothing:antialiased;
@@ -66,10 +63,10 @@ body{
   margin:0 0 18px;
 }
 .eyebrow::before{content:""; width:28px; height:1px; background:var(--blue); display:inline-block; flex-shrink:0;}
-h1{
-  font-family:var(--font-serif);
+.wrap h1{
+  font-family:var(--font-serif) !important;
   font-weight:700;
-  font-size:2.7rem;
+  font-size:3.2rem !important;
   letter-spacing:-0.02em;
   line-height:1.1;
   color:var(--ink);
@@ -94,26 +91,27 @@ h1{
   margin:0 0 2.6em;
 }
 
-h2,h3,h4{font-family:var(--font-serif); color:var(--ink); line-height:1.3;}
-h2{
-  font-size:1.65rem;
-  font-weight:700;
+.wrap h2,.wrap h3,.wrap h4{font-family:var(--font-serif) !important; color:var(--ink); line-height:1.3;}
+.wrap h2{
+  font-size:2.1rem !important;
+  font-weight:700 !important;
   letter-spacing:-0.01em;
   margin-top:3.2em;
+  margin-bottom:0.6em;
   padding-top:1.3em;
   border-top:1px solid var(--rule);
   position:relative;
 }
 h2::before{content:""; position:absolute; top:-1px; left:0; width:52px; height:2px; background:var(--blue);}
-h3{font-size:1.28rem; margin-top:2em; font-weight:600; color:var(--ink);}
-h4{
-  font-family:var(--font-sans);
-  font-size:0.76rem;
+.wrap h3{font-size:1.5rem !important; margin-top:2em; margin-bottom:0.5em; font-weight:700 !important; color:var(--ink);}
+.wrap h4{
+  font-size:1.1rem !important;
   text-transform:uppercase;
-  letter-spacing:0.09em;
+  letter-spacing:0.06em;
   margin-top:2.2em;
+  margin-bottom:0.5em;
   color:var(--ink-muted);
-  font-weight:600;
+  font-weight:700 !important;
 }
 p{margin:1em 0;}
 a{color:var(--blue); text-decoration:underline; text-decoration-color:var(--rule-strong); text-underline-offset:3px;}
@@ -131,9 +129,10 @@ code{
 
 /* TOC */
 .toc{
-  background:var(--paper-raised);
+  background:color-mix(in srgb, var(--paper-raised) 80%, transparent);
+  backdrop-filter:blur(10px);
   border:1px solid var(--rule);
-  border-radius:10px;
+  border-radius:12px;
   padding:6px 28px 22px;
   font-family:var(--font-sans);
 }
@@ -163,15 +162,17 @@ code{
 .toc a:hover{background:var(--blue-tint);}
 .toc .sub{font-weight:400; font-size:0.85em; margin:6px 0 4px 39px; color:var(--ink-muted); display:block; line-height:1.85;}
 
-/* Boxes */
+/* Boxes — tactile cards */
 .box{
-  border-radius:8px;
+  border-radius:0 12px 12px 0;
   padding:20px 24px;
   margin:1.7em 0;
   font-family:var(--font-sans);
   font-size:0.94rem;
   border-left-width:3px;
   border-left-style:solid;
+  backdrop-filter:blur(10px);
+  transition:all 0.3s;
 }
 .box p{margin:0.6em 0;}
 .box .label{
@@ -183,12 +184,15 @@ code{
   display:block;
   margin-bottom:0.7em;
 }
-.example{background:var(--blue-tint); border:1px solid var(--blue-tint); border-left:3px solid var(--blue);}
+.example{background:color-mix(in srgb, var(--blue-tint) 90%, var(--paper-raised)); border:1px solid var(--rule); border-left:3px solid var(--blue);}
 .example .label{color:var(--blue);}
-.trap{background:var(--rust-tint); border:1px solid var(--rust-tint); border-left:3px solid var(--rust);}
+.example:hover{box-shadow:0 8px 24px -8px var(--blue-tint);}
+.trap{background:color-mix(in srgb, var(--rust-tint) 90%, var(--paper-raised)); border:1px solid var(--rule); border-left:3px solid var(--rust);}
 .trap .label{color:var(--rust);}
-.callback{background:var(--plum-tint); border:1px dashed #DAC5EE; border-left:3px dashed var(--plum);}
+.trap:hover{box-shadow:0 8px 24px -8px var(--rust-tint);}
+.callback{background:color-mix(in srgb, var(--plum-tint) 90%, var(--paper-raised)); border:1px dashed color-mix(in srgb, var(--plum) 35%, transparent); border-left:3px dashed var(--plum);}
 .callback .label{color:var(--plum);}
+.callback:hover{box-shadow:0 8px 24px -8px var(--plum-tint);}
 
 /* Tables */
 table{
@@ -203,9 +207,9 @@ table{
   overflow:hidden;
 }
 th,td{border-bottom:1px solid var(--rule); padding:13px 14px; text-align:left; vertical-align:top;}
-th{background:var(--ink); color:#fff; font-weight:600; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.05em;}
+th{background:var(--paper-raised); color:var(--blue); font-weight:600; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.05em;}
 tr:last-child td{border-bottom:none;}
-tr:nth-child(even) td{background:#FAFBFC;}
+tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
 hr{border:none; border-top:1px solid var(--rule); margin:3.4em 0;}
 
 /* Mechanism tags */
@@ -228,16 +232,14 @@ hr{border:none; border-top:1px solid var(--rule); margin:3.4em 0;}
 .tag-legend{margin:0 0 1em; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
 .tag-legend span.tag-legend-label{font-family:var(--font-sans); font-size:0.82rem; color:var(--ink-muted); margin-right:4px;}
 
-/* Math */
-mjx-container{color:var(--ink) !important; font-size:1.02em !important;}
-mjx-container[display="true"]{
+/* Math (KaTeX) */
+.katex{color:var(--ink); font-size:1.05em;}
+.katex-display{
   background:var(--math-bg);
-  border:none;
   border-top:1px solid var(--rule-strong);
   border-bottom:1px solid var(--rule-strong);
-  border-radius:0;
-  padding:18px 6px !important;
-  margin:1.3em 0 !important;
+  padding:18px 6px;
+  margin:1.3em 0;
   overflow-x:auto;
   overflow-y:hidden;
 }
@@ -246,11 +248,12 @@ mjx-container[display="true"]{
 .qa-intro{font-family:var(--font-sans); color:var(--ink-muted); font-size:0.95rem; margin-bottom:1.6em;}
 details.qa{
   border:1px solid var(--rule);
-  border-radius:8px;
+  border-radius:12px;
   padding:2px 22px;
   margin:10px 0;
-  background:var(--paper-raised);
-  transition:border-color 0.15s ease;
+  background:color-mix(in srgb, var(--paper-raised) 85%, transparent);
+  backdrop-filter:blur(10px);
+  transition:all 0.3s;
 }
 details.qa[open]{border-color:var(--blue);}
 details.qa summary{
@@ -308,6 +311,15 @@ details.qa .a p{margin:0.5em 0;}
 </style>
 </head>
 <body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
+    <span class="site-header-sep">/</span>
+    <span class="badge" style="--accent:#5cb85c">📐 Classic ML</span>
+  </div>
+</header>
+
 <div class="wrap">
 
 <p class="eyebrow">Interview-ready ML reference</p>
@@ -317,24 +329,24 @@ details.qa .a p{margin:0.5em 0;}
 <div class="hero-figure">
 <svg viewBox="0 0 440 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram comparing the L1 diamond and L2 circle constraint regions, each with elliptical loss contours touching the boundary">
   <g>
-    <line x1="110" y1="18" x2="110" y2="198" stroke="#C7CBD4" stroke-width="1"/>
-    <line x1="18" y1="110" x2="202" y2="110" stroke="#C7CBD4" stroke-width="1"/>
-    <ellipse cx="150" cy="72" rx="72" ry="40" transform="rotate(-25 150 72)" fill="none" stroke="#D3D6DD" stroke-width="1"/>
-    <ellipse cx="150" cy="72" rx="51" ry="28" transform="rotate(-25 150 72)" fill="none" stroke="#BFC4CE" stroke-width="1"/>
-    <ellipse cx="150" cy="72" rx="30" ry="16" transform="rotate(-25 150 72)" fill="none" stroke="#9AA0AD" stroke-width="1.2"/>
-    <path d="M110 55 L165 110 L110 165 L55 110 Z" fill="#A5461C" fill-opacity="0.07" stroke="#A5461C" stroke-width="2"/>
-    <circle cx="110" cy="55" r="4.5" fill="#1B1E2B"/>
-    <text x="110" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="#A5461C" font-weight="600">L1 · LASSO</text>
+    <line x1="110" y1="18" x2="110" y2="198" stroke="#3a4152" stroke-width="1"/>
+    <line x1="18" y1="110" x2="202" y2="110" stroke="#3a4152" stroke-width="1"/>
+    <ellipse cx="150" cy="72" rx="72" ry="40" transform="rotate(-25 150 72)" fill="none" stroke="#4a5468" stroke-width="1"/>
+    <ellipse cx="150" cy="72" rx="51" ry="28" transform="rotate(-25 150 72)" fill="none" stroke="#5c6780" stroke-width="1"/>
+    <ellipse cx="150" cy="72" rx="30" ry="16" transform="rotate(-25 150 72)" fill="none" stroke="#7c879e" stroke-width="1.2"/>
+    <path d="M110 55 L165 110 L110 165 L55 110 Z" fill="#f07060" fill-opacity="0.12" stroke="#f07060" stroke-width="2"/>
+    <circle cx="110" cy="55" r="4.5" fill="#e7ebf3"/>
+    <text x="110" y="196" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#f07060" font-weight="600">L1 · LASSO</text>
   </g>
   <g>
-    <line x1="330" y1="18" x2="330" y2="198" stroke="#C7CBD4" stroke-width="1"/>
-    <line x1="238" y1="110" x2="422" y2="110" stroke="#C7CBD4" stroke-width="1"/>
-    <ellipse cx="368" cy="78" rx="70" ry="38" transform="rotate(-20 368 78)" fill="none" stroke="#D3D6DD" stroke-width="1"/>
-    <ellipse cx="368" cy="78" rx="49" ry="26" transform="rotate(-20 368 78)" fill="none" stroke="#BFC4CE" stroke-width="1"/>
-    <ellipse cx="368" cy="78" rx="28" ry="15" transform="rotate(-20 368 78)" fill="none" stroke="#9AA0AD" stroke-width="1.2"/>
-    <circle cx="330" cy="110" r="55" fill="#2D5FA6" fill-opacity="0.07" stroke="#2D5FA6" stroke-width="2"/>
-    <circle cx="365" cy="68" r="4.5" fill="#1B1E2B"/>
-    <text x="330" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="#2D5FA6" font-weight="600">L2 · RIDGE</text>
+    <line x1="330" y1="18" x2="330" y2="198" stroke="#3a4152" stroke-width="1"/>
+    <line x1="238" y1="110" x2="422" y2="110" stroke="#3a4152" stroke-width="1"/>
+    <ellipse cx="368" cy="78" rx="70" ry="38" transform="rotate(-20 368 78)" fill="none" stroke="#4a5468" stroke-width="1"/>
+    <ellipse cx="368" cy="78" rx="49" ry="26" transform="rotate(-20 368 78)" fill="none" stroke="#5c6780" stroke-width="1"/>
+    <ellipse cx="368" cy="78" rx="28" ry="15" transform="rotate(-20 368 78)" fill="none" stroke="#7c879e" stroke-width="1.2"/>
+    <circle cx="330" cy="110" r="55" fill="#60a8e0" fill-opacity="0.12" stroke="#60a8e0" stroke-width="2"/>
+    <circle cx="365" cy="68" r="4.5" fill="#e7ebf3"/>
+    <text x="330" y="196" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#60a8e0" font-weight="600">L2 · RIDGE</text>
   </g>
 </svg>
 </div>
@@ -799,5 +811,16 @@ $$J(\theta)=\mathcal{L}(\theta)+\frac{\lambda}{2}\|\theta\|_2^2 \quad\Rightarrow
 <a class="backtotop" href="#top">↑ back to contents</a>
 
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '\\[', right: '\\]', display: true},
+        {left: '\\(', right: '\\)', display: false}
+      ]
+    });
+  });
+</script>
 </body>
 </html>
