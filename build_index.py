@@ -31,6 +31,16 @@ CATEGORIES = [
         "hypothesis": 1,
         "statistic": 2,
     }),
+    ("Programming & Tools", "\U0001F4BB", "cyan", "Python, SQL, and data tooling for DS interviews", {
+        "python": 1,
+        "data_structure": 2,
+        "oop_beginner": 3,
+        "oop_interview": 4,
+        "oop": 3,
+        "eda": 5,
+        "core_librar": 5,
+        "sql": 6,
+    }),
     ("Classic ML", "\U0001F4D0", "green", "Foundations, evaluation, and general ML", {
         "regulariz": 1,
         "evaluation": 2,
@@ -89,6 +99,7 @@ ACCENTS = {
     "green": "#5cb85c",
     "grey": "#9898b0",
     "rose": "#f472b6",
+    "cyan": "#22d3ee",
 }
 
 
@@ -218,6 +229,7 @@ def render(categories):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ML Learning Notes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A7%A0</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">

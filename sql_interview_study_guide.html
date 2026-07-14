@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Interview Study Guide — DS Track</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e2a;
+    --border: #2a2f3f;
+    --accent-a: #3b82f6;
+    --accent-b: #f97316;
+    --accent-c: #a855f7;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); }
+  .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 620px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; }
+  ul.plain li { margin-bottom: 6px; }
+
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); }
+  .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); }
+  .callout-warning .callout-title { color: var(--yellow); }
+
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .highlight { color: var(--green); }
+  .code-block .label { color: var(--yellow); }
+
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+
+  .example-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 24px; margin: 20px 0; }
+  .example-box .example-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .example-box .example-title::before { content: '⛁'; font-size: 14px; }
+  .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  .result-table th, .result-table td { padding: 6px 12px; border: 1px solid var(--border); text-align: left; }
+  .result-table th { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  .steps { list-style: none; margin: 16px 0; }
+  .steps li { display: flex; gap: 16px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bg); background: var(--text-muted); min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px; font-weight: 600; flex-shrink: 0; }
+  .step-num.a { background: var(--accent-a); }
+  .step-num.b { background: var(--accent-b); }
+
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; }
+  .key-insight p { margin: 0; font-size: 14px; }
+
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; }
+  .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* GOTCHA LIST */
+  .gotcha-card { background: var(--bg2); border: 1px solid rgba(239,68,68,0.25); border-radius: 4px; padding: 18px 22px; margin: 14px 0; }
+  .gotcha-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--red); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 2px 8px; border-radius: 2px; margin-right: 10px; }
+  .gotcha-title { font-weight: 700; font-size: 14.5px; }
+  .gotcha-card p { font-size: 13.5px; color: var(--text-muted); margin: 8px 0 0; }
+
+  /* INTERVIEW QUESTIONS */
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; }
+  .must-have-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; margin-top: 16px; }
+  .must-have-list { list-style: none; }
+  .must-have-list li { display: flex; gap: 10px; margin-bottom: 7px; font-size: 13.5px; align-items: flex-start; }
+  .must-have-list li::before { content: '✓'; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  .iq-code { margin-top: 10px; }
+
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">SQL Interview Guide · Data Scientist Track</div>
+    <h1><span class="a">SQL</span> Revision <span class="b">Guide</span></h1>
+    <p class="hero-sub">Syntax, execution order, frame clauses, and the interview traps that actually get asked — built from a full practice session, window functions to DS-style queries.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Core Querying</div>
+      <div class="progress-item done">✓ Joins</div>
+      <div class="progress-item done">✓ Window Functions</div>
+      <div class="progress-item done">✓ CTEs &amp; Recursion</div>
+      <div class="progress-item done">✓ DS Patterns</div>
+      <div class="progress-item done">✓ 50 Interview Qs</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#execorder" class="a">Execution Order</a>
+  <a href="#core" class="a">Core Querying</a>
+  <a href="#joins" class="a">Joins</a>
+  <a href="#window" class="b">Window Functions</a>
+  <a href="#frames" class="b">Frames: Rows/Range</a>
+  <a href="#percentile" class="b">Percentile Fns</a>
+  <a href="#cte" class="c">CTEs &amp; Recursion</a>
+  <a href="#ds" class="c">DS Patterns</a>
+  <a href="#gotchas">Gotchas</a>
+  <a href="#interview" class="c">50 Interview Qs</a>
+</nav>
+
+<div class="container">
+
+  <!-- EXECUTION ORDER -->
+  <section class="section fade-in" id="execorder">
+    <div class="section-header">
+      <span class="section-tag tag-a">Mental Model</span>
+      <h2>SQL Query Execution Order</h2>
+    </div>
+    <p>Almost every SQL "gotcha" traces back to this one fact: the clauses don't run in the order you write them.</p>
+    <div class="code-block">FROM   → <span class="comment">// resolve tables, apply joins</span>
+WHERE  → <span class="comment">// filter rows (no aggregates allowed yet)</span>
+GROUP BY → <span class="comment">// form groups</span>
+HAVING → <span class="comment">// filter groups (aggregates allowed)</span>
+SELECT → <span class="comment">// compute expressions, window functions run here</span>
+ORDER BY → <span class="comment">// sort final output</span>
+LIMIT  → <span class="comment">// trim rows</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>This single ordering explains: why <code>WHERE</code> can't use aggregates (M3), why <code>HAVING</code> can (M2), and why you can't filter a window function in <code>WHERE</code> (R3) — window functions are computed at the SELECT stage, after WHERE has already run.</p>
+    </div>
+  </section>
+
+  <!-- CORE QUERYING -->
+  <section class="section fade-in" id="core">
+    <div class="section-header">
+      <span class="section-tag tag-a">Core</span>
+      <h2>Core Querying</h2>
+    </div>
+    <h3>Syntax</h3>
+    <div class="code-block">SELECT column, AGG_FUNC(column)
+FROM table
+WHERE row_condition
+GROUP BY column
+HAVING group_condition
+ORDER BY column
+LIMIT n;</div>
+    <div class="trap">
+      <div class="trap-title">Trap — WHERE vs HAVING</div>
+      <p><code>WHERE</code> filters individual rows before grouping; <code>HAVING</code> filters aggregated groups after. Using <code>WHERE COUNT(*) > 5</code> fails — aggregates don't exist yet at that stage.</p>
+    </div>
+  </section>
+
+  <!-- JOINS -->
+  <section class="section fade-in" id="joins">
+    <div class="section-header">
+      <span class="section-tag tag-a">Joins</span>
+      <h2>Joins &amp; Anti-Joins</h2>
+    </div>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title" style="color:var(--accent-a)">INNER JOIN</div>
+        <ul><li>Only matching rows on both sides</li><li>Same result via comma syntax + WHERE, as long as condition is identical</li></ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title" style="color:var(--accent-b)">LEFT JOIN</div>
+        <ul><li>All left rows + matches from right (NULL if none)</li><li>Classic base for anti-joins</li></ul>
+      </div>
+    </div>
+    <h3>Anti-Join Pattern (find unmatched rows)</h3>
+    <div class="code-block">SELECT a.name
+FROM customers a
+LEFT JOIN orders b ON a.customer_id = b.customer_id
+WHERE b.customer_id IS NULL;  <span class="comment">-- customers with zero orders</span></div>
+    <div class="trap">
+      <div class="trap-title">Trap — ON vs WHERE on OUTER joins</div>
+      <p>Putting a filter on the <em>right</em> table in <code>WHERE</code> instead of <code>ON</code> silently converts a LEFT JOIN into an INNER JOIN, because unmatched rows have NULLs, and <code>NULL = 'x'</code> is never true.</p>
+      <div class="code-block"><span class="comment">-- keeps all left rows, filters right side only when matched</span>
+LEFT JOIN b ON a.id = b.id AND b.status = 'active'
+
+<span class="comment">-- BUG: silently drops unmatched left rows</span>
+LEFT JOIN b ON a.id = b.id
+WHERE b.status = 'active'</div>
+    </div>
+  </section>
+
+  <!-- WINDOW FUNCTIONS -->
+  <section class="section fade-in" id="window">
+    <div class="section-header">
+      <span class="section-tag tag-b">Window Functions</span>
+      <h2>Cheat Sheet</h2>
+    </div>
+    <p>Window functions compute a value across a set of related rows <em>without</em> collapsing them — every original row survives, unlike GROUP BY.</p>
+    <div class="code-block">FUNC(...) OVER (
+    PARTITION BY col     <span class="comment">-- optional: resets the window per group</span>
+    ORDER BY col          <span class="comment">-- optional: defines row sequence</span>
+    ROWS/RANGE BETWEEN x AND y  <span class="comment">-- optional: defines the frame</span>
+)</div>
+    <table class="compare-table">
+      <thead><tr><th>Function</th><th>What it returns</th></tr></thead>
+      <tbody>
+        <tr><td>ROW_NUMBER()</td><td>Unique sequential number per row, no ties</td></tr>
+        <tr><td>RANK()</td><td>Same rank for ties, skips subsequent numbers</td></tr>
+        <tr><td>DENSE_RANK()</td><td>Same rank for ties, no gaps</td></tr>
+        <tr><td>NTILE(n)</td><td>Assigns each row to 1 of n equal-ish buckets</td></tr>
+        <tr><td>LAG(col, n)</td><td>Value from n rows before (NULL if none)</td></tr>
+        <tr><td>LEAD(col, n)</td><td>Value from n rows after (NULL if none)</td></tr>
+        <tr><td>FIRST_VALUE(col)</td><td>First value in the frame</td></tr>
+        <tr><td>LAST_VALUE(col)</td><td>Last value in the <em>frame</em> — needs frame override, see below</td></tr>
+        <tr><td>PERCENT_RANK()</td><td>Relative rank as a fraction 0–1</td></tr>
+        <tr><td>CUME_DIST()</td><td>Cumulative distribution — % of rows ≤ current</td></tr>
+        <tr><td>PERCENTILE_CONT(p)</td><td>Interpolated value at percentile p (needs WITHIN GROUP)</td></tr>
+        <tr><td>PERCENTILE_DISC(p)</td><td>Actual row value at percentile p, no interpolation</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Worked Example — Rank Within Region</h3>
+    <div class="code-block">SELECT employee, region, amount,
+       RANK() OVER (PARTITION BY region ORDER BY amount DESC) AS rank
+FROM sales;</div>
+
+    <div class="trap">
+      <div class="trap-title">Trap — RANK vs DENSE_RANK on ties</div>
+      <table class="result-table">
+        <tr><th>Function</th><th>Row1 (300)</th><th>Row2 (300, tie)</th><th>Row3 (100)</th></tr>
+        <tr><td>ROW_NUMBER()</td><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>RANK()</td><td>1</td><td>1</td><td>3 (skips 2)</td></tr>
+        <tr><td>DENSE_RANK()</td><td>1</td><td>1</td><td>2 (no skip)</td></tr>
+      </table>
+      <p>"2nd highest salary" queries must use <code>DENSE_RANK</code> — RANK would skip straight to a rank that may not exist if the top two tie.</p>
+    </div>
+
+    <h3>NTILE — Uneven Buckets</h3>
+    <p>7 rows into <code>NTILE(3)</code> does not error — it distributes the remainder to the <em>earliest</em> groups: sizes come out as 3, 2, 2 (not 2, 2, 3).</p>
+    <div class="trap">
+      <div class="trap-title">Trap — NTILE ≠ percentile value</div>
+      <p><code>NTILE(4)</code> assigns a <em>group label</em> (1–4) to each row. It does NOT return the dollar value at the 25th/50th/75th percentile — that's what <code>PERCENTILE_CONT</code> does.</p>
+    </div>
+
+    <h3>LAG / LEAD</h3>
+    <div class="code-block">SELECT date, revenue,
+       revenue - LAG(revenue) OVER (ORDER BY date) AS day_over_day_change
+FROM daily_revenue;</div>
+    <div class="key-insight"><span class="icon">💡</span><p>First row's LAG is NULL (no prior row). Wrap in <code>COALESCE(LAG(revenue), 0)</code> when the result feeds into further math.</p></div>
+
+    <h3>FIRST_VALUE / LAST_VALUE</h3>
+    <div class="code-block">SELECT employee, amount,
+       FIRST_VALUE(amount) OVER (PARTITION BY region ORDER BY amount DESC) AS top_amount
+FROM sales;</div>
+    <div class="trap">
+      <div class="trap-title">Trap — LAST_VALUE's default frame</div>
+      <p>The default window frame is <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — so <code>LAST_VALUE</code> only sees up to the current row and just returns the current row's own value.</p>
+      <div class="code-block"><span class="comment">-- WRONG (returns current row, not region minimum)</span>
+LAST_VALUE(amount) OVER (PARTITION BY region ORDER BY amount DESC)
+
+<span class="comment">-- CORRECT (frame extended to the whole partition)</span>
+LAST_VALUE(amount) OVER (
+  PARTITION BY region ORDER BY amount DESC
+  ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+)</div>
+    </div>
+
+    <h3>Multi-Partition Windows</h3>
+    <div class="code-block">RANK() OVER (PARTITION BY region, quarter ORDER BY amount DESC)</div>
+    <p>Each unique (region, quarter) pair becomes its own independent mini-window — ranking resets at every new combination. Used heavily in cohort analysis: <code>PARTITION BY signup_cohort, days_since_signup</code>.</p>
+  </section>
+
+  <!-- FRAMES -->
+  <section class="section fade-in" id="frames">
+    <div class="section-header">
+      <span class="section-tag tag-b">Frames</span>
+      <h2>ROWS vs RANGE, Running Totals &amp; Moving Averages</h2>
+    </div>
+    <h3>Frame Syntax</h3>
+    <div class="code-block">ROWS/RANGE BETWEEN &lt;start&gt; AND &lt;end&gt;
+
+<span class="comment">-- start/end options:</span>
+UNBOUNDED PRECEDING   <span class="comment">-- from the very first row of the partition</span>
+N PRECEDING           <span class="comment">-- N rows/values before current</span>
+CURRENT ROW
+N FOLLOWING           <span class="comment">-- N rows/values after current</span>
+UNBOUNDED FOLLOWING   <span class="comment">-- to the very last row of the partition</span></div>
+
+    <h3>Running Total</h3>
+    <div class="code-block">SELECT date, revenue,
+       SUM(revenue) OVER (ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total
+FROM daily_revenue;</div>
+
+    <h3>Moving Average (last 3 rows incl. current)</h3>
+    <div class="code-block">SELECT date, revenue,
+       AVG(revenue) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg_3d
+FROM daily_revenue;</div>
+    <div class="trap">
+      <div class="trap-title">Trap — off-by-one on window size</div>
+      <p><code>2 PRECEDING AND CURRENT ROW</code> = 3 total rows (2 before + current). A "5-day moving average" needs <code>4 PRECEDING</code>, not 5.</p>
+    </div>
+
+    <h3>ROWS vs RANGE — the tie-breaking difference</h3>
+    <p>Both give identical results <em>until</em> the ORDER BY column has duplicate values.</p>
+    <table class="result-table">
+      <tr><th>date</th><th>revenue</th><th>SUM … ROWS</th><th>SUM … RANGE</th></tr>
+      <tr><td>2024-01-01</td><td>100</td><td>100</td><td>200</td></tr>
+      <tr><td>2024-01-02</td><td>100</td><td>200</td><td>200</td></tr>
+      <tr><td>2024-01-03</td><td>130</td><td>330</td><td>330</td></tr>
+    </table>
+    <ul class="plain">
+      <li><strong>ROWS</strong> = physical row count — even tied rows get their own distinct running total.</li>
+      <li><strong>RANGE</strong> = logical peer grouping — all rows sharing the same ORDER BY value get the <em>same</em> result (sum "as of that value").</li>
+    </ul>
+    <div class="callout callout-warning">
+      <div class="callout-title">Rule of Thumb</div>
+      If you don't specify a frame explicitly, the default is <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — which silently produces duplicate totals when ties exist. Always write <code>ROWS BETWEEN ...</code> explicitly for a true row-by-row running total.
+    </div>
+  </section>
+
+  <!-- PERCENTILE FUNCTIONS -->
+  <section class="section fade-in" id="percentile">
+    <div class="section-header">
+      <span class="section-tag tag-b">Percentiles</span>
+      <h2>PERCENTILE_CONT / DISC, PERCENT_RANK, CUME_DIST</h2>
+    </div>
+    <h3>PERCENTILE_CONT — interpolated value</h3>
+    <div class="code-block">SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY spend) AS p75_spend
+FROM customers;</div>
+    <p>Returns the <em>actual dollar value</em> at the 75th percentile, interpolating between two data points if the percentile falls between them.</p>
+
+    <h3>PERCENTILE_DISC — discrete value</h3>
+    <div class="code-block">SELECT PERCENTILE_DISC(0.75) WITHIN GROUP (ORDER BY spend) AS p75_spend
+FROM customers;</div>
+    <p>Same idea, but always returns an <em>actual row's value</em> — no interpolation, so the result always exists in the dataset.</p>
+
+    <h3>PERCENT_RANK vs CUME_DIST</h3>
+    <div class="code-block">SELECT name, score,
+       PERCENT_RANK() OVER (ORDER BY score) AS pct_rank,
+       CUME_DIST()    OVER (ORDER BY score) AS cume_dist
+FROM students;</div>
+    <ul class="plain">
+      <li><strong>PERCENT_RANK</strong> = (rank − 1) / (total rows − 1). Always 0 for the first row, 1 for the last.</li>
+      <li><strong>CUME_DIST</strong> = (rows ≤ current) / (total rows). Never 0, reflects real cumulative proportion including ties.</li>
+    </ul>
+    <div class="trap">
+      <div class="trap-title">Trap — NTILE vs PERCENTILE_CONT confusion</div>
+      <p>Interviewers often ask "what's the 90th percentile spend?" — the correct tool is <code>PERCENTILE_CONT</code>, not <code>NTILE(10)</code>. NTILE only tells you which decile bucket a row falls in, not the cutoff dollar value.</p>
+    </div>
+
+    <h3>Row-Level Output — PARTITION BY Only, No ORDER BY / Frame</h3>
+    <p><code>PERCENTILE_CONT</code>/<code>DISC</code> can return a value on <em>every row</em> — same row-level behavior as any other window aggregate — by adding <code>OVER (PARTITION BY ...)</code>. No <code>GROUP BY</code> needed.</p>
+    <div class="code-block">SELECT customer_id, region, spend,
+       PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY spend) OVER (PARTITION BY region) AS p75_region
+FROM customers;</div>
+    <table class="result-table">
+      <tr><th>customer_id</th><th>region</th><th>spend</th><th>p75_region</th></tr>
+      <tr><td>1</td><td>East</td><td>100</td><td>250</td></tr>
+      <tr><td>2</td><td>East</td><td>300</td><td>250</td></tr>
+      <tr><td>3</td><td>East</td><td>250</td><td>250</td></tr>
+      <tr><td>4</td><td>West</td><td>400</td><td>380</td></tr>
+    </table>
+    <p>Every East row shows the same <code>250</code> — that's the region's 75th-percentile spend, repeated across all rows in the partition, exactly like <code>SUM(x) OVER (PARTITION BY region)</code> would repeat a regional total.</p>
+    <div class="trap">
+      <div class="trap-title">Trap — the OVER clause only accepts PARTITION BY here</div>
+      <p>Unlike RANK, LAG, or SUM, you <strong>cannot</strong> add <code>ORDER BY</code> or a <code>ROWS/RANGE BETWEEN</code> frame inside this function's <code>OVER(...)</code>. Trying to do so errors out (SQL Server: <em>"The function 'PERCENTILE_CONT' may not have ORDER BY in OVER clause"</em>).</p>
+      <div class="code-block"><span class="comment">-- WRONG — errors</span>
+PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY spend)
+  OVER (PARTITION BY region ORDER BY spend ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)
+
+<span class="comment">-- CORRECT — ordering already lives in WITHIN GROUP</span>
+PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY spend)
+  OVER (PARTITION BY region)</div>
+      <p><strong>Why:</strong> the sort order is already fixed by <code>WITHIN GROUP (ORDER BY ...)</code> — it tells the function how to order values before computing the percentile. A percentile is a property of the <em>whole</em> partition, not a sliding frame, so a second ORDER BY or a ROWS/RANGE frame inside OVER would conflict with that and isn't allowed.</p>
+    </div>
+    <div class="callout callout-warning">
+      <div class="callout-title">Dialect Note</div>
+      Postgres does <strong>not</strong> support PERCENTILE_CONT/DISC as a window function at all — only as a plain aggregate with GROUP BY (no OVER clause). SQL Server, Snowflake, Redshift, and Yellowbrick all support the PARTITION-BY-only window form shown above.
+    </div>
+  </section>
+
+  <!-- CTE -->
+  <section class="section fade-in" id="cte">
+    <div class="section-header">
+      <span class="section-tag tag-c">CTEs</span>
+      <h2>CTEs &amp; Recursive Queries</h2>
+    </div>
+    <h3>Basic CTE</h3>
+    <div class="code-block">WITH avg_sal AS (
+  SELECT AVG(salary) AS avg_salary FROM employees
+)
+SELECT e.*
+FROM employees e
+JOIN avg_sal ON e.salary >= avg_sal.avg_salary;</div>
+    <p>Prefer CTEs over nested subqueries for readability, reusability within the same query, and because recursion requires them.</p>
+
+    <h3>Recursive CTE Pattern (memorize this shape)</h3>
+    <div class="code-block">WITH RECURSIVE subordinates AS (
+    <span class="comment">-- 1. Base case: anchor row(s)</span>
+    SELECT id, name, manager_id, 1 AS level
+    FROM employees
+    WHERE manager_id = 1
+
+    UNION ALL
+
+    <span class="comment">-- 2. Recursive case: join CTE to itself</span>
+    SELECT e.id, e.name, e.manager_id, s.level + 1
+    FROM employees e
+    JOIN subordinates s ON e.manager_id = s.id
+)
+SELECT * FROM subordinates;</div>
+    <ul class="steps">
+      <li><span class="step-num a">1</span><span>Base case runs once — the anchor rows.</span></li>
+      <li><span class="step-num a">2</span><span>Recursive case joins back to the CTE itself, finding the next level down.</span></li>
+      <li><span class="step-num a">3</span><span>Repeats until a pass finds zero new rows, then stops automatically.</span></li>
+    </ul>
+    <div class="trap">
+      <div class="trap-title">Trap — UNION vs UNION ALL in recursion</div>
+      <p>Use <code>UNION ALL</code>, not <code>UNION</code>. <code>UNION</code> deduplicates every iteration (slower), and on cyclic data can behave unpredictably. Also don't forget the <code>RECURSIVE</code> keyword (required in Postgres/MySQL 8+).</p>
+    </div>
+  </section>
+
+  <!-- DS PATTERNS -->
+  <section class="section fade-in" id="ds">
+    <div class="section-header">
+      <span class="section-tag tag-c">DS Patterns</span>
+      <h2>Funnels, Cohorts &amp; A/B Tests</h2>
+    </div>
+
+    <h3>Funnel — Simple Stage Counts</h3>
+    <div class="code-block">SELECT
+    COUNT(DISTINCT CASE WHEN event_name = 'signup'    THEN user_id END) AS signup_users,
+    COUNT(DISTINCT CASE WHEN event_name = 'view_item' THEN user_id END) AS view_item_users,
+    COUNT(DISTINCT CASE WHEN event_name = 'purchase'  THEN user_id END) AS purchase_users
+FROM events;</div>
+
+    <h3>Funnel — Strict, Order-Enforced</h3>
+    <div class="code-block">WITH user_funnel AS (
+    SELECT user_id,
+        MIN(CASE WHEN event_name='signup'    THEN event_time END) AS signup_time,
+        MIN(CASE WHEN event_name='view_item' THEN event_time END) AS view_time,
+        MIN(CASE WHEN event_name='purchase'  THEN event_time END) AS purchase_time
+    FROM events GROUP BY user_id
+)
+SELECT
+    COUNT(signup_time) AS signup_users,
+    COUNT(CASE WHEN view_time > signup_time THEN 1 END) AS view_item_users,
+    COUNT(CASE WHEN purchase_time > view_time THEN 1 END) AS purchase_users
+FROM user_funnel;</div>
+    <div class="trap">
+      <div class="trap-title">Trap — naive funnels double-count out-of-order events</div>
+      <p>A plain <code>GROUP BY event_name, COUNT(*)</code> counts anyone who ever fired "purchase," even a user who purchased before viewing (bad data / weird tracking). The strict version checks each stage happened <em>after</em> the previous one.</p>
+    </div>
+
+    <h3>Cohort Retention %</h3>
+    <div class="code-block">WITH cohort_activity AS (
+    SELECT signup_date AS cohort,
+           DATE_DIFF('week', signup_date, activity_date) AS week_num,
+           COUNT(DISTINCT user_id) AS active_users
+    FROM activity
+    GROUP BY 1, 2
+)
+SELECT cohort, week_num, active_users,
+       active_users * 1.0 / FIRST_VALUE(active_users) OVER (PARTITION BY cohort ORDER BY week_num) AS retention_pct
+FROM cohort_activity;</div>
+    <div class="key-insight"><span class="icon">💡</span><p>Week 0's count becomes the baseline denominator via <code>FIRST_VALUE</code> — every later week is expressed as a % of that baseline, per cohort.</p></div>
+
+    <h3>A/B Test Conversion Rate</h3>
+    <div class="code-block">SELECT variant,
+       COUNT(DISTINCT user_id) AS users,
+       COUNT(DISTINCT CASE WHEN converted=1 THEN user_id END) AS converted_users,
+       COUNT(DISTINCT CASE WHEN converted=1 THEN user_id END) * 1.0 / COUNT(DISTINCT user_id) AS conversion_rate
+FROM experiment
+GROUP BY 1;</div>
+    <div class="callout callout-warning">
+      <div class="callout-title">Beyond the SQL</div>
+      SQL gets you the rates — it doesn't tell you if the difference between variants is statistically significant. That needs a two-proportion z-test or chi-square test on top, especially with small sample sizes.
+    </div>
+  </section>
+
+  <!-- GOTCHAS -->
+  <section class="section fade-in" id="gotchas">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Consolidated</span>
+      <h2>Gotchas Summary</h2>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">01</span><span class="gotcha-title">Integer division silently truncates</span>
+      <p><code>COUNT(x) / COUNT(y)</code> with integer columns truncates to 0. Always write <code>* 1.0</code> before dividing.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">02</span><span class="gotcha-title">LAST_VALUE's default frame</span>
+      <p>Returns the current row, not the partition's last row, unless the frame is overridden to <code>UNBOUNDED FOLLOWING</code>.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">03</span><span class="gotcha-title">RANGE vs ROWS on tied ORDER BY values</span>
+      <p>RANGE groups ties into one running total; ROWS gives each row its own — pick ROWS for a true row-by-row running total.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">04</span><span class="gotcha-title">ON vs WHERE on OUTER joins</span>
+      <p>A right-table filter in WHERE turns a LEFT JOIN into an INNER JOIN by discarding NULL (unmatched) rows.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">05</span><span class="gotcha-title">Aggregates can't go in WHERE</span>
+      <p><code>WHERE MAX(x) = ...</code> fails — aggregates aren't computed yet at the WHERE stage. Use HAVING or a subquery.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">06</span><span class="gotcha-title">Window functions can't be filtered in WHERE</span>
+      <p><code>WHERE RANK() OVER (...) = 1</code> fails for the same reason — wrap it in a subquery/CTE and filter outside.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">07</span><span class="gotcha-title">NTILE is a group label, not a percentile value</span>
+      <p>Use PERCENTILE_CONT/DISC when you need the actual cutoff value, not just a bucket number.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">08</span><span class="gotcha-title">RANK vs DENSE_RANK on "Nth highest" questions</span>
+      <p>RANK skips numbers after ties (can skip past the value you want); DENSE_RANK doesn't. Use DENSE_RANK for "Nth highest distinct value."</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">09</span><span class="gotcha-title">UNION vs UNION ALL in recursive CTEs</span>
+      <p>Use UNION ALL — UNION's deduplication is slower and can behave unpredictably on cyclic data.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">10</span><span class="gotcha-title">Naive funnels over-count out-of-order events</span>
+      <p>Enforce stage ordering with MIN(event_time) per stage and explicit "later than previous stage" checks.</p>
+    </div>
+  </section>
+
+  <!-- INTERVIEW QUESTIONS -->
+  <section class="section fade-in" id="interview">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Practice</span>
+      <h2>50 Interview Questions</h2>
+    </div>
+    <p>Click a card to expand. 20 core/fundamentals questions, plus 30 weighted toward window functions and DS-style queries — filter to focus your review.</p>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All (50)</button>
+      <button class="filter-btn" onclick="filterIQ('core', this)">Core (20)</button>
+      <button class="filter-btn" onclick="filterIQ('hard', this)">Window / Hard (30)</button>
+    </div>
+
+    <h3 style="margin-top:8px;">Core &amp; Fundamentals</h3>
+
+    <!-- C1 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C1</span><div class="iq-question">What's the difference between WHERE and HAVING?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>WHERE filters individual rows before grouping and can't reference aggregates. HAVING filters groups after aggregation and can reference aggregate functions like SUM/COUNT.</p>
+      </div>
+    </div>
+
+    <!-- C2 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C2</span><div class="iq-question">Difference between DELETE, TRUNCATE, and DROP?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>DELETE — removes rows (optionally filtered by WHERE), logged row-by-row, can be rolled back, triggers fire.</li>
+          <li>TRUNCATE — removes all rows, minimal logging, faster, resets identity columns, can't use WHERE.</li>
+          <li>DROP — removes the entire table structure plus data.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- C3 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C3</span><div class="iq-question">What's the difference between UNION and UNION ALL?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>UNION removes duplicate rows across the combined result (requires a sort/hash step); UNION ALL keeps every row including duplicates and is faster. Default to UNION ALL unless you specifically need deduplication.</p>
+      </div>
+    </div>
+
+    <!-- C4 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C4</span><div class="iq-question">Difference between INNER, LEFT, RIGHT, and FULL OUTER JOIN?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>INNER — only rows matching in both tables.</li>
+          <li>LEFT — all left rows, matched right columns or NULL.</li>
+          <li>RIGHT — all right rows, matched left columns or NULL.</li>
+          <li>FULL OUTER — all rows from both sides, NULL where no match on either side.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- C5 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C5</span><div class="iq-question">EXISTS vs IN — when would you prefer one over the other?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>EXISTS stops scanning as soon as one matching row is found and handles NULLs safely — generally preferred for correlated subqueries against large tables. IN materializes the full subquery result first and can silently return no rows if the subquery list contains a NULL alongside a NOT IN.</p>
+        <div class="trap"><div class="trap-title">Trap</div><p><code>NOT IN</code> with a subquery that can return NULL silently returns zero rows for the entire query — a very common bug.</p></div>
+      </div>
+    </div>
+
+    <!-- C6 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C6</span><div class="iq-question">What does COALESCE(a, b, c) do?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Returns the first non-NULL value among its arguments, evaluated left to right, per row. Commonly used to supply a fallback value when a column might be NULL, e.g. <code>COALESCE(current_price, last_known_price, 0)</code>.</p>
+      </div>
+    </div>
+
+    <!-- C7 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C7</span><div class="iq-question">What does NULLIF(a, b) do, and when is it useful?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Returns NULL if a = b, otherwise returns a. Commonly used to avoid divide-by-zero errors: <code>x / NULLIF(y, 0)</code> returns NULL instead of erroring when y is 0.</p>
+      </div>
+    </div>
+
+    <!-- C8 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C8</span><div class="iq-question">Explain the ACID properties of a transaction.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>Atomicity — all statements in the transaction succeed, or none do.</li>
+          <li>Consistency — the database moves from one valid state to another.</li>
+          <li>Isolation — concurrent transactions don't interfere with each other's intermediate state.</li>
+          <li>Durability — once committed, changes survive a crash.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- C9 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C9</span><div class="iq-question">What's the difference between a primary key and a unique key?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>A table can have only one primary key, and it can't contain NULLs. A table can have multiple unique keys, and (in most databases) a unique key column can allow one NULL, since NULL isn't considered equal to another NULL.</p>
+      </div>
+    </div>
+
+    <!-- C10 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C10</span><div class="iq-question">What does an index do, and what's the trade-off of adding one?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>An index is a separate sorted structure (often a B-tree) that lets the engine find rows without scanning the whole table — speeds up SELECT/WHERE/JOIN lookups. Trade-off: every INSERT/UPDATE/DELETE also has to update the index, so writes get slower and storage grows.</p>
+      </div>
+    </div>
+
+    <!-- C11 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C11</span><div class="iq-question">Write a query using CASE WHEN to bucket ages into groups.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT name,
+  CASE
+    WHEN age < 18 THEN 'minor'
+    WHEN age BETWEEN 18 AND 64 THEN 'adult'
+    ELSE 'senior'
+  END AS age_group
+FROM people;</div>
+      </div>
+    </div>
+
+    <!-- C12 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C12</span><div class="iq-question">How do you paginate results — return rows 21 to 30?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT * FROM orders
+ORDER BY order_id
+LIMIT 10 OFFSET 20;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>OFFSET without a deterministic ORDER BY can return inconsistent pages, since row order isn't guaranteed otherwise.</p></div>
+      </div>
+    </div>
+
+    <!-- C13 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C13</span><div class="iq-question">What's the difference between a subquery and a JOIN — when would results differ?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>A JOIN combines columns from both tables side by side and can multiply rows on a one-to-many match. A subquery in WHERE/SELECT just returns a value or list to filter/compute against, without adding columns or duplicating rows. If you only need to filter (not display) columns from another table, a subquery avoids accidental row duplication that a JOIN could cause.</p>
+      </div>
+    </div>
+
+    <!-- C14 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C14</span><div class="iq-question">What is a self-join, and give an example use case.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT e.name AS employee, m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.id;</div>
+        <p>A table joined to itself — typically used for hierarchical data (employee/manager) or comparing rows within the same table (e.g., finding pairs of events).</p>
+      </div>
+    </div>
+
+    <!-- C15 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C15</span><div class="iq-question">What does GROUP BY do when you select a column that isn't in the GROUP BY or an aggregate?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Standard SQL (and Postgres) rejects it with an error. MySQL historically allowed it and silently returned an arbitrary row's value for that column — a common source of subtly wrong results if ONLY_FULL_GROUP_BY isn't enabled.</p>
+      </div>
+    </div>
+
+    <!-- C16 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C16</span><div class="iq-question">Write a query to count NULL vs non-NULL values in a column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT
+  COUNT(*) - COUNT(email) AS null_count,
+  COUNT(email) AS non_null_count
+FROM users;</div>
+        <p>COUNT(*) counts all rows; COUNT(column) only counts non-NULL values in that column — the difference between them is the NULL count.</p>
+      </div>
+    </div>
+
+    <!-- C17 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C17</span><div class="iq-question">What's the difference between CROSS JOIN and INNER JOIN?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>CROSS JOIN returns the Cartesian product — every row of table A paired with every row of table B, no ON condition. INNER JOIN requires a matching condition and only returns rows that satisfy it. A CROSS JOIN with a WHERE filter added after is functionally an INNER JOIN, just less readable.</p>
+      </div>
+    </div>
+
+    <!-- C18 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C18</span><div class="iq-question">How do you find rows in table A that don't exist in table B, using EXISTS instead of a JOIN?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT a.*
+FROM table_a a
+WHERE NOT EXISTS (
+  SELECT 1 FROM table_b b WHERE b.a_id = a.id
+);</div>
+        <p>Functionally equivalent to the LEFT JOIN + IS NULL anti-join pattern; NOT EXISTS is often preferred since it can't be fooled by NULLs the way NOT IN can.</p>
+      </div>
+    </div>
+
+    <!-- C19 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C19</span><div class="iq-question">What's the difference between a VIEW and a table?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>A view is a saved, named SELECT query — it has no data of its own (unless it's a materialized view) and re-runs the underlying query each time it's referenced. Useful for encapsulating complex logic or restricting which columns/rows a user can see, without duplicating data.</p>
+      </div>
+    </div>
+
+    <!-- C20 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C20</span><div class="iq-question">Write a query to find the total and average order amount per customer, only for customers with more than 3 orders.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT customer_id, SUM(amount) AS total, AVG(amount) AS avg_amount
+FROM orders
+GROUP BY customer_id
+HAVING COUNT(*) > 3;</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px;">Window Functions &amp; Hard / DS Questions</h3>
+
+    <!-- Q1 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W1</span><div class="iq-question">Find the 2nd highest salary from an employees table, handling ties correctly.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT DISTINCT salary FROM (
+  SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+  FROM employees
+) t WHERE rnk = 2;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>Using RANK() instead of DENSE_RANK() can skip past the actual 2nd distinct value if the top salary is tied.</p></div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W2</span><div class="iq-question">Why can't you filter a window function's result directly in WHERE?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Window functions execute at the SELECT stage of logical query processing — after WHERE has already run. The value doesn't exist yet when WHERE is evaluated.</p>
+        <div class="code-block">SELECT * FROM (
+  SELECT *, RANK() OVER (ORDER BY amount DESC) AS rnk FROM sales
+) t WHERE rnk = 1;</div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W3</span><div class="iq-question">Compute a 7-day moving average of daily revenue.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT date, revenue,
+  AVG(revenue) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7d
+FROM daily_revenue;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>"7-day" means 6 PRECEDING + current row = 7 total, not 7 PRECEDING.</p></div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W4</span><div class="iq-question">What's wrong with using LAST_VALUE() with no explicit frame to find each region's maximum?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Default frame is <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — LAST_VALUE only sees up to the current row, so it just returns that row's own value.</p>
+        <div class="code-block">LAST_VALUE(amount) OVER (
+  PARTITION BY region ORDER BY amount DESC
+  ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+)</div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W5</span><div class="iq-question">Find each customer's first and most recent order date, and days between them, in one query.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT DISTINCT customer_id,
+  FIRST_VALUE(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) AS first_order,
+  LAST_VALUE(order_date) OVER (
+    PARTITION BY customer_id ORDER BY order_date
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_order
+FROM orders;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>Forgetting DISTINCT leaves duplicate rows since the window function repeats the same value on every row per customer.</p></div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W6</span><div class="iq-question">You need the dollar value marking the top 10% of customer spend. Which function, and why not NTILE?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY spend) AS p90_spend
+FROM customers;</div>
+        <p>NTILE(10) would only tell you which decile bucket a customer falls into — it doesn't return the actual cutoff dollar value.</p>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W7</span><div class="iq-question">Compute month-over-month % growth in revenue.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT month, revenue,
+  (revenue - LAG(revenue) OVER (ORDER BY month)) * 100.0
+    / NULLIF(LAG(revenue) OVER (ORDER BY month), 0) AS pct_growth
+FROM monthly_revenue;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>Divide-by-zero if a prior month had 0 revenue — wrap the denominator in NULLIF to avoid an error, and remember integer division truncation if not using * 1.0 / 100.0.</p></div>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W8</span><div class="iq-question">Rank products within each category by sales, and also show the category's total sales alongside each row.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT product, category, sales,
+  RANK() OVER (PARTITION BY category ORDER BY sales DESC) AS rank_in_cat,
+  SUM(sales) OVER (PARTITION BY category) AS category_total
+FROM products;</div>
+        <p>Two window functions with the same PARTITION BY can run side-by-side in one SELECT — no need for separate queries or joins.</p>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W9</span><div class="iq-question">Detect the first purchase event for every user — the "acquisition" event.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT * FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY event_time) AS rn
+  FROM events WHERE event_name = 'purchase'
+) t WHERE rn = 1;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>Using RANK() instead of ROW_NUMBER() here can return multiple rows if two purchase events tie on exact timestamp — ROW_NUMBER guarantees exactly one row per user.</p></div>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W10</span><div class="iq-question">Write a recursive CTE to list an employee and all their subordinates (direct + indirect).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">WITH RECURSIVE subs AS (
+  SELECT id, manager_id, 1 AS lvl FROM employees WHERE manager_id = 1
+  UNION ALL
+  SELECT e.id, e.manager_id, s.lvl + 1
+  FROM employees e JOIN subs s ON e.manager_id = s.id
+)
+SELECT * FROM subs;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>UNION ALL, not UNION — dedup on every recursive pass is wasteful and risky on cyclic data.</p></div>
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W11</span><div class="iq-question">Compute week-1 retention % for each signup cohort.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">WITH cohort AS (
+  SELECT signup_week, week_num, COUNT(DISTINCT user_id) AS users
+  FROM logins GROUP BY 1,2
+)
+SELECT signup_week, week_num,
+  users * 1.0 / FIRST_VALUE(users) OVER (PARTITION BY signup_week ORDER BY week_num) AS retention_pct
+FROM cohort;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>Forgetting * 1.0 truncates the ratio to 0 or 1 under integer division.</p></div>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W12</span><div class="iq-question">Build a 3-step funnel (signup → view_item → purchase) that enforces correct event ordering per user.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">WITH f AS (
+  SELECT user_id,
+    MIN(CASE WHEN event_name='signup' THEN event_time END) AS t1,
+    MIN(CASE WHEN event_name='view_item' THEN event_time END) AS t2,
+    MIN(CASE WHEN event_name='purchase' THEN event_time END) AS t3
+  FROM events GROUP BY user_id
+)
+SELECT COUNT(t1) AS signup,
+       COUNT(CASE WHEN t2 > t1 THEN 1 END) AS viewed,
+       COUNT(CASE WHEN t3 > t2 THEN 1 END) AS purchased
+FROM f;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>A plain COUNT(*) GROUP BY event_name double-counts users who purchased without a valid prior view — inflating conversion.</p></div>
+      </div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W13</span><div class="iq-question">Given an experiment table (user_id, variant, converted), compute conversion rate per variant safely.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT variant,
+  COUNT(DISTINCT CASE WHEN converted=1 THEN user_id END) * 1.0
+    / COUNT(DISTINCT user_id) AS conv_rate
+FROM experiment GROUP BY 1;</div>
+        <p>Follow-up: SQL gives you the rate, not statistical significance — that needs a two-proportion z-test on top, especially with small n.</p>
+      </div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W14</span><div class="iq-question">Find users who churned — active last month but not this month.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT DISTINCT last.user_id
+FROM monthly_activity last
+LEFT JOIN monthly_activity curr
+  ON last.user_id = curr.user_id AND curr.month = last.month + 1
+WHERE last.month = 'Jan' AND curr.user_id IS NULL;</div>
+        <p>Classic anti-join pattern (LEFT JOIN + IS NULL) applied to a time-shifted self-join — very common in churn queries.</p>
+      </div>
+    </div>
+
+    <!-- Q15 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W15</span><div class="iq-question">Assign a session ID to events, starting a new session whenever the gap between events exceeds 30 minutes.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">WITH gaps AS (
+  SELECT user_id, event_time,
+    CASE WHEN event_time - LAG(event_time) OVER (PARTITION BY user_id ORDER BY event_time) > INTERVAL '30 minutes'
+         THEN 1 ELSE 0 END AS new_session
+  FROM events
+)
+SELECT *, SUM(new_session) OVER (PARTITION BY user_id ORDER BY event_time) AS session_id
+FROM gaps;</div>
+        <p>A running SUM of a 0/1 flag is a classic pattern for assigning group IDs based on a gap condition — worth memorizing the shape.</p>
+      </div>
+    </div>
+
+    <!-- Q16 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W16</span><div class="iq-question">What's the difference between PERCENT_RANK and CUME_DIST?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>PERCENT_RANK = (rank − 1) / (n − 1) — always 0 for the first row. CUME_DIST = (rows ≤ current) / n — reflects true cumulative share and is never 0.</p>
+        <div class="trap"><div class="trap-title">Trap</div><p>Confusing these when asked to compute "what percentile is this score in" — CUME_DIST is usually the intended answer for that phrasing.</p></div>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W17</span><div class="iq-question">Find the top 3 highest-paid employees per department.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT * FROM (
+  SELECT *, DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rnk
+  FROM employees
+) t WHERE rnk <= 3;</div>
+        <div class="trap"><div class="trap-title">Trap</div><p>ROW_NUMBER would arbitrarily cut ties and might exclude someone tied for 3rd place; DENSE_RANK includes all ties within top 3.</p></div>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W18</span><div class="iq-question">Compute the cumulative % of total revenue contributed as you move from the highest to lowest spending customer (a Pareto/80-20 check).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT customer_id, revenue,
+  SUM(revenue) OVER (ORDER BY revenue DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) * 1.0
+    / SUM(revenue) OVER () AS cum_pct
+FROM customers;</div>
+        <p><code>SUM(revenue) OVER ()</code> with empty parentheses — no PARTITION, no ORDER — computes one grand total across all rows, used here as the denominator.</p>
+      </div>
+    </div>
+
+    <!-- Q19 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W19</span><div class="iq-question">What does SUM(amount) OVER () with completely empty parentheses do?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>No PARTITION BY means the whole table is one window; no ORDER BY means no frame restriction — so it returns the grand total of the column, repeated on every row.</p>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W20</span><div class="iq-question">Identify products whose sales this month dropped compared to last month.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT product, month, sales,
+  LAG(sales) OVER (PARTITION BY product ORDER BY month) AS prev_sales
+FROM monthly_sales
+QUALIFY sales < LAG(sales) OVER (PARTITION BY product ORDER BY month);
+<span class="comment">-- if QUALIFY unsupported: wrap in a subquery and filter in the outer WHERE instead</span></div>
+        <p>QUALIFY (Snowflake/BigQuery) filters directly on a window function without a wrapping subquery — worth mentioning as a dialect-specific shortcut if asked.</p>
+      </div>
+    </div>
+
+    <!-- Q21 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W21</span><div class="iq-question">Explain why WHERE MAX(amount) = ... in a query fails, and how to fix it.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>WHERE executes before aggregation in logical query order — MAX() doesn't exist yet at that stage. Fix with a subquery or HAVING (if grouping).</p>
+        <div class="code-block">SELECT * FROM orders
+WHERE amount = (SELECT MAX(amount) FROM orders);</div>
+      </div>
+    </div>
+
+    <!-- Q22 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W22</span><div class="iq-question">Find duplicate rows in a table and keep only one copy per duplicate group.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">DELETE FROM t WHERE id NOT IN (
+  SELECT MIN(id) FROM t GROUP BY col1, col2, col3
+);
+<span class="comment">-- or, non-destructive, to just view survivors:</span>
+SELECT * FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY col1, col2, col3 ORDER BY id) AS rn
+  FROM t
+) x WHERE rn = 1;</div>
+        <p>ROW_NUMBER + PARTITION BY the duplicate-defining columns is the standard dedup pattern — very common in data cleaning interview questions.</p>
+      </div>
+    </div>
+
+    <!-- Q23 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W23</span><div class="iq-question">Pivot a long table (user_id, metric, value) into a wide table with one column per metric.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT user_id,
+  MAX(CASE WHEN metric='clicks' THEN value END) AS clicks,
+  MAX(CASE WHEN metric='views'  THEN value END) AS views
+FROM long_table
+GROUP BY user_id;</div>
+        <p>MAX + CASE WHEN is the portable pivot pattern (works everywhere); native PIVOT syntax exists but varies by dialect.</p>
+      </div>
+    </div>
+
+    <!-- Q24 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W24</span><div class="iq-question">Given daily active users, compute a 7-day rolling unique user count (not just a rolling sum).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Window functions can't do a rolling DISTINCT COUNT directly (COUNT DISTINCT isn't supported as a window aggregate in most engines). Typical fix: self-join each date to the last 7 days and COUNT DISTINCT user_id in a GROUP BY, or use approximate distinct-count functions (e.g., APPROX_COUNT_DISTINCT) if scale demands it.</p>
+        <div class="trap"><div class="trap-title">Trap</div><p>Assuming COUNT(DISTINCT x) OVER (...) works like SUM/AVG — many engines reject it or restrict its frame options.</p></div>
+      </div>
+    </div>
+
+    <!-- Q25 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W25</span><div class="iq-question">Compute the median of a column using window/aggregate functions.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY amount) AS median
+FROM orders;</div>
+        <p>Median is just the 50th percentile — PERCENTILE_CONT(0.5) handles even-count interpolation automatically, unlike manually averaging the two middle rows.</p>
+      </div>
+    </div>
+
+    <!-- Q26 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W26</span><div class="iq-question">For each order, show the number of orders placed by that customer so far (including the current one).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT order_id, customer_id, order_date,
+  ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) AS order_sequence
+FROM orders;</div>
+        <p>This "order_sequence" pattern is frequently the first step toward identifying "1st order," "2nd order," or computing repeat-purchase rate.</p>
+      </div>
+    </div>
+
+    <!-- Q27 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W27</span><div class="iq-question">Compute the % contribution of each product category to total revenue, per month.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">SELECT month, category, revenue,
+  revenue * 1.0 / SUM(revenue) OVER (PARTITION BY month) AS pct_of_month
+FROM category_revenue;</div>
+        <p>SUM(...) OVER (PARTITION BY month) gives the monthly total on every row of that month, letting you compute a share without a separate join.</p>
+      </div>
+    </div>
+
+    <!-- Q28 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W28</span><div class="iq-question">Two-proportion comparison aside — what SQL-only check would you run before trusting an A/B test's conversion numbers?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>Sample ratio check — are variant group sizes roughly what was intended (e.g., 50/50)? A skewed split can signal a bugged randomizer.</li>
+          <li>Check for duplicate user_ids assigned to both variants (contamination).</li>
+          <li>Check for users who appear multiple times inflating conversion counts if not using COUNT(DISTINCT ...).</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q29 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W29</span><div class="iq-question">Find the longest streak of consecutive login days for each user.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">WITH grp AS (
+  SELECT user_id, login_date,
+    login_date - ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) * INTERVAL '1 day' AS grp_key
+  FROM logins
+)
+SELECT user_id, COUNT(*) AS streak_len
+FROM grp
+GROUP BY user_id, grp_key
+ORDER BY streak_len DESC;</div>
+        <p>Classic "date minus row_number" trick: consecutive dates minus their sequential row number always land on the identical value, forming a natural grouping key for streaks.</p>
+      </div>
+    </div>
+
+    <!-- Q30 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">W30</span><div class="iq-question">You're asked to explain window functions to a product manager in two sentences. What do you say?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>"A window function lets you compare each row to its neighbors — like its rank, the value before it, or a running total — without losing any of the original rows, unlike a GROUP BY which collapses them." Avoid jargon like PARTITION/frame; lean on "compares each row to its group" as the core idea.</p>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<div class="footer">
+  SQL Interview Study Guide · Data Scientist Track · Good luck
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(group, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const g = card.getAttribute('data-group');
+      card.style.display = (group === 'all' || g === group) ? '' : 'none';
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

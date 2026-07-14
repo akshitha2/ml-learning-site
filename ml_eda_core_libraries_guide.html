@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML EDA &amp; Core Libraries — DS Interview Track</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e2a; --border: #2a2f3f;
+    --accent-a: #3b82f6; --accent-b: #f97316; --accent-c: #a855f7;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); } .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 640px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; } ul.plain li { margin-bottom: 6px; }
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); } .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); } .callout-warning .callout-title { color: var(--yellow); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; } .key-insight p { margin: 0; font-size: 14px; }
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; } .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .quiz-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 18px 0; }
+  .quiz-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-a); margin-bottom: 12px; }
+  .quiz-q { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .quiz-a { font-size: 13.5px; color: var(--text-muted); margin-bottom: 14px; }
+  .quiz-a:last-child { margin-bottom: 0; }
+  .gloss-card { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .gloss-card:last-child { border-bottom: none; }
+  .gloss-word { font-family: 'JetBrains Mono', monospace; color: var(--accent-a); font-size: 13.5px; min-width: 190px; flex-shrink: 0; font-weight: 600; }
+  .gloss-def { font-size: 13.5px; color: var(--text-muted); }
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-diff { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; margin-top: 3px; }
+  .diff-easy { color: var(--green); border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.08); }
+  .diff-medium { color: var(--yellow); border: 1px solid rgba(234,179,8,0.35); background: rgba(234,179,8,0.08); }
+  .diff-hard { color: var(--red); border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; }
+  .must-have-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; margin-top: 16px; }
+  .must-have-list { list-style: none; }
+  .must-have-list li { display: flex; gap: 10px; margin-bottom: 7px; font-size: 13.5px; align-items: flex-start; }
+  .must-have-list li::before { content: '✓'; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">ML EDA &amp; Core Libraries · Beginner-Friendly · DS Interview Track</div>
+    <h1><span class="a">EDA</span> &amp; <span class="b">Core Libraries</span></h1>
+    <p class="hero-sub">Every EDA step explained from scratch with real pandas/numpy/seaborn syntax — loading data through feature engineering and statistical testing. Includes 2 mini-questions + 1 trap per topic, plus 50 sorted interview questions at the end.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Data Loading</div>
+      <div class="progress-item done">✓ Missing Data</div>
+      <div class="progress-item done">✓ Cleaning</div>
+      <div class="progress-item done">✓ Pandas Core Ops</div>
+      <div class="progress-item done">✓ Univariate</div>
+      <div class="progress-item done">✓ Bivariate</div>
+      <div class="progress-item done">✓ Feature Engineering</div>
+      <div class="progress-item done">✓ Correlation</div>
+      <div class="progress-item done">✓ Stat Tests</div>
+      <div class="progress-item done">✓ 50 Interview Qs</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#loading" class="a">Data Loading</a>
+  <a href="#missing" class="a">Missing Data</a>
+  <a href="#cleaning" class="a">Cleaning</a>
+  <a href="#pandascore" class="b">Pandas Core Ops</a>
+  <a href="#univariate" class="b">Univariate</a>
+  <a href="#bivariate" class="b">Bivariate</a>
+  <a href="#featureeng" class="c">Feature Engineering</a>
+  <a href="#correlation" class="c">Correlation</a>
+  <a href="#stattests" class="c">Stat Tests</a>
+  <a href="#glossary">Glossary</a>
+  <a href="#interview" class="c">50 Interview Qs</a>
+</nav>
+
+<div class="container">
+
+  <!-- DATA LOADING -->
+  <section class="section fade-in" id="loading">
+    <div class="section-header">
+      <span class="section-tag tag-a">Step 1</span>
+      <h2>Data Loading &amp; First Look</h2>
+    </div>
+    <p>Before any analysis, you need to load the data and get an honest first impression: how big is it, what types are the columns, is anything obviously broken?</p>
+    <div class="code-block">import pandas as pd
+
+df = pd.read_csv("data.csv")        <span class="comment"># loads a CSV into a DataFrame (a table-like object)</span>
+
+df.head()          <span class="comment"># first 5 rows -- quick visual sanity check</span>
+df.shape            <span class="comment"># (rows, columns) -- e.g. (10000, 15)</span>
+df.info()           <span class="comment"># column names, dtypes, non-null counts, memory usage -- all in one call</span>
+df.describe()       <span class="comment"># count/mean/std/min/max/quartiles for NUMERIC columns only</span>
+df.dtypes           <span class="comment"># just the data type of each column</span>
+df.sample(5)        <span class="comment"># 5 RANDOM rows -- better than head() for spotting hidden issues</span></div>
+    <h3>What does each piece mean?</h3>
+    <ul class="plain">
+      <li><span class="gloss-word" style="min-width:auto">DataFrame</span> — pandas' main 2D table structure (rows + labeled columns), like a spreadsheet you can code against</li>
+      <li><code>.info()</code> — tells you the dtype of every column and how many non-null values exist, which is the fastest way to spot missing data at a glance</li>
+      <li><code>.describe()</code> — by default only summarizes numeric columns; pass <code>include='all'</code> to also see categorical column stats (unique count, most frequent value)</li>
+    </ul>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p><code>df.head()</code> only shows the top of the file — if your data was sorted or exported in a particular order, the first 5 rows can look deceptively clean. Always pair it with <code>df.sample()</code> and <code>df.info()</code>.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Data Loading</div>
+      <div class="quiz-q">Q. If a numeric-looking column shows up as "object" dtype in df.info(), what does that usually mean?</div>
+      <div class="quiz-a">A. It likely contains a mix of types or stray characters (e.g. commas, currency symbols, or a stray text value) preventing pandas from parsing it as a number — worth checking with <code>df['col'].unique()</code>.</div>
+      <div class="quiz-q">Q. Why might df.describe() alone miss important issues in a dataset?</div>
+      <div class="quiz-a">A. It only summarizes numeric columns by default and shows aggregate statistics — it won't reveal missing values, duplicate rows, or categorical imbalances on its own.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Relying only on <code>df.head()</code> to judge whether a dataset is "clean." Real datasets often have issues concentrated at the end, in random rows, or in specific columns that a 5-row preview won't reveal.</p>
+    </div>
+  </section>
+
+  <!-- MISSING DATA -->
+  <section class="section fade-in" id="missing">
+    <div class="section-header">
+      <span class="section-tag tag-a">Step 2</span>
+      <h2>Handling Missing Data</h2>
+    </div>
+    <div class="code-block">df.isnull().sum()              <span class="comment"># count of missing values PER COLUMN</span>
+df.isna().mean() * 100         <span class="comment"># PERCENTAGE missing per column -- often more useful than raw counts</span>
+
+df.dropna()                     <span class="comment"># drops any ROW with at least one missing value</span>
+df.dropna(axis=1)               <span class="comment"># drops any COLUMN with at least one missing value</span>
+df.dropna(thresh=5)              <span class="comment"># keeps rows with at least 5 non-null values</span>
+
+df['age'].fillna(df['age'].mean(), inplace=True)     <span class="comment"># impute with the mean</span>
+df['category'].fillna(df['category'].mode()[0], inplace=True)  <span class="comment"># impute categorical with the most frequent value</span>
+df['value'].fillna(method='ffill', inplace=True)     <span class="comment"># forward-fill: carry the last valid value forward</span></div>
+    <h3>Smarter imputation with scikit-learn</h3>
+    <div class="code-block">from sklearn.impute import SimpleImputer, KNNImputer
+
+imputer = SimpleImputer(strategy='median')      <span class="comment"># median is more robust to outliers than mean</span>
+df[['age']] = imputer.fit_transform(df[['age']])
+
+knn_imputer = KNNImputer(n_neighbors=5)         <span class="comment"># fills missing values based on similar rows (neighbors)</span>
+df_filled = knn_imputer.fit_transform(df)</div>
+    <h3>Why the MISSING PATTERN matters, not just the count</h3>
+    <table class="compare-table">
+      <thead><tr><th>Type</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>MCAR</td><td>Missing Completely At Random — missingness has nothing to do with any value; safest to drop or simple-impute</td></tr>
+        <tr><td>MAR</td><td>Missing At Random — missingness depends on OTHER observed columns (e.g. income missing more often for younger respondents); model-based imputation works well</td></tr>
+        <tr><td>MNAR</td><td>Missing Not At Random — missingness depends on the missing value ITSELF (e.g. high earners refusing to disclose income); hardest to fix, may need domain flags instead of imputation</td></tr>
+      </tbody>
+    </table>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Missing Data</div>
+      <div class="quiz-q">Q. Why is median often preferred over mean for imputing a skewed numeric column?</div>
+      <div class="quiz-a">A. The mean is pulled toward outliers/skew, so it can misrepresent the "typical" value; the median is robust to extreme values and better reflects the center of a skewed distribution.</div>
+      <div class="quiz-q">Q. What's the risk of just dropping all rows with any missing value?</div>
+      <div class="quiz-a">A. You can lose a large chunk of your dataset (especially if missingness is spread across many columns), and if missingness isn't random (MAR/MNAR), dropping rows can bias your remaining sample.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Imputing BEFORE splitting into train/test sets — this leaks information from the test set into training (the imputed mean/median is computed using data the model shouldn't have seen yet). Always fit the imputer on the training set only, then apply it to the test set.</p>
+    </div>
+  </section>
+
+  <!-- DATA CLEANING -->
+  <section class="section fade-in" id="cleaning">
+    <div class="section-header">
+      <span class="section-tag tag-a">Step 3</span>
+      <h2>Data Cleaning — Duplicates, Types, Outliers</h2>
+    </div>
+    <div class="code-block">df.duplicated().sum()             <span class="comment"># count of fully duplicate rows</span>
+df.drop_duplicates(inplace=True)   <span class="comment"># removes them, keeps the first occurrence by default</span>
+
+df['date'] = pd.to_datetime(df['date'])            <span class="comment"># parses strings into real datetime objects</span>
+df['price'] = df['price'].str.replace(',', '').astype(float)  <span class="comment"># strip commas, then convert to float</span>
+df['name'] = df['name'].str.strip().str.lower()      <span class="comment"># remove whitespace, standardize casing</span></div>
+    <h3>Outlier detection — IQR method</h3>
+    <div class="code-block">Q1 = df['income'].quantile(0.25)
+Q3 = df['income'].quantile(0.75)
+IQR = Q3 - Q1
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+
+outliers = df[(df['income'] < lower) | (df['income'] > upper)]
+print(f"Found {len(outliers)} outliers")</div>
+    <h3>Outlier detection — Z-score method</h3>
+    <div class="code-block">from scipy import stats
+import numpy as np
+
+z_scores = np.abs(stats.zscore(df['income']))
+outliers = df[z_scores > 3]        <span class="comment"># conventionally, |z| > 3 is flagged as an outlier</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>IQR is more robust for skewed data (it doesn't assume a normal distribution); Z-score assumes roughly normal data and is sensitive to the very outliers you're trying to detect (since they inflate the mean/std used to compute it).</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Cleaning</div>
+      <div class="quiz-q">Q. Why use 1.5 × IQR specifically as the outlier boundary?</div>
+      <div class="quiz-a">A. It's a widely-used convention (originating from Tukey's boxplot method) that, for roughly normal data, flags a reasonable minority of points as outliers without being overly aggressive — it's a convention, not a hard mathematical law.</div>
+      <div class="quiz-q">Q. Is an "outlier" always something you should remove?</div>
+      <div class="quiz-a">A. No — sometimes outliers are the most important data points (e.g. fraud detection, rare disease cases). Always investigate whether it's a data error or a genuine, meaningful extreme value before deciding.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p><code>df.drop_duplicates()</code> checks ALL columns by default — two rows with the same customer ID but a different timestamp won't be flagged as duplicates unless you specify <code>subset=['customer_id']</code>.</p>
+    </div>
+  </section>
+
+  <!-- PANDAS CORE OPS -->
+  <section class="section fade-in" id="pandascore">
+    <div class="section-header">
+      <span class="section-tag tag-b">Step 4</span>
+      <h2>Pandas Core Operations</h2>
+    </div>
+    <h3>.loc vs .iloc</h3>
+    <div class="code-block">df.loc[0, 'name']         <span class="comment"># access by LABEL -- row label 0, column named 'name'</span>
+df.iloc[0, 1]              <span class="comment"># access by INTEGER POSITION -- 1st row, 2nd column, regardless of labels</span>
+df.loc[df['age'] > 30]     <span class="comment"># boolean filtering -- keep only rows where age > 30</span></div>
+    <h3>groupby — the single most-tested pandas skill</h3>
+    <div class="code-block">df.groupby('department')['salary'].mean()             <span class="comment"># average salary PER department</span>
+df.groupby('department').agg(                          <span class="comment"># multiple aggregations at once</span>
+    avg_salary=('salary', 'mean'),
+    headcount=('salary', 'count')
+)
+df.groupby(['department', 'level'])['salary'].mean()   <span class="comment"># group by MULTIPLE columns</span></div>
+    <h3>merge / join</h3>
+    <div class="code-block">pd.merge(orders, customers, on='customer_id', how='left')
+<span class="comment"># how='left'  -> keep all rows from orders, matching customer info where it exists
+# how='inner' -> keep only rows with a match in BOTH tables
+# how='outer' -> keep everything from both, NaN where there's no match</span></div>
+    <h3>pivot_table</h3>
+    <div class="code-block">df.pivot_table(values='sales', index='region', columns='quarter', aggfunc='sum')
+<span class="comment"># reshapes long data into a region x quarter grid of summed sales</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Prefer vectorized pandas/numpy operations (<code>df['col'] * 2</code>) over <code>.apply()</code> with a Python function, and avoid row-by-row <code>for</code> loops entirely — vectorized operations run in fast compiled C code, while <code>.apply()</code>/loops run slow, interpreted Python per row.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Pandas Core Ops</div>
+      <div class="quiz-q">Q. What's the difference between df.loc[2] and df.iloc[2] if the DataFrame's index has been shuffled/reset unusually?</div>
+      <div class="quiz-a">A. <code>df.loc[2]</code> looks for the row LABELED 2 (which may not be the 3rd physical row anymore), while <code>df.iloc[2]</code> always gets the 3rd physical row (0-indexed), regardless of labels.</div>
+      <div class="quiz-q">Q. Why might a left join produce more rows than the original left table?</div>
+      <div class="quiz-a">A. If the right table has multiple matching rows for a single key (a one-to-many relationship), the left join duplicates the left row once per match — always check for unexpected row count changes after a merge.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Chained indexing like <code>df[df['age'] > 30]['salary'] = 0</code> can silently fail to modify the original DataFrame (triggers a <code>SettingWithCopyWarning</code>) because it's ambiguous whether you're working on a view or a copy. Use <code>df.loc[df['age'] > 30, 'salary'] = 0</code> instead.</p>
+    </div>
+  </section>
+
+  <!-- UNIVARIATE -->
+  <section class="section fade-in" id="univariate">
+    <div class="section-header">
+      <span class="section-tag tag-b">Step 5</span>
+      <h2>Univariate Analysis — Looking at One Column at a Time</h2>
+    </div>
+    <div class="code-block">import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.histplot(df['income'], kde=True)     <span class="comment"># histogram + smoothed density curve, for numeric columns</span>
+plt.show()
+
+sns.countplot(x='department', data=df)   <span class="comment"># bar chart of category FREQUENCIES</span>
+plt.show()
+
+df['income'].skew()                       <span class="comment"># > 0: right-skewed (long tail to the right); < 0: left-skewed</span>
+df['income'].kurtosis()                   <span class="comment"># > 0: heavier tails / more outliers than a normal distribution</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Skewness tells you WHICH direction a distribution leans — a right-skewed income column (common in real data) means most people earn near the low end with a few very high earners pulling the mean upward. This is exactly why median often beats mean for such columns.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Univariate Analysis</div>
+      <div class="quiz-q">Q. If a histogram of income is heavily right-skewed, would you use the mean or median to describe the "typical" income?</div>
+      <div class="quiz-a">A. Median — it's not distorted by the small number of very high earners the way the mean is.</div>
+      <div class="quiz-q">Q. What plot would you use to see the frequency of each category in a categorical column?</div>
+      <div class="quiz-a">A. A count plot / bar chart (<code>sns.countplot</code>), not a histogram — histograms are for numeric/continuous data.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Applying a histogram to a categorical column encoded as numbers (e.g. a 1-5 rating scale) treats it as continuous data, potentially hiding that only 5 discrete values actually exist. Check <code>.nunique()</code> first before choosing a plot type.</p>
+    </div>
+  </section>
+
+  <!-- BIVARIATE -->
+  <section class="section fade-in" id="bivariate">
+    <div class="section-header">
+      <span class="section-tag tag-b">Step 6</span>
+      <h2>Bivariate &amp; Multivariate Analysis</h2>
+    </div>
+    <h3>Numerical vs Numerical</h3>
+    <div class="code-block">sns.scatterplot(x='age', y='income', data=df)
+plt.show()
+
+df[['age', 'income']].corr()      <span class="comment"># Pearson correlation coefficient between the two columns</span></div>
+    <h3>Categorical vs Numerical</h3>
+    <div class="code-block">sns.boxplot(x='department', y='salary', data=df)   <span class="comment"># compare salary DISTRIBUTION across departments</span>
+plt.show()
+
+df.groupby('department')['salary'].agg(['mean', 'median', 'std'])</div>
+    <h3>Categorical vs Categorical</h3>
+    <div class="code-block">pd.crosstab(df['department'], df['gender'])              <span class="comment"># frequency table -- counts per combination</span>
+pd.crosstab(df['department'], df['gender'], normalize='index')  <span class="comment"># row percentages instead of raw counts</span></div>
+    <h3>Multivariate — correlation heatmap</h3>
+    <div class="code-block">corr_matrix = df.corr(numeric_only=True)
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+plt.show()</div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Bivariate Analysis</div>
+      <div class="quiz-q">Q. Which plot would you use to compare the salary distribution across 5 different departments?</div>
+      <div class="quiz-a">A. A boxplot (or violin plot) — it shows median, spread, and outliers for each category side by side, which a simple bar chart of means would hide.</div>
+      <div class="quiz-q">Q. What does pd.crosstab with normalize='index' actually compute?</div>
+      <div class="quiz-a">A. It converts each row's counts into percentages that sum to 1 across that row — useful for comparing proportions (e.g. "what % of each department is each gender") rather than raw counts.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Correlation only captures LINEAR relationships. Two variables can have a strong non-linear (e.g. U-shaped) relationship and still show a correlation near 0 — always pair a correlation matrix with actual scatter plots before concluding "no relationship."</p>
+    </div>
+  </section>
+
+  <!-- FEATURE ENGINEERING -->
+  <section class="section fade-in" id="featureeng">
+    <div class="section-header">
+      <span class="section-tag tag-c">Step 7</span>
+      <h2>Feature Engineering</h2>
+    </div>
+    <h3>Encoding categorical variables</h3>
+    <div class="code-block">pd.get_dummies(df, columns=['department'], drop_first=True)   <span class="comment"># one-hot encoding; drop_first avoids redundancy</span>
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['dept_encoded'] = le.fit_transform(df['department'])        <span class="comment"># assigns each category an integer -- careful, implies false ordering</span></div>
+    <h3>Scaling numeric features</h3>
+    <div class="code-block">from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+
+scaler = StandardScaler()          <span class="comment"># mean=0, std=1 -- good default, sensitive to outliers</span>
+df[['income']] = scaler.fit_transform(df[['income']])
+
+scaler = MinMaxScaler()            <span class="comment"># squashes values into [0, 1] -- good for bounded features</span>
+scaler = RobustScaler()            <span class="comment"># uses median/IQR instead of mean/std -- robust to outliers</span></div>
+    <h3>Handling skewed numeric data</h3>
+    <div class="code-block">import numpy as np
+df['income_log'] = np.log1p(df['income'])   <span class="comment"># log1p = log(1+x), handles zero values safely, reduces right-skew</span></div>
+    <h3>Feature creation from dates</h3>
+    <div class="code-block">df['day_of_week'] = df['date'].dt.dayofweek     <span class="comment"># 0=Monday ... 6=Sunday</span>
+df['is_weekend'] = df['day_of_week'].isin([5, 6])
+df['month'] = df['date'].dt.month</div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Label encoding turns categories into numbers (0, 1, 2...) which implies a false ORDER to models that assume numeric meaning (like linear regression). One-hot encoding avoids that by giving each category its own binary column — but explodes column count for high-cardinality features (many unique categories).</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Feature Engineering</div>
+      <div class="quiz-q">Q. Why use drop_first=True in one-hot encoding?</div>
+      <div class="quiz-a">A. To avoid the "dummy variable trap" — with N categories, only N-1 dummy columns are needed since the last category is implied when all others are 0, avoiding redundant/collinear columns.</div>
+      <div class="quiz-q">Q. When would you prefer RobustScaler over StandardScaler?</div>
+      <div class="quiz-a">A. When your data has significant outliers — StandardScaler uses mean/std, which outliers distort heavily; RobustScaler uses median/IQR, which stays stable even with extreme values present.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Fitting a scaler or encoder on the FULL dataset (train + test combined) before splitting leaks test-set statistics into training. Always <code>fit_transform()</code> on training data only, then <code>transform()</code> (not fit again) on the test set.</p>
+    </div>
+  </section>
+
+  <!-- CORRELATION -->
+  <section class="section fade-in" id="correlation">
+    <div class="section-header">
+      <span class="section-tag tag-c">Step 8</span>
+      <h2>Correlation &amp; Multicollinearity</h2>
+    </div>
+    <table class="compare-table">
+      <thead><tr><th>Method</th><th>Use case</th></tr></thead>
+      <tbody>
+        <tr><td>Pearson</td><td>Linear relationships between two continuous variables (most common default)</td></tr>
+        <tr><td>Spearman</td><td>Monotonic (consistently increasing/decreasing, not necessarily linear) relationships; works on ranked data, robust to outliers</td></tr>
+        <tr><td>Kendall</td><td>Similar to Spearman, often preferred for small sample sizes</td></tr>
+      </tbody>
+    </table>
+    <div class="code-block">df[['age', 'income']].corr(method='pearson')
+df[['age', 'income']].corr(method='spearman')</div>
+    <h3>Multicollinearity — VIF (Variance Inflation Factor)</h3>
+    <div class="code-block">from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+X = df[['age', 'income', 'education_years']]
+vif_data = pd.DataFrame()
+vif_data['feature'] = X.columns
+vif_data['VIF'] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+<span class="comment"># VIF > 5 (some say 10) suggests that feature is highly explainable by the OTHER features -- multicollinearity risk</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Multicollinearity doesn't hurt every model equally — it destabilizes coefficient interpretation in linear/logistic regression, but tree-based models (random forest, gradient boosting) are largely unaffected by it.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Correlation</div>
+      <div class="quiz-q">Q. Two variables have a Pearson correlation of 0.02 but a Spearman correlation of 0.85. What does this suggest?</div>
+      <div class="quiz-a">A. There's likely a strong monotonic but non-linear relationship (e.g. exponential) — Pearson only detects LINEAR patterns and misses it, while Spearman (based on ranks) captures the consistent increasing trend.</div>
+      <div class="quiz-q">Q. Why does high multicollinearity matter more for linear regression than for random forest?</div>
+      <div class="quiz-a">A. Linear regression estimates individual coefficients that become unstable/unreliable when predictors are highly correlated with each other; random forest splits on one feature at a time and doesn't rely on stable individual coefficients in the same way.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>"Correlation implies causation" — a classic trap phrase interviewers listen for. A high correlation between two variables never proves one causes the other; there could be a confounding third variable, reverse causation, or pure coincidence.</p>
+    </div>
+  </section>
+
+  <!-- STAT TESTS -->
+  <section class="section fade-in" id="stattests">
+    <div class="section-header">
+      <span class="section-tag tag-c">Step 9</span>
+      <h2>Statistical Testing in EDA</h2>
+    </div>
+    <div class="code-block">from scipy import stats
+
+<span class="comment"># t-test: compare MEANS of a numeric variable between 2 groups</span>
+group_a = df[df['group'] == 'A']['score']
+group_b = df[df['group'] == 'B']['score']
+t_stat, p_value = stats.ttest_ind(group_a, group_b)
+
+<span class="comment"># chi-square test: check ASSOCIATION between two categorical variables</span>
+contingency = pd.crosstab(df['gender'], df['purchased'])
+chi2, p_value, dof, expected = stats.chi2_contingency(contingency)
+
+<span class="comment"># ANOVA: compare MEANS across 3+ groups at once</span>
+f_stat, p_value = stats.f_oneway(
+    df[df['dept']=='Sales']['salary'],
+    df[df['dept']=='Eng']['salary'],
+    df[df['dept']=='HR']['salary']
+)</div>
+    <table class="compare-table">
+      <thead><tr><th>Test</th><th>When to use</th></tr></thead>
+      <tbody>
+        <tr><td>t-test</td><td>Compare the mean of a numeric variable between exactly 2 groups</td></tr>
+        <tr><td>ANOVA</td><td>Compare means across 3 or more groups at once (avoids inflated error from running many t-tests)</td></tr>
+        <tr><td>Chi-square</td><td>Test whether two categorical variables are associated (independent or not)</td></tr>
+      </tbody>
+    </table>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>A p-value answers: "if there were truly NO effect/difference, how likely would we see data this extreme by chance?" A small p-value (typically &lt; 0.05) suggests the observed difference is unlikely to be random noise — it does NOT mean "there's a 95% chance the effect is real," which is the most common misinterpretation.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Statistical Testing</div>
+      <div class="quiz-q">Q. Why not just run multiple t-tests instead of one ANOVA when comparing 4 groups?</div>
+      <div class="quiz-a">A. Running many pairwise t-tests inflates the chance of a false positive (multiple comparisons problem) — ANOVA tests all groups at once with one controlled error rate.</div>
+      <div class="quiz-q">Q. A p-value of 0.03 came back for a correlation test. Does this prove the relationship is practically important?</div>
+      <div class="quiz-a">A. No — statistical significance just means the effect is unlikely due to chance at your sample size; it says nothing about the effect's real-world magnitude or importance. Always check the effect size alongside the p-value.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Treating p &lt; 0.05 as a rigid, universal cutoff for "true" vs "false." It's a convention, not a law of nature — the right threshold depends on context, and a p-value just below 0.05 isn't meaningfully different from one just above it.</p>
+    </div>
+  </section>
+
+  <!-- GLOSSARY -->
+  <section class="section fade-in" id="glossary">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Quick Reference</span>
+      <h2>Glossary of Every Term Used</h2>
+    </div>
+    <div class="gloss-card"><div class="gloss-word">DataFrame</div><div class="gloss-def">Pandas' core 2D labeled table structure — rows and named columns, like a spreadsheet you can code against.</div></div>
+    <div class="gloss-card"><div class="gloss-word">MCAR / MAR / MNAR</div><div class="gloss-def">Categories describing WHY data is missing — completely random, related to other observed columns, or related to the missing value itself.</div></div>
+    <div class="gloss-card"><div class="gloss-word">IQR (Interquartile Range)</div><div class="gloss-def">The range between the 25th and 75th percentile of a numeric column — used as a robust outlier-detection threshold.</div></div>
+    <div class="gloss-card"><div class="gloss-word">Z-score</div><div class="gloss-def">How many standard deviations a value is from the mean — a common outlier-flagging metric for roughly normal data.</div></div>
+    <div class="gloss-card"><div class="gloss-word">.loc / .iloc</div><div class="gloss-def">Pandas indexers — <code>.loc</code> selects by label, <code>.iloc</code> selects by integer position.</div></div>
+    <div class="gloss-card"><div class="gloss-word">groupby</div><div class="gloss-def">Splits a DataFrame into groups based on a column's values, then applies an aggregation (mean, sum, count) to each group separately.</div></div>
+    <div class="gloss-card"><div class="gloss-word">skewness</div><div class="gloss-def">A measure of asymmetry in a distribution — positive means a longer tail on the right, negative means a longer tail on the left.</div></div>
+    <div class="gloss-card"><div class="gloss-word">one-hot encoding</div><div class="gloss-def">Converts a categorical column into multiple binary (0/1) columns, one per category, avoiding a false sense of numeric order.</div></div>
+    <div class="gloss-card"><div class="gloss-word">multicollinearity</div><div class="gloss-def">When two or more predictor variables are highly correlated with each other, destabilizing coefficient estimates in linear models.</div></div>
+    <div class="gloss-card"><div class="gloss-word">VIF</div><div class="gloss-def">Variance Inflation Factor — quantifies how much a feature's variance is inflated due to correlation with other features.</div></div>
+    <div class="gloss-card"><div class="gloss-word">p-value</div><div class="gloss-def">The probability of observing data this extreme (or more) if there were truly no real effect — small values suggest the effect isn't just random noise.</div></div>
+    <div class="gloss-card"><div class="gloss-word">data leakage</div><div class="gloss-def">When information from outside the training data (often the test set) improperly influences model training, inflating apparent performance.</div></div>
+  </section>
+
+  <!-- INTERVIEW QUESTIONS -->
+  <section class="section fade-in" id="interview">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Practice</span>
+      <h2>50 Interview Questions</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All (50)</button>
+      <button class="filter-btn" onclick="filterIQ('concept', this)">Conceptual (20)</button>
+      <button class="filter-btn" onclick="filterIQ('code', this)">Code/Technical (30)</button>
+      <button class="filter-btn" onclick="filterIQ('easy', this)">Easy</button>
+      <button class="filter-btn" onclick="filterIQ('medium', this)">Medium</button>
+      <button class="filter-btn" onclick="filterIQ('hard', this)">Hard</button>
+    </div>
+
+    <h3 style="margin-top:0">Conceptual Questions (Explain in Words)</h3>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Walk me through your general EDA process for a new dataset.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>Load data, check shape/dtypes/first rows (df.info(), df.head())</li>
+          <li>Check for missing values and duplicates</li>
+          <li>Univariate analysis on each column (distributions, value counts)</li>
+          <li>Bivariate/multivariate analysis (correlations, groupby comparisons)</li>
+          <li>Feature engineering and cleaning based on findings</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between df.head() and df.sample()?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p><code>df.head()</code> always shows the first N rows (in file order); <code>df.sample()</code> shows N random rows, which is better for catching issues that aren't concentrated at the start of the file.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between .loc and .iloc?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p><code>.loc</code> selects rows/columns by label (name), while <code>.iloc</code> selects by integer position, regardless of what the labels are.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Why would you drop duplicate rows in a dataset?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Duplicates can bias summary statistics and model training by over-weighting certain records, and often indicate a data collection or merge error worth investigating.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between mean, median imputation, and when would you use each?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Mean imputation fills missing values with the column average; median uses the middle value. Median is preferred for skewed data or data with outliers, since the mean gets pulled by extreme values while the median stays stable.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Explain MCAR, MAR, and MNAR and why the distinction matters for handling missing data.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>MCAR means missingness is unrelated to any value; MAR means it depends on other observed columns; MNAR means it depends on the missing value itself. The distinction matters because simple imputation is safe for MCAR/MAR but can introduce serious bias under MNAR, where the fact that data is missing is itself informative.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C7</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why is data leakage a concern during EDA and preprocessing, not just modeling?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>If you compute imputation values, scaling parameters, or encodings using the full dataset (including what will become the test set), those statistics carry information about the test set into training — inflating validation performance in a way that won't hold up on truly new data.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">When would you use a boxplot over a histogram?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>A boxplot is better for comparing the distribution (median, spread, outliers) of a numeric variable ACROSS multiple categories side by side; a histogram is better for seeing the detailed shape of a single distribution.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C9</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why might you log-transform a skewed numeric feature before modeling?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Log transforms compress large values and stretch small ones, reducing right-skew and making the distribution closer to normal — which helps models (especially linear ones) that assume roughly normal, homoscedastic residuals.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C10</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's the difference between Pearson and Spearman correlation?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Pearson measures linear relationships using the actual values; Spearman measures monotonic relationships using ranks, so it can catch consistent non-linear trends (and is more robust to outliers) that Pearson would miss or underestimate.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C11</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why is one-hot encoding sometimes problematic for high-cardinality categorical features?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>A feature with hundreds/thousands of unique categories (e.g. zip code) would explode into that many new columns, most of them sparse (mostly zeros) — increasing dimensionality and memory use dramatically. Alternatives include target encoding or grouping rare categories together.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C12</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What does a p-value actually tell you, and what's the most common misinterpretation?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>It's the probability of observing data this extreme if there were truly no effect. The common misinterpretation is treating it as "the probability the null hypothesis is true" or "the probability the effect is real" — that's not what it measures.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C13</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why can two variables have near-zero Pearson correlation but still be strongly related?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Pearson only captures LINEAR relationships. A strong non-linear relationship (e.g. U-shaped, or exponential) can produce a correlation coefficient near zero even though the variables are clearly and strongly related — always visualize with a scatter plot before trusting the number alone.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C14</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why does multicollinearity matter for linear regression but much less for random forest?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Linear regression estimates a distinct coefficient per feature, and highly correlated features make those individual estimates unstable and hard to interpret. Tree-based models split on one feature at a time based on which reduces impurity most, and don't rely on stable coefficient estimates, so correlated features are much less damaging (though they can still dilute feature-importance scores across correlated features).</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C15</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why might you choose ANOVA over running multiple pairwise t-tests?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Running many pairwise t-tests inflates the overall chance of a false positive (the multiple comparisons problem) — each individual test has its own error rate that compounds. ANOVA tests all groups simultaneously under one controlled error rate.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C16</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">How would you detect and reason about MNAR missingness in practice, since you can't directly observe the missing values?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>You can't prove MNAR definitively from the data alone, but you can look for suspicious patterns — e.g. missingness correlating with other known-sensitive attributes, domain knowledge suggesting people with extreme values are likely to skip a question (like high earners not disclosing income). Adding a "was_missing" indicator flag as a feature can help the model account for this pattern.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C17</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why is fitting a StandardScaler on the entire dataset before train/test split considered leakage?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>The scaler's mean/std would be computed using test-set values, meaning the "unseen" test data has already influenced how the training data gets transformed — giving an overly optimistic sense of how the model performs on truly unseen data.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C18</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">A dataset has 40% missing values in one column. What factors would guide whether you drop the column, impute it, or engineer a "missingness" flag?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>How important the feature is expected to be for the target (domain knowledge)</li>
+          <li>Whether the missingness itself carries signal (MNAR) — if so, a flag may be more valuable than imputation</li>
+          <li>Whether other correlated features can reasonably substitute for it</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C19</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why is VIF calculated per feature rather than as one overall dataset-level number?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>VIF measures how well ONE feature can be predicted from all the OTHER features — it's inherently a per-feature diagnostic. A single overall number couldn't tell you which specific feature is redundant and should be reconsidered or dropped.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C20</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">How would you explain "correlation isn't causation" to a non-technical stakeholder using a concrete example?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>"Ice cream sales and drowning incidents both rise in summer — they're correlated, but ice cream doesn't cause drowning. A hidden third factor (hot weather) drives both. Any correlation we find in this data could similarly be explained by something else entirely, so we shouldn't act on it as if we've proven cause and effect."</p></div>
+    </div>
+
+    <h3>Code / Technical Questions</h3>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Write code to load a CSV and print the percentage of missing values per column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">import pandas as pd
+df = pd.read_csv("data.csv")
+print(df.isna().mean() * 100)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Write code to drop duplicate rows based only on the 'email' column, keeping the last occurrence.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = df.drop_duplicates(subset=['email'], keep='last')</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Fill missing values in a numeric column with its median.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['age'] = df['age'].fillna(df['age'].median())</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Write code to select all rows where age is over 30 AND department is 'Sales'.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">result = df[(df['age'] > 30) & (df['department'] == 'Sales')]</div>
+        <p>Parentheses around each condition are required — Python's operator precedence with <code>&amp;</code> would otherwise misparse the expression.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Compute average salary per department, sorted highest to lowest.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df.groupby('department')['salary'].mean().sort_values(ascending=False)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T6</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Convert a 'signup_date' string column into an actual datetime column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['signup_date'] = pd.to_datetime(df['signup_date'])</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">One-hot encode a 'city' column, dropping the first category to avoid redundancy.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = pd.get_dummies(df, columns=['city'], drop_first=True)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Write a function that flags outliers in a numeric column using the IQR method and returns the flagged rows.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">def flag_outliers_iqr(df, col):
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower, upper = Q1 - 1.5 * IQR, Q3 + 1.5 * IQR
+    return df[(df[col] < lower) | (df[col] > upper)]
+
+flag_outliers_iqr(df, 'income')</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T9</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's wrong with this code, and how would you fix it?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="code-block"><span class="comment">-- BUGGY --</span>
+df[df['age'] > 30]['salary'] = df['salary'] * 1.1
+
+<span class="comment">-- FIXED --</span>
+df.loc[df['age'] > 30, 'salary'] = df['salary'] * 1.1</div>
+        <div class="must-have-title">Answer</div><p>Chained indexing (<code>df[...][...]</code> assignment) is ambiguous about whether it's operating on a view or a copy, and often triggers <code>SettingWithCopyWarning</code> without actually modifying the original. Use <code>.loc</code> with a single combined selection instead.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T10</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Merge an orders table with a customers table, keeping all orders even if a customer record is missing.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">merged = pd.merge(orders, customers, on='customer_id', how='left')</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T11</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Write code to compute multiple aggregations (mean, min, max) per group in one call.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df.groupby('department').agg(
+    avg_salary=('salary', 'mean'),
+    min_salary=('salary', 'min'),
+    max_salary=('salary', 'max')
+)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T12</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Create an is_weekend feature from a datetime column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['is_weekend'] = df['date'].dt.dayofweek.isin([5, 6])</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T13</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Compute a correlation matrix and identify the single most correlated pair of features (excluding self-correlation).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">corr = df.corr(numeric_only=True).abs()
+import numpy as np
+np.fill_diagonal(corr.values, 0)   <span class="comment"># zero out self-correlation (always 1.0)</span>
+max_pair = corr.stack().idxmax()   <span class="comment"># tuple of (feature1, feature2) with highest correlation</span>
+print(max_pair, corr.stack().max())</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T14</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Standardize a numeric column using StandardScaler, correctly avoiding leakage between train and test.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+train, test = train_test_split(df, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+train['income_scaled'] = scaler.fit_transform(train[['income']])   <span class="comment"># fit on TRAIN only</span>
+test['income_scaled'] = scaler.transform(test[['income']])         <span class="comment"># transform, don't re-fit</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T15</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Write a chi-square test to check if 'gender' and 'purchased' are associated.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from scipy.stats import chi2_contingency
+
+table = pd.crosstab(df['gender'], df['purchased'])
+chi2, p_value, dof, expected = chi2_contingency(table)
+print(p_value)   <span class="comment"># small p-value suggests gender and purchase behavior are associated</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T16</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Create a pivot table showing total sales by region (rows) and quarter (columns).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df.pivot_table(values='sales', index='region', columns='quarter', aggfunc='sum', fill_value=0)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T17</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Detect and print columns with more than 30% missing values.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">missing_pct = df.isna().mean()
+high_missing = missing_pct[missing_pct > 0.3]
+print(high_missing)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T18</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Apply a log transform to a skewed 'income' column and compare skewness before and after.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">import numpy as np
+print("Before:", df['income'].skew())
+df['income_log'] = np.log1p(df['income'])
+print("After:", df['income_log'].skew())</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T19</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write a function that computes VIF for every numeric feature in a DataFrame and flags any above a threshold.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+def compute_vif(X, threshold=5):
+    vif = pd.DataFrame()
+    vif['feature'] = X.columns
+    vif['VIF'] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+    return vif[vif['VIF'] > threshold]
+
+compute_vif(df[['age', 'income', 'education_years']])</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T20</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Given a wide DataFrame of metrics per user per day, reshape it to long format using melt.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">long_df = df.melt(id_vars=['user_id', 'date'], value_vars=['clicks', 'views'],
+                   var_name='metric', value_name='value')</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T21</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write code to KNN-impute missing values in a numeric DataFrame, and explain what the algorithm does.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.impute import KNNImputer
+
+imputer = KNNImputer(n_neighbors=5)
+df_imputed = pd.DataFrame(imputer.fit_transform(df[['age','income']]), columns=['age','income'])</div>
+        <p>For each missing value, it finds the 5 most similar rows (by distance across the other columns) and fills in the average of their values for that column — more context-aware than a flat mean/median fill.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T22</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Given a DataFrame of transactions, compute each customer's total spend and flag customers in the top 5% by spend.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">spend = df.groupby('customer_id')['amount'].sum()
+threshold = spend.quantile(0.95)
+top_customers = spend[spend >= threshold]
+print(top_customers)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T23</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why is this slower than a vectorized alternative, and how would you rewrite it?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="code-block"><span class="comment">-- SLOW --</span>
+df['bonus'] = df['salary'].apply(lambda x: x * 0.1 if x > 50000 else 0)
+
+<span class="comment">-- FASTER, VECTORIZED --</span>
+df['bonus'] = np.where(df['salary'] > 50000, df['salary'] * 0.1, 0)</div>
+        <div class="must-have-title">Answer</div><p><code>.apply()</code> calls a Python function once per row (slow, interpreted); <code>np.where</code> operates on the entire column at once using fast, compiled vectorized operations, which scales far better on large DataFrames.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T24</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write code to perform target encoding of a categorical column (mean of the target per category), being careful about leakage.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import train_test_split
+
+train, test = train_test_split(df, test_size=0.2, random_state=42)
+category_means = train.groupby('city')['target'].mean()   <span class="comment"># computed ONLY on train</span>
+
+train['city_encoded'] = train['city'].map(category_means)
+test['city_encoded'] = test['city'].map(category_means)     <span class="comment"># apply train's means to test</span>
+test['city_encoded'] = test['city_encoded'].fillna(train['target'].mean())  <span class="comment"># handle unseen categories</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T25</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Given a time series DataFrame, compute a 7-day rolling average of a metric.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = df.sort_values('date')
+df['rolling_avg_7d'] = df['metric'].rolling(window=7).mean()</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T26</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write an ANOVA test comparing salary means across 4 departments and interpret a p-value of 0.001.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from scipy.stats import f_oneway
+
+groups = [df[df['dept']==d]['salary'] for d in df['dept'].unique()]
+f_stat, p_value = f_oneway(*groups)
+print(p_value)</div>
+        <p>A p-value of 0.001 suggests it's very unlikely all four departments truly have the same mean salary — there's a statistically significant difference somewhere among the groups (a follow-up post-hoc test would identify which pairs differ).</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T27</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Given messy string data, extract only the numeric part of a "price" column like "$1,299.00" into a float.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['price_clean'] = (
+    df['price']
+    .str.replace('$', '', regex=False)
+    .str.replace(',', '', regex=False)
+    .astype(float)
+)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T28</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write code to add a binary "was_missing" flag for a column before imputing it.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['income_was_missing'] = df['income'].isna().astype(int)
+df['income'] = df['income'].fillna(df['income'].median())</div>
+        <p>This preserves the "missingness itself might be informative" signal (relevant under MNAR) even after the value has been filled in.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T29</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Given a DataFrame with a 'text' column, engineer word_count and char_count features.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['word_count'] = df['text'].str.split().str.len()
+df['char_count'] = df['text'].str.len()</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T30</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Trace through this code — what does the final printed DataFrame look like, and why?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="code-block">df = pd.DataFrame({'a': [1, 2, 3]})
+df2 = df
+df2['b'] = df2['a'] * 2
+print(df)</div>
+        <div class="must-have-title">Answer</div><p>Prints a DataFrame with both columns 'a' and 'b' — <code>df2 = df</code> doesn't copy the DataFrame, it just creates another name pointing to the same object, so modifying <code>df2</code> also changes <code>df</code>. Use <code>df2 = df.copy()</code> for an independent copy.</p>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<div class="footer">
+  ML EDA &amp; Core Libraries · Data Scientist Track · Good luck
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(group, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const g = card.getAttribute('data-group');
+      const d = card.getAttribute('data-diff');
+      let show = true;
+      if (['concept','code'].includes(group)) show = (g === group);
+      else if (['easy','medium','hard'].includes(group)) show = (d === group);
+      else show = true;
+      card.style.display = show ? '' : 'none';
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

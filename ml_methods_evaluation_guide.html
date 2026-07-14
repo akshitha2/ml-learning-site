@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Methods &amp; Evaluation — DS Interview Track</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e2a; --border: #2a2f3f;
+    --accent-a: #3b82f6; --accent-b: #f97316; --accent-c: #a855f7;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); } .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 640px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; } ul.plain li { margin-bottom: 6px; }
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); } .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); } .callout-warning .callout-title { color: var(--yellow); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; } .key-insight p { margin: 0; font-size: 14px; }
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; } .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .quiz-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 18px 0; }
+  .quiz-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-a); margin-bottom: 12px; }
+  .quiz-q { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .quiz-a { font-size: 13.5px; color: var(--text-muted); margin-bottom: 14px; }
+  .quiz-a:last-child { margin-bottom: 0; }
+  .gloss-card { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .gloss-card:last-child { border-bottom: none; }
+  .gloss-word { font-family: 'JetBrains Mono', monospace; color: var(--accent-a); font-size: 13.5px; min-width: 190px; flex-shrink: 0; font-weight: 600; }
+  .gloss-def { font-size: 13.5px; color: var(--text-muted); }
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-diff { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; margin-top: 3px; }
+  .diff-easy { color: var(--green); border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.08); }
+  .diff-medium { color: var(--yellow); border: 1px solid rgba(234,179,8,0.35); background: rgba(234,179,8,0.08); }
+  .diff-hard { color: var(--red); border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; }
+  .must-have-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; margin-top: 16px; }
+  .must-have-list { list-style: none; }
+  .must-have-list li { display: flex; gap: 10px; margin-bottom: 7px; font-size: 13.5px; align-items: flex-start; }
+  .must-have-list li::before { content: '✓'; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">ML Methods &amp; Evaluation · Beginner-Friendly · DS Interview Track</div>
+    <h1><span class="a">ML Methods</span> &amp; <span class="b">Evaluation</span></h1>
+    <p class="hero-sub">Lambda functions, then every core algorithm, validation strategy, and metric explained from scratch with real sklearn syntax. Includes 2 mini-questions + 1 trap per topic, plus 50 sorted interview questions at the end.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Lambda Functions</div>
+      <div class="progress-item done">✓ Train/Test &amp; CV</div>
+      <div class="progress-item done">✓ Bias-Variance</div>
+      <div class="progress-item done">✓ Regression Models</div>
+      <div class="progress-item done">✓ Classification Models</div>
+      <div class="progress-item done">✓ Unsupervised Learning</div>
+      <div class="progress-item done">✓ Regression Metrics</div>
+      <div class="progress-item done">✓ Classification Metrics</div>
+      <div class="progress-item done">✓ Imbalanced Data</div>
+      <div class="progress-item done">✓ 50 Interview Qs</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#lambda" class="a">Lambda Functions</a>
+  <a href="#traintest" class="a">Train/Test &amp; CV</a>
+  <a href="#biasvariance" class="a">Bias-Variance</a>
+  <a href="#regression" class="b">Regression Models</a>
+  <a href="#classification" class="b">Classification Models</a>
+  <a href="#unsupervised" class="b">Unsupervised Learning</a>
+  <a href="#regmetrics" class="c">Regression Metrics</a>
+  <a href="#classmetrics" class="c">Classification Metrics</a>
+  <a href="#imbalanced" class="c">Imbalanced Data</a>
+  <a href="#glossary">Glossary</a>
+  <a href="#interview" class="c">50 Interview Qs</a>
+</nav>
+
+<div class="container">
+
+  <!-- LAMBDA FUNCTIONS -->
+  <section class="section fade-in" id="lambda">
+    <div class="section-header">
+      <span class="section-tag tag-a">Start Here</span>
+      <h2>Lambda Functions</h2>
+    </div>
+    <p>A <strong>lambda</strong> is just a way to write a small, throwaway function in a single line, without giving it a formal name using <code>def</code>. You'll see these constantly in pandas/sklearn code (inside <code>.apply()</code>, <code>sorted()</code>, <code>key=</code> arguments), so it's worth understanding before anything else in ML code.</p>
+    <div class="code-block"><span class="comment"># A normal function, the long way:</span>
+def square(x):
+    return x ** 2
+
+<span class="comment"># The exact same thing as a lambda:</span>
+square = lambda x: x ** 2
+
+print(square(5))    <span class="comment"># 25 -- works identically either way</span></div>
+    <h3>Anatomy of a lambda</h3>
+    <div class="code-block">lambda x: x ** 2
+<span class="comment">  ^      ^   ^
+  |      |   +-- the expression to COMPUTE and RETURN (no "return" keyword needed)
+  |      +------ the parameter(s), same as a normal function's arguments
+  +------------- the keyword that says "I'm defining a small function"</span></div>
+    <h3>Why use it instead of a normal function?</h3>
+    <p>Lambdas exist for situations where you need a small function <strong>just once</strong>, usually passed directly as an argument to another function — writing a full <code>def</code> block for something this small would be overkill and clutter your code.</p>
+    <div class="code-block"><span class="comment"># Sorting a list of tuples by the SECOND element</span>
+pairs = [(1, 'b'), (2, 'a'), (3, 'c')]
+sorted(pairs, key=lambda pair: pair[1])   <span class="comment"># [(2,'a'), (1,'b'), (3,'c')]</span>
+
+<span class="comment"># Applying a quick transformation to a pandas column</span>
+df['discounted'] = df['price'].apply(lambda x: x * 0.9)
+
+<span class="comment"># A conditional lambda -- using an inline if/else</span>
+df['label'] = df['score'].apply(lambda x: 'pass' if x >= 50 else 'fail')
+
+<span class="comment"># Filtering with filter()</span>
+evens = list(filter(lambda x: x % 2 == 0, [1, 2, 3, 4, 5, 6]))   <span class="comment"># [2, 4, 6]</span></div>
+    <h3>Where lambdas show up constantly in ML/DS code</h3>
+    <ul class="plain">
+      <li><code>df.sort_values()</code> and <code>sorted()</code>'s <code>key=</code> argument — telling Python exactly what to sort BY</li>
+      <li><code>df['col'].apply(lambda x: ...)</code> — quick row-by-row transformations on a pandas column</li>
+      <li><code>max()</code>/<code>min()</code>'s <code>key=</code> argument — e.g. <code>max(mapping, key=mapping.get)</code></li>
+      <li>Custom scoring functions passed into sklearn utilities that expect a callable</li>
+    </ul>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>A lambda can only contain a single EXPRESSION — no multiple statements, no loops, no <code>print()</code> for debugging, no assignment statements. If your logic needs more than one line of real work, write a normal <code>def</code> function instead — trying to force complex logic into a lambda makes code harder to read, not easier.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Lambda Functions</div>
+      <div class="quiz-q">Q. What does sorted(words, key=lambda w: len(w)) do?</div>
+      <div class="quiz-a">A. Sorts the list <code>words</code> by each word's LENGTH rather than alphabetically — the lambda tells <code>sorted()</code> what value to compare, not what to return as the final sorted list.</div>
+      <div class="quiz-q">Q. Why can't you write a lambda with two lines of logic, like computing a value and then printing it?</div>
+      <div class="quiz-a">A. A lambda body is restricted to a single expression that gets evaluated and returned — it can't hold multiple statements like a <code>print()</code> call followed by a return. For that, use a regular <code>def</code> function.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Beginners often try to assign a lambda to a name and treat it as best practice: <code>square = lambda x: x**2</code>. This works, but style guides (PEP 8) recommend using a normal <code>def square(x): return x**2</code> whenever you're naming and reusing a function — lambdas are meant for short-lived, inline, unnamed use (like inside <code>.apply()</code> or <code>key=</code>), not as a permanent replacement for <code>def</code>.</p>
+    </div>
+  </section>
+
+  <!-- TRAIN/TEST & CV -->
+  <section class="section fade-in" id="traintest">
+    <div class="section-header">
+      <span class="section-tag tag-a">Foundation 1</span>
+      <h2>Train/Test Split &amp; Cross-Validation</h2>
+    </div>
+    <p>You can't fairly judge a model using the same data it learned from — that's like grading a student using the exact questions they memorized answers to. So we hold out a portion of data the model never sees during training, purely to test it afterward.</p>
+    <div class="code-block">from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+<span class="comment"># test_size=0.2 -> 20% of data held out for testing, 80% for training
+# random_state=42 -> makes the "random" split reproducible every time you run it</span></div>
+    <h3>Cross-validation — using every row for both training AND validation</h3>
+    <p>A single train/test split gives you just one estimate of performance, which can be lucky or unlucky depending on which rows landed in the test set. <strong>K-fold cross-validation</strong> splits the data into K equal chunks ("folds"), trains K times, each time using a different fold as validation and the rest as training — then averages the results.</p>
+    <div class="code-block">from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+scores = cross_val_score(model, X, y, cv=5)   <span class="comment"># 5-fold CV -- trains 5 separate models</span>
+print(scores.mean(), scores.std())             <span class="comment"># average performance +/- variability across folds</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Cross-validation gives you a more RELIABLE estimate of how well a model generalizes, and also shows you the VARIANCE of that performance across different subsets — a high standard deviation across folds is itself a useful warning sign.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Train/Test &amp; CV</div>
+      <div class="quiz-q">Q. Why not just train on 100% of the data and test on the same data?</div>
+      <div class="quiz-a">A. The model would be evaluated on data it already memorized, giving an overly optimistic and misleading picture of how it performs on genuinely new, unseen data.</div>
+      <div class="quiz-q">Q. What does cv=5 mean in cross_val_score, and how many models actually get trained?</div>
+      <div class="quiz-a">A. It means 5-fold cross-validation — 5 separate models are trained, each time holding out a different 1/5th of the data as validation and training on the remaining 4/5ths.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Doing any preprocessing (scaling, imputation, feature selection) BEFORE the train/test split, using statistics computed from the full dataset. This leaks test-set information into training. The correct order: split first, then fit preprocessing steps only on the training fold.</p>
+    </div>
+  </section>
+
+  <!-- BIAS-VARIANCE -->
+  <section class="section fade-in" id="biasvariance">
+    <div class="section-header">
+      <span class="section-tag tag-a">Foundation 2</span>
+      <h2>Bias-Variance Tradeoff</h2>
+    </div>
+    <p>Every model's total error can be thought of as coming from two competing sources. Getting a good model means balancing them, not minimizing either one alone.</p>
+    <table class="compare-table">
+      <thead><tr><th>Concept</th><th>Plain-English meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Bias</td><td>Error from overly simplistic assumptions — the model is too rigid to capture the real pattern (underfitting)</td></tr>
+        <tr><td>Variance</td><td>Error from being overly sensitive to the specific training data — the model memorizes noise instead of the true pattern (overfitting)</td></tr>
+      </tbody>
+    </table>
+    <div class="code-block"><span class="comment"># Underfitting example: a straight line forced onto clearly curved data</span>
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()          <span class="comment"># too simple for non-linear relationships -- HIGH BIAS</span>
+
+<span class="comment"># Overfitting example: a decision tree with no depth limit</span>
+from sklearn.tree import DecisionTreeRegressor
+model = DecisionTreeRegressor(max_depth=None)   <span class="comment"># can memorize training data exactly -- HIGH VARIANCE</span>
+
+<span class="comment"># Balanced: limiting complexity</span>
+model = DecisionTreeRegressor(max_depth=5)      <span class="comment"># constrains the tree, reducing variance</span></div>
+    <h3>How to spot each one</h3>
+    <ul class="plain">
+      <li><strong>High bias (underfitting):</strong> poor performance on BOTH training and test data</li>
+      <li><strong>High variance (overfitting):</strong> great performance on training data, much worse on test data</li>
+    </ul>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>As model complexity increases, bias tends to go DOWN (it can fit more complex patterns) but variance tends to go UP (it becomes more sensitive to the specific training sample). The best model sits at the sweet spot where total error (bias² + variance) is minimized — not the most complex or the simplest model, but the right amount.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Bias-Variance</div>
+      <div class="quiz-q">Q. A model gets 98% accuracy on training data but only 65% on test data. Bias or variance problem?</div>
+      <div class="quiz-a">A. High variance (overfitting) — it's clearly learned the training data extremely well but fails to generalize, meaning it likely memorized noise/specifics rather than the underlying pattern.</div>
+      <div class="quiz-q">Q. What's a simple way to reduce variance in a decision tree without changing the algorithm entirely?</div>
+      <div class="quiz-a">A. Limit its complexity — e.g. reduce <code>max_depth</code>, increase <code>min_samples_leaf</code>, or use an ensemble method like random forest which averages many trees to smooth out individual overfitting.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Assuming more training data always fixes overfitting. It helps reduce variance, but if the model itself is fundamentally too complex or biased in its assumptions, more data alone won't fully solve the problem — you may still need to constrain the model or engineer better features.</p>
+    </div>
+  </section>
+
+  <!-- REGRESSION MODELS -->
+  <section class="section fade-in" id="regression">
+    <div class="section-header">
+      <span class="section-tag tag-b">Algorithms</span>
+      <h2>Regression Models</h2>
+    </div>
+    <h3>Linear Regression</h3>
+    <div class="code-block">from sklearn.linear_model import LinearRegression
+
+model = LinearRegression()
+model.fit(X_train, y_train)             <span class="comment"># learns the best-fit line/hyperplane</span>
+predictions = model.predict(X_test)
+print(model.coef_, model.intercept_)    <span class="comment"># the learned slope(s) and intercept</span></div>
+    <p>Fits a straight line (or hyperplane in higher dimensions) that minimizes the sum of squared errors between predictions and actual values.</p>
+    <h3>Ridge &amp; Lasso — Linear Regression with a Penalty</h3>
+    <div class="code-block">from sklearn.linear_model import Ridge, Lasso
+
+ridge = Ridge(alpha=1.0)     <span class="comment"># shrinks coefficients toward zero, but rarely to EXACTLY zero</span>
+lasso = Lasso(alpha=1.0)     <span class="comment"># can shrink some coefficients to EXACTLY zero -- built-in feature selection</span></div>
+    <p><code>alpha</code> controls how strongly coefficients are penalized — higher alpha means simpler models (more shrinkage), reducing overfitting at the cost of some bias.</p>
+    <h3>Decision Tree &amp; Random Forest (Regression)</h3>
+    <div class="code-block">from sklearn.ensemble import RandomForestRegressor
+
+rf = RandomForestRegressor(n_estimators=100, max_depth=10)
+rf.fit(X_train, y_train)
+<span class="comment"># n_estimators = how many individual trees to build and average together
+# more trees = more stable predictions, generally reduces variance</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Random Forest builds many decision trees, each trained on a random subset of rows AND a random subset of features, then averages their predictions. This "wisdom of the crowd" approach reduces the high variance a single deep decision tree would have.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Regression Models</div>
+      <div class="quiz-q">Q. What's the key practical difference between Ridge and Lasso regression?</div>
+      <div class="quiz-a">A. Lasso can shrink some coefficients all the way to exactly zero, effectively removing those features from the model (built-in feature selection); Ridge shrinks all coefficients toward zero but rarely eliminates any completely.</div>
+      <div class="quiz-q">Q. Why does increasing n_estimators in a Random Forest generally not cause overfitting the way increasing tree depth does?</div>
+      <div class="quiz-a">A. Adding more trees averages over more random samples, which tends to smooth out and reduce variance rather than increase it — it's the DEPTH/complexity of individual trees, not the count of trees, that drives overfitting.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Forgetting that linear/Ridge/Lasso regression assume a roughly linear relationship and are sensitive to unscaled features (with regularization, feature scale directly affects how much each coefficient gets penalized) — always scale features before regularized linear models, unlike tree-based models which don't need scaling at all.</p>
+    </div>
+  </section>
+
+  <!-- CLASSIFICATION MODELS -->
+  <section class="section fade-in" id="classification">
+    <div class="section-header">
+      <span class="section-tag tag-b">Algorithms</span>
+      <h2>Classification Models</h2>
+    </div>
+    <h3>Logistic Regression</h3>
+    <div class="code-block">from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+probs = model.predict_proba(X_test)   <span class="comment"># probability of each class, not just the final label</span>
+preds = model.predict(X_test)          <span class="comment"># the actual predicted class label</span></div>
+    <p>Despite the name, it's used for CLASSIFICATION, not regression — it estimates the probability of belonging to a class using a sigmoid function, then applies a threshold (default 0.5) to assign a final label.</p>
+    <h3>Decision Tree / Random Forest / Gradient Boosting (Classification)</h3>
+    <div class="code-block">from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+
+rf = RandomForestClassifier(n_estimators=100)
+gb = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1)
+<span class="comment"># Random Forest: builds trees INDEPENDENTLY and in PARALLEL, then averages/votes
+# Gradient Boosting: builds trees SEQUENTIALLY, each new tree fixing the previous trees' errors</span></div>
+    <h3>K-Nearest Neighbors (KNN)</h3>
+    <div class="code-block">from sklearn.neighbors import KNeighborsClassifier
+
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+<span class="comment"># classifies a new point by looking at its 5 CLOSEST points in the training data
+# and taking a majority vote among their labels</span></div>
+    <h3>Support Vector Machine (SVM)</h3>
+    <div class="code-block">from sklearn.svm import SVC
+
+svm = SVC(kernel='rbf', C=1.0)
+<span class="comment"># finds the boundary that maximizes the MARGIN (distance) between classes
+# kernel='rbf' lets it draw non-linear boundaries; kernel='linear' draws a straight one</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Random Forest trains trees in parallel and averages (reduces variance); Gradient Boosting trains trees one after another, where each new tree specifically targets the previous ensemble's mistakes (reduces bias, but can overfit if not carefully tuned with learning rate and tree count).</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Classification Models</div>
+      <div class="quiz-q">Q. Why does KNN require feature scaling, unlike a decision tree?</div>
+      <div class="quiz-a">A. KNN relies on measuring DISTANCE between points — if one feature has a much larger numeric range than another, it will dominate the distance calculation regardless of actual importance. Trees split on one feature's threshold at a time and aren't affected by scale.</div>
+      <div class="quiz-q">Q. What's the main risk with Gradient Boosting compared to Random Forest?</div>
+      <div class="quiz-a">A. Because each tree corrects previous errors, Gradient Boosting can overfit more easily if you use too many trees or too high a learning rate, requiring more careful tuning than Random Forest's more "hands-off" averaging approach.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Assuming logistic regression's default 0.5 probability threshold is always correct. For imbalanced classes or asymmetric costs (e.g. missing a fraud case is worse than a false alarm), the threshold should often be tuned rather than left at the default.</p>
+    </div>
+  </section>
+
+  <!-- UNSUPERVISED LEARNING -->
+  <section class="section fade-in" id="unsupervised">
+    <div class="section-header">
+      <span class="section-tag tag-b">Algorithms</span>
+      <h2>Unsupervised Learning</h2>
+    </div>
+    <p>Unlike supervised learning, there's no target/label to predict — the goal is to find structure or patterns hidden in the data itself.</p>
+    <h3>K-Means Clustering</h3>
+    <div class="code-block">from sklearn.cluster import KMeans
+
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X)
+labels = kmeans.labels_              <span class="comment"># which cluster (0, 1, or 2) each point was assigned to</span>
+centers = kmeans.cluster_centers_    <span class="comment"># the "average point" of each cluster</span></div>
+    <p>Randomly places K cluster centers, assigns each point to its nearest center, then moves each center to the average of its assigned points — repeating until the assignments stop changing.</p>
+    <h3>Choosing K — the Elbow Method</h3>
+    <div class="code-block">inertias = []
+for k in range(1, 10):
+    km = KMeans(n_clusters=k, random_state=42).fit(X)
+    inertias.append(km.inertia_)   <span class="comment"># sum of squared distances to nearest cluster center</span>
+<span class="comment"># plot k vs inertia -- look for the "elbow" where adding more clusters stops helping much</span></div>
+    <h3>Hierarchical Clustering</h3>
+    <div class="code-block">from sklearn.cluster import AgglomerativeClustering
+
+hc = AgglomerativeClustering(n_clusters=3)
+labels = hc.fit_predict(X)
+<span class="comment"># builds a tree of nested clusters by repeatedly merging the two closest points/clusters</span></div>
+    <h3>PCA — Principal Component Analysis</h3>
+    <div class="code-block">from sklearn.decomposition import PCA
+
+pca = PCA(n_components=2)          <span class="comment"># reduce to 2 dimensions, e.g. for visualization</span>
+X_reduced = pca.fit_transform(X)
+print(pca.explained_variance_ratio_)   <span class="comment"># how much of the original info each component preserves</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>PCA finds new axes (principal components) that capture the most VARIANCE in the data, letting you compress many correlated features into fewer, uncorrelated ones — useful for visualization, speeding up models, and reducing multicollinearity, at the cost of losing some interpretability (components are combinations of original features, not the features themselves).</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Unsupervised Learning</div>
+      <div class="quiz-q">Q. Why does K-Means require you to specify the number of clusters upfront?</div>
+      <div class="quiz-a">A. The algorithm's core loop (assign points to nearest center, recompute centers) needs to know how many centers to place before it can even start — unlike hierarchical clustering, which builds a full tree you can "cut" at any number of clusters afterward.</div>
+      <div class="quiz-q">Q. After running PCA to 2 components, can you still say what "Component 1" represents in real-world terms?</div>
+      <div class="quiz-a">A. Not directly — each component is a mathematical combination (weighted sum) of the original features, so it usually isn't as directly interpretable as an original feature like "age" or "income," though you can inspect the loadings to see which original features contribute most.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Running K-Means without scaling features first. Since it relies on distance, a feature with a much larger range (like income in dollars vs. age in years) will dominate the clustering, producing clusters that mostly reflect that one feature.</p>
+    </div>
+  </section>
+
+  <!-- REGRESSION METRICS -->
+  <section class="section fade-in" id="regmetrics">
+    <div class="section-header">
+      <span class="section-tag tag-c">Evaluation</span>
+      <h2>Regression Metrics</h2>
+    </div>
+    <div class="code-block">from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+mae = mean_absolute_error(y_test, predictions)          <span class="comment"># average absolute error, same units as target</span>
+mse = mean_squared_error(y_test, predictions)            <span class="comment"># average SQUARED error -- punishes big misses harder</span>
+rmse = np.sqrt(mse)                                       <span class="comment"># back to original units, still penalizes big errors more</span>
+r2 = r2_score(y_test, predictions)                        <span class="comment"># % of variance in the target explained by the model</span></div>
+    <table class="compare-table">
+      <thead><tr><th>Metric</th><th>Plain-English meaning</th></tr></thead>
+      <tbody>
+        <tr><td>MAE</td><td>Average size of errors, treating all mistakes equally regardless of size</td></tr>
+        <tr><td>MSE</td><td>Average squared error — large errors are punished disproportionately more than small ones</td></tr>
+        <tr><td>RMSE</td><td>Square root of MSE, brought back to the target's original units for easier interpretation</td></tr>
+        <tr><td>R²</td><td>Proportion of the target's variance explained by the model, from 0 (no better than guessing the mean) to 1 (perfect)</td></tr>
+      </tbody>
+    </table>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Choose MAE when all errors should be treated equally important regardless of size; choose RMSE when large errors are especially costly and should be penalized more heavily (e.g. predicting demand where being wildly off is much worse than being slightly off).</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Regression Metrics</div>
+      <div class="quiz-q">Q. A model's R² is negative. What does that mean?</div>
+      <div class="quiz-a">A. The model performs WORSE than simply predicting the average of the target for every row — a strong red flag that something is badly wrong with the model or features.</div>
+      <div class="quiz-q">Q. Why might RMSE be preferred over MAE when large prediction errors are especially costly?</div>
+      <div class="quiz-a">A. RMSE squares errors before averaging, so a single large miss contributes disproportionately more to the metric than several small ones — making the metric more sensitive to big mistakes, which MAE treats the same as several small ones adding up.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Comparing RMSE values across datasets with different scales/units (e.g. RMSE of 5 for predicting house prices in millions vs RMSE of 5 for predicting age) without context — RMSE is only meaningful relative to the scale of the target variable it's measuring.</p>
+    </div>
+  </section>
+
+  <!-- CLASSIFICATION METRICS -->
+  <section class="section fade-in" id="classmetrics">
+    <div class="section-header">
+      <span class="section-tag tag-c">Evaluation</span>
+      <h2>Classification Metrics</h2>
+    </div>
+    <div class="code-block">from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    confusion_matrix, roc_auc_score
+)
+
+accuracy_score(y_test, preds)                    <span class="comment"># % of predictions that were correct overall</span>
+precision_score(y_test, preds)                    <span class="comment"># of predicted positives, what % were ACTUALLY positive</span>
+recall_score(y_test, preds)                       <span class="comment"># of actual positives, what % did we CATCH</span>
+f1_score(y_test, preds)                           <span class="comment"># harmonic mean of precision and recall, balances both</span>
+confusion_matrix(y_test, preds)                   <span class="comment"># 2x2 grid: true/false positives and negatives</span>
+roc_auc_score(y_test, probs[:, 1])                <span class="comment"># uses PROBABILITIES, not hard labels</span></div>
+    <h3>The confusion matrix, spelled out</h3>
+    <table class="compare-table">
+      <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>True Positive (TP)</td><td>Predicted positive, actually positive — correct catch</td></tr>
+        <tr><td>False Positive (FP)</td><td>Predicted positive, actually negative — a "false alarm"</td></tr>
+        <tr><td>False Negative (FN)</td><td>Predicted negative, actually positive — a "missed catch"</td></tr>
+        <tr><td>True Negative (TN)</td><td>Predicted negative, actually negative — correctly ignored</td></tr>
+      </tbody>
+    </table>
+    <div class="code-block">Precision = TP / (TP + FP)      <span class="comment"># "when I say positive, how often am I right?"</span>
+Recall    = TP / (TP + FN)      <span class="comment"># "of all actual positives, how many did I find?"</span>
+F1        = 2 * (Precision * Recall) / (Precision + Recall)</div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Precision and recall usually trade off against each other. In disease screening, you'd prioritize RECALL (missing a sick patient is far worse than a false alarm). In spam filtering, you'd prioritize PRECISION (marking a real email as spam is worse than letting one spam email through).</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Classification Metrics</div>
+      <div class="quiz-q">Q. A model on a dataset that's 95% one class gets 95% accuracy just by always predicting that class. What's wrong with using accuracy here?</div>
+      <div class="quiz-a">A. Accuracy is misleading on imbalanced data — a trivial model that ignores the minority class entirely still scores high. Precision, recall, F1, or ROC-AUC give a much more honest picture.</div>
+      <div class="quiz-q">Q. What's the difference between roc_auc_score and accuracy_score in terms of what they need as input?</div>
+      <div class="quiz-a">A. ROC-AUC needs predicted PROBABILITIES (how confident the model is), while accuracy needs the final hard class LABELS after a threshold has already been applied — ROC-AUC evaluates ranking quality across all possible thresholds at once.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Reporting accuracy alone for an imbalanced classification problem (e.g. fraud detection, where fraud might be 1% of cases). Always check the class balance first and prefer precision/recall/F1/ROC-AUC when classes are skewed.</p>
+    </div>
+  </section>
+
+  <!-- IMBALANCED DATA -->
+  <section class="section fade-in" id="imbalanced">
+    <div class="section-header">
+      <span class="section-tag tag-c">Practical Concern</span>
+      <h2>Handling Imbalanced Data</h2>
+    </div>
+    <p>When one class vastly outnumbers another (e.g. 99% "not fraud" vs 1% "fraud"), most models naturally gravitate toward just predicting the majority class, since that alone gives high accuracy.</p>
+    <h3>Class weights — penalize mistakes on the minority class more</h3>
+    <div class="code-block">from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression(class_weight='balanced')
+<span class="comment"># automatically weighs classes inversely proportional to their frequency --
+# mistakes on the rare class cost the model more during training</span></div>
+    <h3>SMOTE — Synthetic Minority Over-sampling Technique</h3>
+    <div class="code-block">from imblearn.over_sampling import SMOTE
+
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+<span class="comment"># creates SYNTHETIC new minority-class examples (not just duplicates)
+# by interpolating between existing minority points and their nearest neighbors</span></div>
+    <h3>Other approaches</h3>
+    <ul class="plain">
+      <li><strong>Random undersampling</strong> — remove some majority-class rows (risk: throwing away useful data)</li>
+      <li><strong>Threshold tuning</strong> — lower the classification threshold below 0.5 to catch more of the minority class</li>
+      <li><strong>Different metrics</strong> — evaluate with precision/recall/F1/ROC-AUC instead of accuracy</li>
+    </ul>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>SMOTE must be applied ONLY to the training data, after the train/test split — applying it before splitting would let synthetic points derived from test-set neighbors leak into training, and evaluating on synthetic (non-real) data would give a misleading performance estimate.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Imbalanced Data</div>
+      <div class="quiz-q">Q. What's the key difference between SMOTE and simply duplicating minority-class rows?</div>
+      <div class="quiz-a">A. SMOTE generates NEW synthetic examples by interpolating between real minority points and their neighbors, rather than just copying existing rows — this adds some variety instead of making the model memorize exact duplicate points.</div>
+      <div class="quiz-q">Q. Why should SMOTE be applied after the train/test split, not before?</div>
+      <div class="quiz-a">A. Applying it before the split can let synthetic examples derived from what becomes test-set data leak into training, and the test set should reflect real, original data only — otherwise you're evaluating on data that isn't authentic.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Assuming SMOTE (or any resampling) is always necessary for imbalanced data. Some models (like tree-based ensembles with class weighting, or simply choosing the right metric and threshold) can handle imbalance well without resampling — resampling is one tool among several, not a default requirement.</p>
+    </div>
+  </section>
+
+  <!-- GLOSSARY -->
+  <section class="section fade-in" id="glossary">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Quick Reference</span>
+      <h2>Glossary of Every Term Used</h2>
+    </div>
+    <div class="gloss-card"><div class="gloss-word">lambda</div><div class="gloss-def">A small, unnamed, single-expression function, commonly passed as an argument to another function (e.g. inside <code>.apply()</code> or <code>key=</code>).</div></div>
+    <div class="gloss-card"><div class="gloss-word">train/test split</div><div class="gloss-def">Dividing data into a portion the model learns from (train) and a portion reserved purely for evaluation (test).</div></div>
+    <div class="gloss-card"><div class="gloss-word">cross-validation</div><div class="gloss-def">Repeating train/validation splits across multiple folds and averaging results, for a more reliable performance estimate.</div></div>
+    <div class="gloss-card"><div class="gloss-word">bias</div><div class="gloss-def">Error from a model being too simple to capture the real underlying pattern (underfitting).</div></div>
+    <div class="gloss-card"><div class="gloss-word">variance</div><div class="gloss-def">Error from a model being overly sensitive to the specific training data, capturing noise instead of signal (overfitting).</div></div>
+    <div class="gloss-card"><div class="gloss-word">regularization</div><div class="gloss-def">A penalty added during training that discourages overly large/complex coefficients, reducing overfitting (e.g. Ridge, Lasso).</div></div>
+    <div class="gloss-card"><div class="gloss-word">ensemble</div><div class="gloss-def">A model built by combining predictions from multiple individual models (e.g. Random Forest, Gradient Boosting).</div></div>
+    <div class="gloss-card"><div class="gloss-word">precision</div><div class="gloss-def">Of everything predicted positive, what fraction was actually positive.</div></div>
+    <div class="gloss-card"><div class="gloss-word">recall</div><div class="gloss-def">Of everything that was actually positive, what fraction did the model correctly identify.</div></div>
+    <div class="gloss-card"><div class="gloss-word">ROC-AUC</div><div class="gloss-def">A metric summarizing how well a model ranks positive cases above negative ones across all possible probability thresholds.</div></div>
+    <div class="gloss-card"><div class="gloss-word">SMOTE</div><div class="gloss-def">A technique that generates synthetic minority-class examples to address class imbalance, rather than simply duplicating existing rows.</div></div>
+    <div class="gloss-card"><div class="gloss-word">PCA</div><div class="gloss-def">Principal Component Analysis — reduces many correlated features into fewer new axes that capture the most variance in the data.</div></div>
+  </section>
+
+  <!-- INTERVIEW QUESTIONS -->
+  <section class="section fade-in" id="interview">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Practice</span>
+      <h2>50 Interview Questions</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All (50)</button>
+      <button class="filter-btn" onclick="filterIQ('concept', this)">Conceptual (20)</button>
+      <button class="filter-btn" onclick="filterIQ('code', this)">Code/Technical (30)</button>
+      <button class="filter-btn" onclick="filterIQ('easy', this)">Easy</button>
+      <button class="filter-btn" onclick="filterIQ('medium', this)">Medium</button>
+      <button class="filter-btn" onclick="filterIQ('hard', this)">Hard</button>
+    </div>
+
+    <h3 style="margin-top:0">Conceptual Questions (Explain in Words)</h3>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What is a lambda function, and when would you use one instead of def?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>A lambda is a small, unnamed, single-expression function. You'd use it for short-lived logic passed directly into another function (like <code>key=</code> or <code>.apply()</code>), while <code>def</code> is better for anything reused, named, or needing multiple lines of logic.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Why do we split data into train and test sets?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>To evaluate the model on data it hasn't seen before, giving an honest estimate of how it will perform on genuinely new data, rather than data it may have simply memorized.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between bias and variance?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Bias is error from a model being too simple to capture the real pattern (underfitting). Variance is error from being overly sensitive to the specific training data (overfitting).</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between precision and recall?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Precision asks: of everything predicted positive, how much was actually positive? Recall asks: of everything actually positive, how much did we catch?</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between supervised and unsupervised learning?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Supervised learning trains on labeled data (inputs paired with known correct outputs) to predict a target. Unsupervised learning works with unlabeled data, finding hidden structure or groupings without a predefined target.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why is accuracy a poor metric for imbalanced classification problems?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>A trivial model that always predicts the majority class can score very high accuracy while completely failing to identify the minority class — the metric hides the model's actual uselessness for the class you likely care most about.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C7</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Explain how cross-validation gives a more reliable performance estimate than a single train/test split.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>A single split's result depends heavily on which rows happened to land in the test set — it could be lucky or unlucky. Cross-validation trains and evaluates across multiple different splits and averages the results, reducing the influence of any one particular split.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's the difference between Random Forest and Gradient Boosting at a conceptual level?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Random Forest builds many trees independently and in parallel, then averages/votes their predictions (reducing variance). Gradient Boosting builds trees sequentially, where each new tree specifically corrects the previous ensemble's errors (reducing bias, but requiring careful tuning to avoid overfitting).</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C9</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why does KNN need feature scaling but decision trees don't?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>KNN classifies based on distance between points, so features with larger numeric ranges dominate the distance calculation unless scaled. Decision trees split on one feature's threshold at a time, independent of other features' scale, so scaling doesn't affect their splits.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C10</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What does R² mean, and what does a negative R² indicate?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>R² is the proportion of the target's variance the model explains, from 0 to 1 in typical cases. A negative R² means the model performs worse than simply predicting the average of the target for every observation — a serious red flag.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C11</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's the difference between Ridge and Lasso regression?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Both add a penalty to shrink coefficients and reduce overfitting, but Lasso can shrink coefficients all the way to exactly zero (performing feature selection), while Ridge shrinks them toward zero without eliminating any completely.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C12</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why would you choose recall over precision as your priority metric in disease screening?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Missing an actual sick patient (a false negative) is typically far more costly than a false alarm that gets corrected with further testing — prioritizing recall minimizes the chance of missing real cases, even at the cost of more false positives.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C13</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Explain why regularized linear models require feature scaling but plain linear regression technically doesn't.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>Ridge/Lasso penalize the SIZE of coefficients — if features are on very different scales, their coefficients naturally differ in size just due to units, and the penalty would unfairly shrink features with inherently larger-scaled coefficients more than others. Plain linear regression has no such penalty, so scale doesn't affect the fit's correctness (though it can affect numerical stability/interpretation).</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C14</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why is ROC-AUC considered threshold-independent, and what's a scenario where that's actually a limitation?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>ROC-AUC evaluates how well the model RANKS positives above negatives across every possible probability threshold, rather than committing to one. This is a limitation when you specifically care about performance at ONE particular operating threshold (e.g. the one you'll actually deploy) — a high overall AUC doesn't guarantee good precision/recall at that specific cutoff.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C15</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why can SMOTE potentially hurt model performance if applied carelessly?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>If applied before the train/test split, synthetic points can leak into the test set (data leakage), inflating evaluation scores unrealistically. It can also create synthetic examples that don't reflect realistic minority-class behavior if the minority class is highly diverse or has genuine subclusters, effectively adding noise rather than signal.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C16</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why does PCA reduce multicollinearity, and what's the tradeoff of using it?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>PCA's components are constructed to be mathematically uncorrelated (orthogonal) with each other by design, so multicollinearity among the original correlated features effectively disappears. The tradeoff is interpretability — each component is a weighted mix of original features, making it harder to explain what any single component "means" in business terms.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C17</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">In what scenario would cross-validation itself be insufficient or misleading?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>With time-series data, standard K-fold CV can shuffle future data into training folds that predict "past" validation folds — leaking future information. Time-aware cross-validation (e.g. rolling-origin/forward-chaining splits) is needed instead to respect temporal order.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C18</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why might increasing model complexity reduce training error but not necessarily improve real-world performance?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>A more complex model can fit the training data's noise and idiosyncrasies in addition to (or instead of) the real underlying pattern — this is the bias-variance tradeoff in action: lower bias on training data can come paired with higher variance that hurts generalization to new data.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C19</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why would you prefer F1-score over accuracy or a single precision/recall value when classes are imbalanced?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>F1 balances precision and recall into one number, penalizing models that do well on one but poorly on the other (e.g. very high recall but terrible precision). It's a useful single summary metric when you need to balance both concerns rather than optimizing for just one.</p></div>
+    </div>
+
+    <div class="iq-card" data-group="concept" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">C20</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">How would you explain the bias-variance tradeoff to a non-technical stakeholder?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div><p>"A model that's too simple misses real patterns (like judging a book only by its cover). A model that's too complex memorizes quirks specific to the examples it trained on, instead of the general pattern (like memorizing exam answers instead of understanding the subject). We want the middle ground — good enough to spot real patterns, not so specific that it fails on new cases."</p></div>
+    </div>
+
+    <h3>Code / Technical Questions</h3>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Write a lambda that returns True if a number is even.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">is_even = lambda x: x % 2 == 0
+print(is_even(4))   <span class="comment"># True</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Use a lambda inside sorted() to sort a list of dicts by an 'age' key.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">people = [{"name": "Bob", "age": 25}, {"name": "Alice", "age": 30}]
+sorted_people = sorted(people, key=lambda p: p["age"])</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Write code to split X, y into 70% train and 30% test with a fixed random seed.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Train a logistic regression model and print its accuracy on the test set.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+preds = model.predict(X_test)
+print(accuracy_score(y_test, preds))</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Compute RMSE for a regression model's predictions.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.metrics import mean_squared_error
+import numpy as np
+
+rmse = np.sqrt(mean_squared_error(y_test, predictions))</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T6</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Fit a KMeans model with 4 clusters and print the cluster assigned to each point.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.cluster import KMeans
+
+kmeans = KMeans(n_clusters=4, random_state=42)
+kmeans.fit(X)
+print(kmeans.labels_)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Use apply() with a lambda to categorize an 'age' column into 'minor' or 'adult'.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['age_group'] = df['age'].apply(lambda x: 'minor' if x < 18 else 'adult')</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Run 5-fold cross-validation on a random forest and report mean and standard deviation of accuracy.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+scores = cross_val_score(model, X, y, cv=5)
+print(f"Mean: {scores.mean():.3f}, Std: {scores.std():.3f}")</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T9</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Print a full confusion matrix and manually compute precision from it.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.metrics import confusion_matrix
+
+tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
+precision = tp / (tp + fp)
+print(precision)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T10</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Train a Ridge regression model with alpha=0.5, after scaling the features.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Ridge
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+ridge = Ridge(alpha=0.5)
+ridge.fit(X_train_scaled, y_train)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T11</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Use GridSearchCV to find the best max_depth for a decision tree.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
+
+params = {'max_depth': [3, 5, 7, 10, None]}
+grid = GridSearchCV(DecisionTreeClassifier(), params, cv=5)
+grid.fit(X_train, y_train)
+print(grid.best_params_)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T12</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Apply SMOTE to balance a training set, then check the new class distribution.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from imblearn.over_sampling import SMOTE
+from collections import Counter
+
+smote = SMOTE(random_state=42)
+X_res, y_res = smote.fit_resample(X_train, y_train)
+print(Counter(y_res))   <span class="comment"># classes should now be roughly balanced</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T13</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Plot an ROC curve and print the AUC score for a classifier.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.metrics import roc_curve, roc_auc_score
+import matplotlib.pyplot as plt
+
+probs = model.predict_proba(X_test)[:, 1]
+fpr, tpr, thresholds = roc_curve(y_test, probs)
+auc = roc_auc_score(y_test, probs)
+
+plt.plot(fpr, tpr, label=f"AUC = {auc:.2f}")
+plt.xlabel("False Positive Rate"); plt.ylabel("True Positive Rate")
+plt.legend(); plt.show()</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T14</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Reduce a dataset to 2 principal components and print how much variance is explained.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.decomposition import PCA
+
+pca = PCA(n_components=2)
+X_reduced = pca.fit_transform(X)
+print(sum(pca.explained_variance_ratio_))   <span class="comment"># total % of variance captured by both components</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T15</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Compare train accuracy vs test accuracy for a deep decision tree to check for overfitting.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+tree = DecisionTreeClassifier(max_depth=None)
+tree.fit(X_train, y_train)
+
+train_acc = accuracy_score(y_train, tree.predict(X_train))
+test_acc = accuracy_score(y_test, tree.predict(X_test))
+print(f"Train: {train_acc:.2f}, Test: {test_acc:.2f}")
+<span class="comment"># a big gap (e.g. 0.99 vs 0.70) signals overfitting</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T16</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Use a lambda with filter() to keep only customers with spend above 1000 from a list of dicts.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">customers = [{"name": "A", "spend": 500}, {"name": "B", "spend": 1500}]
+high_spenders = list(filter(lambda c: c["spend"] > 1000, customers))</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T17</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Train a Gradient Boosting classifier and print the top 3 most important features.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.ensemble import GradientBoostingClassifier
+import pandas as pd
+
+model = GradientBoostingClassifier()
+model.fit(X_train, y_train)
+
+importances = pd.Series(model.feature_importances_, index=X_train.columns)
+print(importances.sort_values(ascending=False).head(3))</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T18</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Set a custom classification threshold (e.g. 0.3 instead of 0.5) using predicted probabilities.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">probs = model.predict_proba(X_test)[:, 1]
+custom_preds = (probs >= 0.3).astype(int)   <span class="comment"># lower threshold -> catches more positives, at the cost of more false positives</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T19</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Build a full sklearn Pipeline that scales features and trains a logistic regression, avoiding leakage.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', LogisticRegression())
+])
+pipeline.fit(X_train, y_train)      <span class="comment"># scaler fits ONLY on X_train internally</span>
+pipeline.predict(X_test)             <span class="comment"># scaler transforms (not re-fits) on X_test</span></div>
+        <p>A Pipeline bundles preprocessing and the model together so that cross-validation and train/test splitting automatically apply each step correctly on the right data, preventing leakage without manual bookkeeping.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T20</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Implement k-fold cross-validation manually (without cross_val_score) to understand the mechanics.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import KFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+scores = []
+for train_idx, val_idx in kf.split(X):
+    model = LogisticRegression()
+    model.fit(X[train_idx], y[train_idx])
+    preds = model.predict(X[val_idx])
+    scores.append(accuracy_score(y[val_idx], preds))
+
+print(np.mean(scores))</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T21</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Use the elbow method to help choose K for K-Means, printing inertia for K=1 to 8.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.cluster import KMeans
+
+for k in range(1, 9):
+    km = KMeans(n_clusters=k, random_state=42, n_init=10)
+    km.fit(X)
+    print(f"k={k}, inertia={km.inertia_:.2f}")
+<span class="comment"># look for the point where inertia stops dropping sharply -- the "elbow"</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T22</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write code to compare model performance using class_weight='balanced' vs no weighting on imbalanced data.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+
+model_plain = LogisticRegression().fit(X_train, y_train)
+model_weighted = LogisticRegression(class_weight='balanced').fit(X_train, y_train)
+
+print(classification_report(y_test, model_plain.predict(X_test)))
+print(classification_report(y_test, model_weighted.predict(X_test)))
+<span class="comment"># compare recall on the minority class between the two reports</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T23</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Use a lambda combined with groupby.apply() to compute a custom aggregation (range = max - min) per group.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">import pandas as pd
+result = df.groupby('department')['salary'].apply(lambda x: x.max() - x.min())</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T24</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Implement early stopping intuition manually: train a Gradient Boosting model and plot train vs validation error across n_estimators using staged_predict.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import log_loss
+
+model = GradientBoostingClassifier(n_estimators=200)
+model.fit(X_train, y_train)
+
+val_losses = [log_loss(y_test, preds) for preds in model.staged_predict_proba(X_test)]
+<span class="comment"># val_losses[i] = validation loss after i+1 boosting rounds
+# look for the point where val_losses stops improving -- ideal stopping point</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T25</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Given predicted probabilities, write code to find the threshold that maximizes F1 score.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.metrics import f1_score
+import numpy as np
+
+probs = model.predict_proba(X_test)[:, 1]
+best_thresh, best_f1 = 0.5, 0
+for t in np.arange(0.1, 0.9, 0.05):
+    preds = (probs >= t).astype(int)
+    f1 = f1_score(y_test, preds)
+    if f1 > best_f1:
+        best_thresh, best_f1 = t, f1
+
+print(best_thresh, best_f1)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T26</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Use TimeSeriesSplit instead of regular KFold for time-dependent data, and explain why.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import TimeSeriesSplit
+
+tscv = TimeSeriesSplit(n_splits=5)
+for train_idx, val_idx in tscv.split(X):
+    <span class="comment"># train_idx always comes BEFORE val_idx in time -- no future data used to predict the past</span>
+    pass</div>
+        <p>Regular KFold shuffles data randomly, which can let "future" rows train a model that predicts "past" validation rows — an unrealistic leak of information a real deployed model would never have.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T27</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write a lambda-based sorting key to rank model results by F1 descending, then by training time ascending.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">results = [
+    {"model": "rf", "f1": 0.85, "time": 12.3},
+    {"model": "svm", "f1": 0.85, "time": 5.1},
+    {"model": "gb", "f1": 0.90, "time": 20.0},
+]
+ranked = sorted(results, key=lambda r: (-r["f1"], r["time"]))
+<span class="comment"># negative f1 sorts descending by F1, then ascending time breaks ties</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T28</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Compute VIF-style sanity check, then fit a Ridge model comparing coefficients before/after removing a highly collinear feature.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.linear_model import Ridge
+
+model_full = Ridge().fit(X_train, y_train)
+X_train_reduced = X_train.drop(columns=['redundant_feature'])
+X_test_reduced = X_test.drop(columns=['redundant_feature'])
+model_reduced = Ridge().fit(X_train_reduced, y_train)
+
+print("Full:", model_full.coef_)
+print("Reduced:", model_reduced.coef_)
+<span class="comment"># large swings in remaining coefficients after removing one feature hint at multicollinearity</span></div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T29</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Write code that trains 3 different classifiers and picks the best one based on cross-validated F1.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+
+models = {
+    "logreg": LogisticRegression(),
+    "rf": RandomForestClassifier(),
+    "svm": SVC()
+}
+best_name, best_score = None, -1
+for name, model in models.items():
+    score = cross_val_score(model, X, y, cv=5, scoring='f1').mean()
+    if score > best_score:
+        best_name, best_score = name, score
+
+print(best_name, best_score)</div>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="code" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">T30</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Trace through this code and explain what it demonstrates about lambda closures.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="code-block">multipliers = []
+for i in range(3):
+    multipliers.append(lambda x: x * i)
+
+print([f(10) for f in multipliers])</div>
+        <div class="must-have-title">Answer</div><p><code>[20, 20, 20]</code>, not <code>[0, 10, 20]</code> as many expect — each lambda captures the VARIABLE <code>i</code> by reference, not its value at creation time. By the time the lambdas are called, the loop has finished and <code>i</code> is <code>2</code> for all of them. Fix: <code>lambda x, i=i: x * i</code>, which captures the current value as a default argument.</p>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<div class="footer">
+  ML Methods &amp; Evaluation · Data Scientist Track · Good luck
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(group, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const g = card.getAttribute('data-group');
+      const d = card.getAttribute('data-diff');
+      let show = true;
+      if (['concept','code'].includes(group)) show = (g === group);
+      else if (['easy','medium','hard'].includes(group)) show = (d === group);
+      else show = true;
+      card.style.display = show ? '' : 'none';
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

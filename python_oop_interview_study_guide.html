@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python OOP Interview Study Guide — DS Track</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e2a;
+    --border: #2a2f3f;
+    --accent-a: #3b82f6;
+    --accent-b: #f97316;
+    --accent-c: #a855f7;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); }
+  .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 620px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; }
+  ul.plain li { margin-bottom: 6px; }
+
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); }
+  .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); }
+  .callout-warning .callout-title { color: var(--yellow); }
+
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .highlight { color: var(--green); }
+  .code-block .label { color: var(--yellow); }
+
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+
+  .example-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 24px; margin: 20px 0; }
+  .example-box .example-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .example-box .example-title::before { content: '⛁'; font-size: 14px; }
+  .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  .result-table th, .result-table td { padding: 6px 12px; border: 1px solid var(--border); text-align: left; }
+  .result-table th { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  .steps { list-style: none; margin: 16px 0; }
+  .steps li { display: flex; gap: 16px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bg); background: var(--text-muted); min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px; font-weight: 600; flex-shrink: 0; }
+  .step-num.a { background: var(--accent-a); }
+  .step-num.b { background: var(--accent-b); }
+
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; }
+  .key-insight p { margin: 0; font-size: 14px; }
+
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; }
+  .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* GOTCHA LIST */
+  .gotcha-card { background: var(--bg2); border: 1px solid rgba(239,68,68,0.25); border-radius: 4px; padding: 18px 22px; margin: 14px 0; }
+  .gotcha-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--red); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 2px 8px; border-radius: 2px; margin-right: 10px; }
+  .gotcha-title { font-weight: 700; font-size: 14.5px; }
+  .gotcha-card p { font-size: 13.5px; color: var(--text-muted); margin: 8px 0 0; }
+
+  /* INTERVIEW QUESTIONS */
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; }
+  .must-have-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; margin-top: 16px; }
+  .must-have-list { list-style: none; }
+  .must-have-list li { display: flex; gap: 10px; margin-bottom: 7px; font-size: 13.5px; align-items: flex-start; }
+  .must-have-list li::before { content: '✓'; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  .iq-code { margin-top: 10px; }
+
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">Python OOP Interview Guide · Data Scientist Track</div>
+    <h1><span class="a">Python OOP</span> Revision <span class="b">Guide</span></h1>
+    <p class="hero-sub">Encapsulation to magic methods to the sklearn estimator pattern — the OOP concepts and traps that actually get asked in DS/ML technical rounds.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Classes &amp; Objects</div>
+      <div class="progress-item done">✓ Encapsulation</div>
+      <div class="progress-item done">✓ Inheritance &amp; MRO</div>
+      <div class="progress-item done">✓ Polymorphism</div>
+      <div class="progress-item done">✓ Abstraction</div>
+      <div class="progress-item done">✓ Magic Methods</div>
+      <div class="progress-item done">✓ ML Patterns</div>
+      <div class="progress-item done">✓ 30 Interview Qs</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#basics" class="a">Classes &amp; Objects</a>
+  <a href="#encapsulation" class="a">Encapsulation</a>
+  <a href="#inheritance" class="a">Inheritance &amp; MRO</a>
+  <a href="#polymorphism" class="b">Polymorphism</a>
+  <a href="#abstraction" class="b">Abstraction</a>
+  <a href="#magic" class="b">Magic Methods</a>
+  <a href="#methods" class="c">Static/Class/Instance</a>
+  <a href="#mlpatterns" class="c">ML Patterns</a>
+  <a href="#gotchas">Gotchas</a>
+  <a href="#interview" class="c">30 Interview Qs</a>
+</nav>
+
+<div class="container">
+
+  <!-- CLASSES & OBJECTS -->
+  <section class="section fade-in" id="basics">
+    <div class="section-header">
+      <span class="section-tag tag-a">Mental Model</span>
+      <h2>Classes &amp; Objects</h2>
+    </div>
+    <p>A class is a blueprint; an object is a specific instance built from it. Every attribute lookup on an instance falls back to the class, then to its parents — this single fact underlies almost every OOP "gotcha" in Python.</p>
+    <div class="code-block">class Dog:
+    species = "Canis familiaris"     <span class="comment"># class attribute — shared by ALL instances</span>
+
+    def __init__(self, name, age):
+        self.name = name              <span class="comment"># instance attribute — unique per object</span>
+        self.age = age
+
+    def bark(self):
+        return f"{self.name} says woof!"
+
+d1 = Dog("Rex", 3)
+d2 = Dog("Fido", 5)
+print(d1.species, d2.species)        <span class="comment"># both share the same class attribute</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Attribute lookup order is: <strong>instance __dict__ → class __dict__ → parent class(es) __dict__</strong> (following MRO). This is why reassigning a class attribute via an instance (<code>d1.species = "x"</code>) creates a new instance attribute instead of mutating the shared one.</p>
+    </div>
+  </section>
+
+  <!-- ENCAPSULATION -->
+  <section class="section fade-in" id="encapsulation">
+    <div class="section-header">
+      <span class="section-tag tag-a">Pillar 1</span>
+      <h2>Encapsulation</h2>
+    </div>
+    <p>Bundling data and the methods that operate on it, and restricting direct access to internal state. Python has no true "private" — it relies on naming conventions and one bit of automatic name mangling.</p>
+    <table class="compare-table">
+      <thead><tr><th>Convention</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>public</td><td>No prefix — freely accessible, part of the public API</td></tr>
+        <tr><td>_protected</td><td>Single underscore — "internal use" by convention only, nothing stops access</td></tr>
+        <tr><td>__private</td><td>Double underscore — triggers name mangling to <code>_ClassName__attr</code></td></tr>
+        <tr><td>__dunder__</td><td>Reserved for Python's own magic methods — don't invent new ones</td></tr>
+      </tbody>
+    </table>
+    <h3>@property — controlled access</h3>
+    <div class="code-block">class BankAccount:
+    def __init__(self, balance):
+        self._balance = balance
+
+    @property
+    def balance(self):
+        return self._balance
+
+    @balance.setter
+    def balance(self, value):
+        if value < 0:
+            raise ValueError("Balance cannot be negative")
+        self._balance = value
+
+acc = BankAccount(100)
+acc.balance = 50      <span class="comment"># calls the setter, validated</span>
+print(acc.balance)    <span class="comment"># calls the getter — looks like plain attribute access</span></div>
+    <div class="trap">
+      <div class="trap-title">Trap — "Private" isn't private</div>
+      <p><code>__balance</code> is just renamed to <code>_ClassName__balance</code> at compile time. It's still fully accessible — name mangling exists to avoid accidental collisions in subclasses, not to enforce security.</p>
+    </div>
+  </section>
+
+  <!-- INHERITANCE & MRO -->
+  <section class="section fade-in" id="inheritance">
+    <div class="section-header">
+      <span class="section-tag tag-a">Pillar 2</span>
+      <h2>Inheritance &amp; MRO (Diamond Problem)</h2>
+    </div>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title" style="color:var(--accent-a)">Single Inheritance</div>
+        <ul><li>One parent class</li><li><code>super().__init__()</code> calls the parent's constructor</li></ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title" style="color:var(--accent-b)">Multiple Inheritance</div>
+        <ul><li>A class inherits from 2+ parents</li><li>Resolved via MRO (C3 linearization)</li></ul>
+      </div>
+    </div>
+    <h3>super() and the Diamond Problem</h3>
+    <div class="code-block">class Animal:
+    def speak(self):
+        return "..."
+
+class Dog(Animal):
+    def speak(self):
+        return "Woof"
+
+class Robot:
+    def speak(self):
+        return "Beep"
+
+class RoboDog(Dog, Robot):
+    pass
+
+print(RoboDog().speak())       <span class="comment"># "Woof" — MRO checks Dog before Robot</span>
+print(RoboDog.__mro__)         <span class="comment"># (RoboDog, Dog, Animal, Robot, object)</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Python resolves multiple inheritance with <strong>MRO (Method Resolution Order)</strong>, computed via the C3 linearization algorithm — left-to-right, depth-first, but never visiting a class before its own children. Check it any time with <code>ClassName.__mro__</code> or <code>ClassName.mro()</code>.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Trap — super() in multiple inheritance</div>
+      <p><code>super()</code> does not mean "my direct parent" — it means "the next class in the MRO chain." With multiple inheritance and cooperative <code>super().__init__()</code> calls in every class, all parent constructors run in MRO order, not just the first one.</p>
+    </div>
+  </section>
+
+  <!-- POLYMORPHISM -->
+  <section class="section fade-in" id="polymorphism">
+    <div class="section-header">
+      <span class="section-tag tag-b">Pillar 3</span>
+      <h2>Polymorphism &amp; Duck Typing</h2>
+    </div>
+    <p>The same interface (method name) behaves differently depending on the object's actual class. Python leans on <strong>duck typing</strong> — "if it walks like a duck and quacks like a duck" — over strict type checks.</p>
+    <div class="code-block">class Cat:
+    def speak(self): return "Meow"
+
+class Duck:
+    def speak(self): return "Quack"
+
+for animal in [Cat(), Duck()]:
+    print(animal.speak())     <span class="comment"># works for ANY object with a .speak() method</span></div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Duck typing means Python never checks <code>isinstance()</code> before calling <code>.speak()</code> — if the object has that method, it works. This is what makes <code>len()</code> work on lists, strings, and dicts alike (each defines <code>__len__</code>).</p>
+    </div>
+  </section>
+
+  <!-- ABSTRACTION -->
+  <section class="section fade-in" id="abstraction">
+    <div class="section-header">
+      <span class="section-tag tag-b">Pillar 4</span>
+      <h2>Abstraction — ABCs</h2>
+    </div>
+    <p>Hiding implementation details behind a required interface. Python enforces this with the <code>abc</code> module — a class with an abstract method cannot be instantiated until every abstract method is overridden.</p>
+    <div class="code-block">from abc import ABC, abstractmethod
+
+class Model(ABC):
+    @abstractmethod
+    def fit(self, X, y): ...
+
+    @abstractmethod
+    def predict(self, X): ...
+
+class LinearModel(Model):
+    def fit(self, X, y):
+        <span class="comment"># training logic</span>
+        return self
+    def predict(self, X):
+        <span class="comment"># prediction logic</span>
+        return X
+
+<span class="comment"># Model()  -> TypeError: Can't instantiate abstract class</span>
+lm = LinearModel()   <span class="comment"># OK — all abstract methods implemented</span></div>
+    <div class="trap">
+      <div class="trap-title">Trap — forgetting to inherit ABC</div>
+      <p><code>@abstractmethod</code> only enforces anything if the class inherits from <code>ABC</code> (or uses <code>ABCMeta</code> as its metaclass). Slap it on a plain class and it's just a decorator with no effect — the class instantiates fine, silently.</p>
+    </div>
+  </section>
+
+  <!-- MAGIC METHODS -->
+  <section class="section fade-in" id="magic">
+    <div class="section-header">
+      <span class="section-tag tag-b">Dunder Methods</span>
+      <h2>Magic Methods Cheat Sheet</h2>
+    </div>
+    <table class="compare-table">
+      <thead><tr><th>Method</th><th>Triggered by</th></tr></thead>
+      <tbody>
+        <tr><td>__init__</td><td>Object construction (after __new__)</td></tr>
+        <tr><td>__repr__</td><td><code>repr(obj)</code> — unambiguous, for developers/debugging</td></tr>
+        <tr><td>__str__</td><td><code>str(obj)</code>, <code>print(obj)</code> — readable, for end users</td></tr>
+        <tr><td>__len__</td><td><code>len(obj)</code></td></tr>
+        <tr><td>__eq__</td><td><code>obj1 == obj2</code></td></tr>
+        <tr><td>__lt__ / __gt__</td><td><code>obj1 &lt; obj2</code> / <code>obj1 &gt; obj2</code> (sorting, comparisons)</td></tr>
+        <tr><td>__add__</td><td><code>obj1 + obj2</code> (operator overloading)</td></tr>
+        <tr><td>__getitem__</td><td><code>obj[key]</code> — indexing/slicing</td></tr>
+        <tr><td>__iter__ / __next__</td><td><code>for x in obj</code> — makes an object iterable</td></tr>
+        <tr><td>__call__</td><td><code>obj()</code> — makes an instance callable like a function</td></tr>
+        <tr><td>__enter__ / __exit__</td><td><code>with obj:</code> — context manager protocol</td></tr>
+      </tbody>
+    </table>
+    <h3>Worked Example — Vector class with operator overloading</h3>
+    <div class="code-block">class Vector:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+    def __add__(self, other):
+        return Vector(self.x + other.x, self.y + other.y)
+
+    def __repr__(self):
+        return f"Vector({self.x}, {self.y})"
+
+v1, v2 = Vector(1, 2), Vector(3, 4)
+print(v1 + v2)     <span class="comment"># Vector(4, 6) — calls __add__ under the hood</span></div>
+    <div class="trap">
+      <div class="trap-title">Trap — __repr__ vs __str__</div>
+      <p>If <code>__str__</code> is missing, Python falls back to <code>__repr__</code> for <code>print()</code> and <code>str()</code>. The reverse is not true. Always implement <code>__repr__</code> at minimum — ideally something that could be pasted back into Python to recreate the object.</p>
+    </div>
+  </section>
+
+  <!-- STATIC/CLASS/INSTANCE -->
+  <section class="section fade-in" id="methods">
+    <div class="section-header">
+      <span class="section-tag tag-c">Method Types</span>
+      <h2>Instance vs @classmethod vs @staticmethod</h2>
+    </div>
+    <div class="code-block">class Employee:
+    raise_pct = 1.05
+
+    def __init__(self, salary):
+        self.salary = salary
+
+    def give_raise(self):                  <span class="comment"># instance method — needs self</span>
+        self.salary *= Employee.raise_pct
+
+    @classmethod
+    def from_string(cls, data_str):        <span class="comment"># classmethod — needs cls, not self</span>
+        salary = float(data_str)
+        return cls(salary)                  <span class="comment"># alternative constructor pattern</span>
+
+    @staticmethod
+    def is_valid_salary(salary):           <span class="comment"># staticmethod — needs neither</span>
+        return salary > 0</div>
+    <table class="compare-table">
+      <thead><tr><th>Type</th><th>First arg</th><th>Use case</th></tr></thead>
+      <tbody>
+        <tr><td>instance method</td><td>self</td><td>Reads/writes instance state</td></tr>
+        <tr><td>@classmethod</td><td>cls</td><td>Alternative constructors, factory methods, touches class state</td></tr>
+        <tr><td>@staticmethod</td><td>none</td><td>Utility/helper logic that's related but needs no self/cls</td></tr>
+      </tbody>
+    </table>
+    <div class="trap">
+      <div class="trap-title">Trap — classmethod as constructor + inheritance</div>
+      <p><code>cls(salary)</code> inside a <code>@classmethod</code> — not <code>Employee(salary)</code> — so that <code>from_string</code> correctly returns a subclass instance if called on a subclass. Hardcoding the class name breaks polymorphic construction.</p>
+    </div>
+  </section>
+
+  <!-- ML PATTERNS -->
+  <section class="section fade-in" id="mlpatterns">
+    <div class="section-header">
+      <span class="section-tag tag-c">DS/ML Application</span>
+      <h2>OOP Patterns in ML Code</h2>
+    </div>
+    <p>scikit-learn's entire API is a consistent OOP contract: every estimator implements <code>fit()</code>, most implement <code>predict()</code> or <code>transform()</code>. Interviewers love asking you to replicate this.</p>
+    <h3>Custom sklearn-style estimator</h3>
+    <div class="code-block">from sklearn.base import BaseEstimator, TransformerMixin
+
+class ClipOutliers(BaseEstimator, TransformerMixin):
+    def __init__(self, lower=0.01, upper=0.99):
+        self.lower = lower
+        self.upper = upper
+
+    def fit(self, X, y=None):
+        self.lo_ = X.quantile(self.lower)
+        self.hi_ = X.quantile(self.upper)
+        return self                      <span class="comment"># fit MUST return self — chaining relies on it</span>
+
+    def transform(self, X):
+        return X.clip(self.lo_, self.hi_, axis=1)</div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p><code>BaseEstimator</code> gives free <code>get_params()</code>/<code>set_params()</code> (needed for <code>GridSearchCV</code>); <code>TransformerMixin</code> gives a free <code>fit_transform()</code> built by composing your <code>fit</code> and <code>transform</code>. This is <strong>mixin composition</strong>, not deep inheritance — a recurring interview theme.</p>
+    </div>
+    <h3>Composition vs Inheritance</h3>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title" style="color:var(--accent-a)">Inheritance ("is-a")</div>
+        <ul><li>Use when a subclass truly specializes a base behavior</li><li>Risk: deep hierarchies get fragile and hard to test</li></ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title" style="color:var(--accent-b)">Composition ("has-a")</div>
+        <ul><li>A class holds other objects as attributes and delegates to them</li><li>Preferred in ML pipelines — e.g. a <code>Pipeline</code> holding a list of transformer objects</li></ul>
+      </div>
+    </div>
+    <div class="callout callout-insight">
+      <div class="callout-title">Interview framing</div>
+      "Favor composition over inheritance" is a real design principle, not just a soundbite — be ready to justify it with an ML example, like a <code>Pipeline</code> class composed of independent <code>fit</code>/<code>transform</code> steps rather than one giant class inheriting from many mixins.
+    </div>
+  </section>
+
+  <!-- GOTCHAS -->
+  <section class="section fade-in" id="gotchas">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Summary</span>
+      <h2>Gotchas Summary</h2>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">G1</span><span class="gotcha-title">Mutable default arguments</span>
+      <p>Default argument values are evaluated ONCE, at function definition time, and reused across every call. Never use <code>def __init__(self, items=[])</code> — use <code>items=None</code> then <code>self.items = items or []</code> inside.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">G2</span><span class="gotcha-title">Class attribute mutation vs instance attribute creation</span>
+      <p><code>instance.attr = value</code> always creates/overwrites an instance attribute, never mutates the class attribute — even if the names match. But <code>instance.some_list.append(x)</code> on a shared mutable class attribute DOES mutate it for every instance, since it's the same list object.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">G3</span><span class="gotcha-title">Shallow copy vs deep copy</span>
+      <p><code>copy.copy()</code> duplicates the outer object only — nested mutable objects (lists, dicts, custom objects) are still shared references. <code>copy.deepcopy()</code> recursively duplicates everything.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">G4</span><span class="gotcha-title">__slots__ and memory</span>
+      <p>Normal instances store attributes in a per-instance <code>__dict__</code>, which has real memory overhead. <code>__slots__ = ['x', 'y']</code> removes that dict, saving memory at scale — but also blocks adding new attributes dynamically and complicates multiple inheritance.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">G5</span><span class="gotcha-title">Private isn't private</span>
+      <p><code>__attr</code> is name-mangled to <code>_ClassName__attr</code>, not hidden. It exists to avoid subclass naming collisions, not for access control — anyone can still reach it if they know the mangled name.</p>
+    </div>
+    <div class="gotcha-card">
+      <span class="gotcha-num">G6</span><span class="gotcha-title">Calling overridden methods from __init__</span>
+      <p>If a base class's <code>__init__</code> calls <code>self.setup()</code> and a subclass overrides <code>setup()</code>, the subclass version runs — even during the base class's own construction. This can break if the subclass version depends on attributes not yet set.</p>
+    </div>
+  </section>
+
+  <!-- INTERVIEW QUESTIONS -->
+  <section class="section fade-in" id="interview">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Practice</span>
+      <h2>30 Interview Questions</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All (30)</button>
+      <button class="filter-btn" onclick="filterIQ('core', this)">Core Concepts (15)</button>
+      <button class="filter-btn" onclick="filterIQ('hard', this)">Advanced / ML (15)</button>
+    </div>
+
+    <!-- Q1 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q1</span><div class="iq-question">What are the four pillars of OOP, and give one Python-specific example of each.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>Encapsulation — bundling state + behavior, using <code>@property</code> for controlled access</li>
+          <li>Inheritance — <code>class Dog(Animal)</code>, reusing/extending behavior</li>
+          <li>Polymorphism — duck typing, e.g. any object with <code>.speak()</code> works in the same loop</li>
+          <li>Abstraction — <code>ABC</code> + <code>@abstractmethod</code> to enforce an interface</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q2</span><div class="iq-question">Is a "private" attribute in Python actually private? Explain name mangling.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>No — Python has no enforced access control. <code>__attr</code> gets renamed to <code>_ClassName__attr</code> at compile time (name mangling), mainly to prevent accidental overwrites in subclasses, not to block access. It's still reachable via the mangled name.</p>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q3</span><div class="iq-question">Difference between a class attribute and an instance attribute — with a mutable-default trap.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Cart:
+    def __init__(self, items=[]):   <span class="comment"># BUG: shared across all instances</span>
+        self.items = items
+
+c1 = Cart(); c1.items.append("apple")
+c2 = Cart()
+print(c2.items)   <span class="comment"># ['apple'] — unexpectedly shared!</span></div>
+        <div class="trap"><div class="trap-title">Trap</div><p>Default arguments are evaluated once at function definition. Fix with <code>items=None</code> and <code>self.items = items if items is not None else []</code>.</p></div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q4</span><div class="iq-question">What's the difference between __new__ and __init__?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p><code>__new__</code> is the actual object constructor — it allocates and returns the new instance, called before <code>__init__</code>. <code>__init__</code> just initializes that already-created instance's attributes and returns None. <code>__new__</code> is rarely overridden except for immutable types (like subclassing <code>tuple</code>/<code>str</code>) or singleton patterns.</p>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q5</span><div class="iq-question">@staticmethod vs @classmethod — when would you use each?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li><code>@classmethod</code> receives <code>cls</code> — used for alternative constructors (e.g. <code>from_json</code>) or logic touching class-level state</li>
+          <li><code>@staticmethod</code> receives neither <code>self</code> nor <code>cls</code> — a namespaced utility function that's logically related but needs no class/instance data</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q6</span><div class="iq-question">Explain duck typing and why Python favors it over explicit interface checks.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>"If it walks like a duck and quacks like a duck, it's a duck" — Python cares whether an object supports the needed method/attribute, not its declared type. This is why <code>len(obj)</code> works on any object defining <code>__len__</code>, regardless of class hierarchy.</p>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q7</span><div class="iq-question">What does super() actually do? Is it always "my parent class"?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>No — <code>super()</code> returns a proxy to the <em>next class in the MRO</em>, not necessarily the direct parent. In single inheritance they're the same thing, but under multiple inheritance, MRO can route through a sibling branch first.</p>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q8</span><div class="iq-question">Difference between __str__ and __repr__.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p><code>__str__</code> is for a human-readable, end-user-facing string (used by <code>print()</code>/<code>str()</code>). <code>__repr__</code> is for an unambiguous, developer-facing representation — ideally valid Python that recreates the object — used by the REPL and as a fallback when <code>__str__</code> is missing.</p>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q9</span><div class="iq-question">How do you make a custom class sortable with sorted() or the &lt; operator?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Employee:
+    def __init__(self, salary):
+        self.salary = salary
+    def __lt__(self, other):
+        return self.salary < other.salary
+
+sorted(employees)   <span class="comment"># uses __lt__ under the hood</span></div>
+        <p>Implement <code>__lt__</code> (and optionally <code>__eq__</code>); for full ordering support use <code>functools.total_ordering</code> to auto-derive the rest from just <code>__eq__</code> + one comparison method.</p>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q10</span><div class="iq-question">What is method overriding, and how is it different from overloading (which Python doesn't really have)?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Overriding = a subclass redefines a method with the same name/signature as its parent, replacing the behavior — this is core polymorphism. Python has no true method overloading (same name, different signatures) like Java/C++; the last-defined method with that name simply wins. Default arguments or <code>*args</code>/<code>**kwargs</code> simulate it.</p>
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q11</span><div class="iq-question">Can you instantiate a class with an abstract method that isn't overridden? What error do you get?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>No — <code>TypeError: Can't instantiate abstract class X with abstract method(s) Y</code>, but only if the class inherits from <code>ABC</code>/uses <code>ABCMeta</code>. Without that, <code>@abstractmethod</code> is decorative and has no enforcement.</p>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q12</span><div class="iq-question">What's the difference between composition and inheritance? When would you prefer one?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Inheritance models "is-a" relationships by extending a base class; composition models "has-a" by holding other objects as attributes and delegating to them. Prefer composition when behavior is better assembled from independent, swappable parts (e.g. a pipeline of transformer steps) — it avoids deep, fragile hierarchies.</p>
+      </div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q13</span><div class="iq-question">What does __call__ do, and give a practical use case.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Multiplier:
+    def __init__(self, factor):
+        self.factor = factor
+    def __call__(self, x):
+        return x * self.factor
+
+double = Multiplier(2)
+double(5)   <span class="comment"># 10 — instance used like a function</span></div>
+        <p>Defining <code>__call__</code> makes instances callable like functions. Common in ML for stateful "function objects" — e.g. a configured preprocessing step or a custom loss function holding hyperparameters.</p>
+      </div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q14</span><div class="iq-question">What's the difference between a shallow copy and a deep copy of an object?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p><code>copy.copy()</code> creates a new outer object but nested mutable attributes still point to the same objects as the original. <code>copy.deepcopy()</code> recursively clones every nested object too, so mutating a copy never affects the original.</p>
+      </div>
+    </div>
+
+    <!-- Q15 -->
+    <div class="iq-card" data-group="core" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q15</span><div class="iq-question">How do you make a class iterable? What's the difference between __iter__ and __next__?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Countdown:
+    def __init__(self, start):
+        self.n = start
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.n <= 0:
+            raise StopIteration
+        self.n -= 1
+        return self.n + 1</div>
+        <p><code>__iter__</code> must return an iterator object (often <code>self</code>); <code>__next__</code> returns the next value each call and raises <code>StopIteration</code> when exhausted. This pair is what powers <code>for x in obj</code>.</p>
+      </div>
+    </div>
+
+    <!-- Q16 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q16</span><div class="iq-question">Explain the diamond problem and how Python's MRO resolves it.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>When class D inherits from both B and C, which both inherit from A, calling a method defined on A could be ambiguous about which path to follow. Python resolves this deterministically via C3 linearization: check <code>ClassName.__mro__</code> for the exact left-to-right, depth-first (but child-before-parent) order Python will search.</p>
+        <div class="trap"><div class="trap-title">Trap</div><p>Assuming inheritance order in <code>class D(B, C)</code> doesn't matter — it directly determines MRO priority; <code>class D(C, B)</code> gives a different resolution order.</p></div>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q17</span><div class="iq-question">What are mixins, and how are they used in scikit-learn's design?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>A mixin is a small class meant to be combined via multiple inheritance to add specific reusable behavior, not to stand alone. <code>TransformerMixin</code> adds a free <code>fit_transform()</code> by composing your own <code>fit</code> and <code>transform</code>; <code>ClassifierMixin</code> adds a default <code>score()</code>. This lets sklearn compose behavior without deep, rigid hierarchies.</p>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q18</span><div class="iq-question">Why must fit() return self in a custom sklearn-compatible transformer?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Sklearn's method-chaining convention (<code>model.fit(X, y).predict(X)</code>) and pipeline internals rely on <code>fit</code> returning the fitted estimator itself. If it returns <code>None</code> instead, chained calls and <code>Pipeline</code> composition break.</p>
+      </div>
+    </div>
+
+    <!-- Q19 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q19</span><div class="iq-question">What is __slots__ and what trade-off does it introduce?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Point:
+    __slots__ = ('x', 'y')
+    def __init__(self, x, y):
+        self.x, self.y = x, y</div>
+        <p>Declaring <code>__slots__</code> removes the per-instance <code>__dict__</code>, cutting memory overhead significantly at scale (millions of small objects). Trade-off: you can no longer add arbitrary new attributes dynamically, and combining <code>__slots__</code> with multiple inheritance from classes that also define slots gets tricky.</p>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q20</span><div class="iq-question">Design a Singleton pattern in Python.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Singleton:
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+a, b = Singleton(), Singleton()
+print(a is b)   <span class="comment"># True — same object</span></div>
+        <p>Override <code>__new__</code> to check for and return an existing instance instead of always creating a new one. Common alternative: a module-level object, since Python modules are already singletons by import caching.</p>
+      </div>
+    </div>
+
+    <!-- Q21 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q21</span><div class="iq-question">What happens if a subclass's __init__ doesn't call super().__init__()?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>The parent class's initialization logic never runs — any attributes the parent would have set are missing, which typically surfaces later as an <code>AttributeError</code> when a parent method expects that state to exist.</p>
+        <div class="trap"><div class="trap-title">Trap</div><p>This is easy to miss in multiple inheritance chains where several <code>__init__</code>s must cooperatively call <code>super().__init__()</code> for every parent to actually run.</p></div>
+      </div>
+    </div>
+
+    <!-- Q22 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q22</span><div class="iq-question">Implement a custom context manager class (the __enter__/__exit__ protocol).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Timer:
+    def __enter__(self):
+        import time
+        self.start = time.time()
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import time
+        print(f"Elapsed: {time.time() - self.start:.2f}s")
+        return False   <span class="comment"># False/None re-raises any exception</span>
+
+with Timer():
+    do_work()</div>
+        <p><code>__exit__</code>'s return value matters: returning a truthy value suppresses an exception raised inside the <code>with</code> block; returning <code>False</code>/<code>None</code> lets it propagate.</p>
+      </div>
+    </div>
+
+    <!-- Q23 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q23</span><div class="iq-question">How would you build a custom ML model class that mimics the sklearn fit/predict API from scratch?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class SimpleLinearRegression:
+    def __init__(self, lr=0.01, epochs=100):
+        self.lr, self.epochs = lr, epochs
+
+    def fit(self, X, y):
+        self.w_ = 0.0
+        self.b_ = 0.0
+        n = len(X)
+        for _ in range(self.epochs):
+            y_pred = self.w_ * X + self.b_
+            dw = (-2/n) * sum(X * (y - y_pred))
+            db = (-2/n) * sum(y - y_pred)
+            self.w_ -= self.lr * dw
+            self.b_ -= self.lr * db
+        return self
+
+    def predict(self, X):
+        return self.w_ * X + self.b_</div>
+        <p>Interviewers check for: <code>fit</code> returning <code>self</code>, learned parameters stored with a trailing underscore (sklearn convention signaling "fitted state"), and hyperparameters stored unmodified in <code>__init__</code>.</p>
+      </div>
+    </div>
+
+    <!-- Q24 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q24</span><div class="iq-question">What's the difference between an abstract base class and a Protocol (structural typing)?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p><code>ABC</code> requires explicit, nominal inheritance ("this class IS-A subclass of the interface") and enforces it at instantiation. <code>typing.Protocol</code> (PEP 544) allows structural typing — a class doesn't need to inherit anything, it just needs to implement the right methods, checked by static type checkers rather than at runtime.</p>
+      </div>
+    </div>
+
+    <!-- Q25 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q25</span><div class="iq-question">Why does Python evaluate default arguments once, and how does that interact with class-level mutable attributes?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>Default argument objects are created once when the <code>def</code> statement executes, and that same object is reused on every call unless a new value is passed. It's the same root cause as class attributes holding mutable objects (like a list) — all instances that don't override it share and can mutate the one object.</p>
+      </div>
+    </div>
+
+    <!-- Q26 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q26</span><div class="iq-question">How do you implement operator overloading so a custom Vector class supports both v1 + v2 and v1 + 5?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <div class="code-block">class Vector:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+    def __add__(self, other):
+        if isinstance(other, Vector):
+            return Vector(self.x + other.x, self.y + other.y)
+        elif isinstance(other, (int, float)):
+            return Vector(self.x + other, self.y + other)
+        return NotImplemented</div>
+        <p>Branch on the type of <code>other</code> inside <code>__add__</code>, and return <code>NotImplemented</code> (not raise an error) for unsupported types — this lets Python fall back to trying <code>other.__radd__(self)</code>.</p>
+      </div>
+    </div>
+
+    <!-- Q27 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q27</span><div class="iq-question">What's a metaclass, in one or two sentences, and why would sklearn use ABCMeta?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>A metaclass is "the class of a class" — it controls how classes themselves are created, similar to how a class controls how instances are created. <code>ABCMeta</code> is the metaclass behind <code>ABC</code>; it's what actually implements the runtime check blocking instantiation of classes with unfulfilled abstract methods.</p>
+      </div>
+    </div>
+
+    <!-- Q28 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q28</span><div class="iq-question">Explain the difference between == and is, and how __eq__ interacts with it.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p><code>is</code> checks identity (same object in memory); <code>==</code> checks equality, which calls <code>__eq__</code> — defaulting to identity comparison if <code>__eq__</code> isn't overridden. Overriding <code>__eq__</code> without also overriding <code>__hash__</code> makes the object unhashable by default in Python 3 (or breaks hash consistency), since equal objects are expected to hash identically.</p>
+        <div class="trap"><div class="trap-title">Trap</div><p>Defining <code>__eq__</code> silently sets <code>__hash__</code> to <code>None</code> unless you also define <code>__hash__</code> explicitly — instances become unusable as dict keys or set members.</p></div>
+      </div>
+    </div>
+
+    <!-- Q29 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q29</span><div class="iq-question">How would you design a class hierarchy for different ML model types (e.g. LinearModel, TreeModel) that share a common evaluate() method but differ in fit()/predict()?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <ul class="must-have-list">
+          <li>Define an abstract <code>BaseModel(ABC)</code> with abstract <code>fit()</code>/<code>predict()</code></li>
+          <li>Implement a shared, concrete <code>evaluate(X, y)</code> on the base class that calls <code>self.predict(X)</code> — works for every subclass via polymorphism</li>
+          <li>Each subclass (<code>LinearModel</code>, <code>TreeModel</code>) only needs to implement its own <code>fit</code>/<code>predict</code></li>
+        </ul>
+        <p>This is the Template Method pattern: the base class defines the algorithm's skeleton (evaluate), subclasses fill in the model-specific steps.</p>
+      </div>
+    </div>
+
+    <!-- Q30 -->
+    <div class="iq-card" data-group="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q30</span><div class="iq-question">You're asked to explain "favor composition over inheritance" to a non-technical stakeholder. What do you say?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <div class="must-have-title">Answer</div>
+        <p>"Instead of building one big class that tries to be everything by inheriting from many parents, we build small, focused pieces and plug them together — like assembling Lego blocks instead of carving one complicated statue. It's easier to swap, test, and reuse individual pieces."</p>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<div class="footer">
+  Python OOP Interview Study Guide · Data Scientist Track · Good luck
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(group, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const g = card.getAttribute('data-group');
+      card.style.display = (group === 'all' || g === group) ? '' : 'none';
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

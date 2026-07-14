@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ML Learning Notes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A7%A0</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,7 +25,8 @@
             purple: '#a594f9',
             green: '#5cb85c',
             grey: '#9898b0',
-            rose: '#f472b6'
+            rose: '#f472b6',
+            cyan: '#22d3ee'
         },
         fontFamily: {
           heading: ['Playfair Display', 'Georgia', 'serif'],
@@ -101,11 +103,11 @@
 <header class="hero glow-mesh" style="--glow:var(--accent-default)">
   <div class="hero-stat left">
     <div class="hero-stat-label">Topics</div>
-    <div class="hero-stat-value">20</div>
+    <div class="hero-stat-value">26</div>
   </div>
   <div class="hero-stat right">
     <div class="hero-stat-label">Categories</div>
-    <div class="hero-stat-value">6</div>
+    <div class="hero-stat-value">7</div>
   </div>
   <div class="hero-badge">&#10022; Personal ML Interview Reference</div>
   <h1 class="gradient-text">ML Learning Notes</h1>
@@ -113,6 +115,7 @@
   <div class="hero-rule"></div>
   <nav class="toc">
       <a href="#statistics" class="nav-link badge badge-glass" style="--accent:#f5a623">📊 Statistics</a>
+      <a href="#programming-tools" class="nav-link badge badge-glass" style="--accent:#22d3ee">💻 Programming &amp; Tools</a>
       <a href="#classic-ml" class="nav-link badge badge-glass" style="--accent:#5cb85c">📐 Classic ML</a>
       <a href="#trees-ensembles" class="nav-link badge badge-glass" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</a>
       <a href="#time-series" class="nav-link badge badge-glass" style="--accent:#60a8e0">📈 Time Series</a>
@@ -140,18 +143,53 @@
         </a>
       </div>
     </section>
+    <section class="category" id="programming-tools" style="--accent:#22d3ee">
+      <div class="cat-header">
+        <span class="cat-icon">💻</span>
+        <div>
+          <h2 class="cat-title">Programming &amp; Tools</h2>
+          <p class="cat-desc">Python, SQL, and data tooling for DS interviews &middot; 5 topics</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <a class="card topic-card" href="python_data_structures_guide.html" style="--accent:#22d3ee">
+          <span class="card-topic">Python Data Structures for Beginners</span>
+          <span class="card-subtitle">DS Interview Track</span>
+        </a>
+        <a class="card topic-card" href="python_oop_beginner_guide.html" style="--accent:#22d3ee">
+          <span class="card-topic">Python OOP for Beginners</span>
+          <span class="card-subtitle">DS Interview Track</span>
+        </a>
+        <a class="card topic-card" href="python_oop_interview_study_guide.html" style="--accent:#22d3ee">
+          <span class="card-topic">Python OOP Interview Study Guide</span>
+          <span class="card-subtitle">DS Track</span>
+        </a>
+        <a class="card topic-card" href="ml_eda_core_libraries_guide.html" style="--accent:#22d3ee">
+          <span class="card-topic">ML EDA &amp;amp; Core Libraries</span>
+          <span class="card-subtitle">DS Interview Track</span>
+        </a>
+        <a class="card topic-card" href="sql_interview_study_guide.html" style="--accent:#22d3ee">
+          <span class="card-topic">SQL Interview Study Guide</span>
+          <span class="card-subtitle">DS Track</span>
+        </a>
+      </div>
+    </section>
     <section class="category" id="classic-ml" style="--accent:#5cb85c">
       <div class="cat-header">
         <span class="cat-icon">📐</span>
         <div>
           <h2 class="cat-title">Classic ML</h2>
-          <p class="cat-desc">Foundations, evaluation, and general ML &middot; 2 topics</p>
+          <p class="cat-desc">Foundations, evaluation, and general ML &middot; 3 topics</p>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <a class="card topic-card" href="regularization_deep_dive.html" style="--accent:#5cb85c">
           <span class="card-topic">Regularization Across Models</span>
           <span class="card-subtitle">A Deep Dive</span>
+        </a>
+        <a class="card topic-card" href="ml_methods_evaluation_guide.html" style="--accent:#5cb85c">
+          <span class="card-topic">ML Methods &amp;amp; Evaluation</span>
+          <span class="card-subtitle">DS Interview Track</span>
         </a>
         <a class="card topic-card" href="model_evaluation_metrics.html" style="--accent:#5cb85c">
           <span class="card-topic">Model Evaluation Metrics</span>
