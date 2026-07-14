@@ -112,6 +112,7 @@ def get_title(text: str, stem: str) -> str:
     match = TITLE_RE.search(text)
     if match:
         title = re.sub(r"\s+", " ", match.group(1)).strip()
+        title = html.unescape(title)
         if title:
             return title
     return prettify_filename(stem)
