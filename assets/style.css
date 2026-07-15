@@ -185,7 +185,7 @@ html { scroll-behavior: smooth; }
    Sticky site header shell (breadcrumb back to index)
    ------------------------------------------------------------ */
 .site-header {
-  position: sticky; top: 0; z-index: 40;
+  position: sticky; top: 0; z-index: 1000;
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -239,7 +239,7 @@ html { scroll-behavior: smooth; }
   border-radius: 0.85rem;
   box-shadow: 0 20px 48px -12px rgba(0,0,0,0.6);
   padding: 0.6rem;
-  z-index: 50;
+  z-index: 1001;
 }
 .nav-dropdown.open .nav-dropdown-panel { display: block; }
 
