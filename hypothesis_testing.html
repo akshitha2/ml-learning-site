@@ -480,14 +480,78 @@
 </style>
 </head>
 <body>
-
+<!-- SITE-NAV:START -->
 <header class="site-header">
   <div class="site-header-inner">
     <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
     <span class="site-header-sep">/</span>
-    <span class="badge" style="--accent:#f5a623">📊 Statistics</span>
+    <div class="nav-dropdown" id="siteNav">
+      <span class="badge nav-dropdown-trigger" style="--accent:#f5a623" onclick="document.getElementById('siteNav').classList.toggle('open')">📊 Statistics</span>
+      <div class="nav-dropdown-panel">
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
+      <a class="nav-group-link active" href="hypothesis_testing.html">Hypothesis Testing</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics Deep Dive</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures for Beginners</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP for Beginners</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP Interview Study Guide</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">ML EDA &amp; Core Libraries</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL Interview Study Guide</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
+      <a class="nav-group-link" href="decision_trees_complete.html">Decision Trees</a>
+      <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
+      <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
+      <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting Machines</a>
+      <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
+      <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
+      <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
+      <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
+      <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
+      <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
+      <a class="nav-group-link" href="arima_guide.html">Time Series Masterclass</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Mastery</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture Fundamentals</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
+      <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
+    </div>
+      </div>
+    </div>
   </div>
 </header>
+<script>
+  document.addEventListener('click', function(e) {
+    var nav = document.getElementById('siteNav');
+    if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var nav = document.getElementById('siteNav');
+      if (nav) nav.classList.remove('open');
+    }
+  });
+</script>
+<!-- SITE-NAV:END -->
 
 <div class="layout">
 

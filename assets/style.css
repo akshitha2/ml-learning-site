@@ -209,6 +209,60 @@ html { scroll-behavior: smooth; }
 .site-header-topic { color: var(--text); font-weight: 500; font-family: var(--font-sans); }
 
 /* ------------------------------------------------------------
+   "Jump to" dropdown — click the category badge to browse every
+   page on the site, grouped by category, without going via index.
+   ------------------------------------------------------------ */
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-trigger::after {
+  content: '';
+  display: inline-block;
+  width: 5px; height: 5px;
+  margin-left: 0.15em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 0.2s;
+}
+.nav-dropdown.open .nav-dropdown-trigger::after { transform: rotate(225deg) translateY(1px); }
+
+.nav-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px); left: 0;
+  width: 300px; max-height: min(70vh, 520px);
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--raised) 96%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0.85rem;
+  box-shadow: 0 20px 48px -12px rgba(0,0,0,0.6);
+  padding: 0.6rem;
+  z-index: 50;
+}
+.nav-dropdown.open .nav-dropdown-panel { display: block; }
+
+.nav-group { margin-bottom: 0.3rem; }
+.nav-group-label {
+  display: flex; align-items: center; gap: 0.4em;
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--accent, var(--accent-default));
+  padding: 0.5rem 0.6rem 0.3rem;
+}
+.nav-group-link {
+  display: block;
+  font-family: var(--font-sans); font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  transition: all 0.15s;
+}
+.nav-group-link:hover { background: var(--hairline); color: var(--text); }
+.nav-group-link.active { color: var(--accent-default); background: color-mix(in srgb, var(--accent-default) 10%, transparent); font-weight: 500; }
+
+/* ------------------------------------------------------------
    In-page table of contents sidebar
    ------------------------------------------------------------ */
 .toc-sidebar {
