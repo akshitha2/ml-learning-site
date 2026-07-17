@@ -42,9 +42,14 @@ CATEGORIES = [
         "sql": 6,
     }),
     ("Classic ML", "\U0001F4D0", "green", "Foundations, evaluation, and general ML", {
+        "linear_regress": 0,
         "regulariz": 1,
         "evaluation": 2,
         "metric": 2,
+    }),
+    ("Unsupervised Learning", "\U0001F9E9", "indigo", "Clustering and dimensionality reduction", {
+        "kmeans": 1,
+        "cluster": 2,
     }),
     ("Trees & Ensembles", "\U0001F333", "teal", "Decision trees through boosted ensembles", {
         "decision_tree": 1,
@@ -60,6 +65,7 @@ CATEGORIES = [
         "advanced": 9,
         "lightgbm": 10,
         "comparison": 90,
+        "qa_notes": 91,
     }),
     ("Time Series", "\U0001F4C8", "blue", "Forecasting and temporal models", {
         "arima": 1,
@@ -100,6 +106,7 @@ ACCENTS = {
     "grey": "#9898b0",
     "rose": "#f472b6",
     "cyan": "#22d3ee",
+    "indigo": "#818cf8",
 }
 
 

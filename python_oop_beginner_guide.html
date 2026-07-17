@@ -136,9 +136,14 @@
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
       <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
       <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
       <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#818cf8">🧩 Unsupervised Learning</div>
+      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
@@ -154,6 +159,7 @@
       <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
       <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance</a>
       <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+      <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
@@ -168,12 +174,6 @@
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
       <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-label" style="--accent:#9898b0">📁 Other</div>
-      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
-      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
-      <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
     </div>
       </div>
     </div>
@@ -190,6 +190,29 @@
       if (nav) nav.classList.remove('open');
     }
   });
+
+  // Some pages ship their own sticky in-page nav (e.g. a section-jump bar)
+  // right after this header. It doesn't know this header's height, so push
+  // it down to sit just below the header instead of colliding with it.
+  (function() {
+    var header = document.querySelector('.site-header');
+    if (!header) return;
+    function offsetStickySiblings() {
+      var h = header.offsetHeight;
+      var el = header.nextElementSibling;
+      while (el) {
+        if (getComputedStyle(el).position === 'sticky') {
+          el.style.top = h + 'px';
+        }
+        el = el.nextElementSibling;
+      }
+    }
+    offsetStickySiblings();
+    window.addEventListener('resize', offsetStickySiblings);
+    if (window.ResizeObserver) {
+      new ResizeObserver(offsetStickySiblings).observe(header);
+    }
+  })();
 </script>
 <!-- SITE-NAV:END -->
 

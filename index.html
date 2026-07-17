@@ -26,7 +26,8 @@
             green: '#5cb85c',
             grey: '#9898b0',
             rose: '#f472b6',
-            cyan: '#22d3ee'
+            cyan: '#22d3ee',
+            indigo: '#818cf8'
         },
         fontFamily: {
           heading: ['Playfair Display', 'Georgia', 'serif'],
@@ -117,11 +118,11 @@
       <a href="#statistics" class="nav-link badge badge-glass" style="--accent:#f5a623">📊 Statistics</a>
       <a href="#programming-tools" class="nav-link badge badge-glass" style="--accent:#22d3ee">💻 Programming &amp; Tools</a>
       <a href="#classic-ml" class="nav-link badge badge-glass" style="--accent:#5cb85c">📐 Classic ML</a>
+      <a href="#unsupervised-learning" class="nav-link badge badge-glass" style="--accent:#818cf8">🧩 Unsupervised Learning</a>
       <a href="#trees-ensembles" class="nav-link badge badge-glass" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</a>
       <a href="#time-series" class="nav-link badge badge-glass" style="--accent:#60a8e0">📈 Time Series</a>
       <a href="#genai-agents" class="nav-link badge badge-glass" style="--accent:#a594f9">🤖 GenAI &amp; Agents</a>
       <a href="#interview-questions" class="nav-link badge badge-glass" style="--accent:#f472b6">🎯 Interview Questions</a>
-      <a href="#other" class="nav-link badge badge-glass" style="--accent:#9898b0">📁 Other</a>
   </nav>
 </header>
 <div class="wrap">
@@ -184,10 +185,14 @@
         <span class="cat-icon">📐</span>
         <div>
           <h2 class="cat-title">Classic ML</h2>
-          <p class="cat-desc">Foundations, evaluation, and general ML &middot; 3 topics</p>
+          <p class="cat-desc">Foundations, evaluation, and general ML &middot; 4 topics</p>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <a class="card topic-card" href="linear_regression_guide.html" style="--accent:#5cb85c">
+          <span class="card-topic">Linear Regression from Scratch</span>
+          <span class="card-subtitle">DS Interview Track</span>
+        </a>
         <a class="card topic-card" href="regularization_deep_dive.html" style="--accent:#5cb85c">
           <span class="card-topic">Regularization Across Models</span>
           <span class="card-subtitle">A Deep Dive</span>
@@ -202,12 +207,27 @@
         </a>
       </div>
     </section>
+    <section class="category" id="unsupervised-learning" style="--accent:#818cf8">
+      <div class="cat-header">
+        <span class="cat-icon">🧩</span>
+        <div>
+          <h2 class="cat-title">Unsupervised Learning</h2>
+          <p class="cat-desc">Clustering and dimensionality reduction &middot; 1 topic</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <a class="card topic-card" href="kmeans_guide.html" style="--accent:#818cf8">
+          <span class="card-topic">K-Means Clustering from Scratch</span>
+          <span class="card-subtitle">DS Interview Track</span>
+        </a>
+      </div>
+    </section>
     <section class="category" id="trees-ensembles" style="--accent:#2dd4a0">
       <div class="cat-header">
         <span class="cat-icon">🌳</span>
         <div>
           <h2 class="cat-title">Trees &amp; Ensembles</h2>
-          <p class="cat-desc">Decision trees through boosted ensembles &middot; 12 topics</p>
+          <p class="cat-desc">Decision trees through boosted ensembles &middot; 13 topics</p>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -258,6 +278,10 @@
         <a class="card topic-card" href="tree_models_comparison.html" style="--accent:#2dd4a0">
           <span class="card-topic">Tree Models</span>
           <span class="card-subtitle">Exhaustive Comparison</span>
+        </a>
+        <a class="card topic-card" href="tree_models_qa_notes.html" style="--accent:#2dd4a0">
+          <span class="card-topic">Tree Models &amp; Boosting</span>
+          <span class="card-subtitle">Full Q&amp;A Notes</span>
         </a>
       </div>
     </section>
@@ -311,29 +335,6 @@
         <a class="card topic-card" href="ml_breadth_review.html" style="--accent:#f472b6">
           <span class="card-topic">ML Breadth Round</span>
           <span class="card-subtitle">Review</span>
-        </a>
-      </div>
-    </section>
-    <section class="category" id="other" style="--accent:#9898b0">
-      <div class="cat-header">
-        <span class="cat-icon">📁</span>
-        <div>
-          <h2 class="cat-title">Other</h2>
-          <p class="cat-desc">Everything else &middot; 3 topics</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <a class="card topic-card" href="kmeans_guide.html" style="--accent:#9898b0">
-          <span class="card-topic">K-Means Clustering from Scratch</span>
-          <span class="card-subtitle">DS Interview Track</span>
-        </a>
-        <a class="card topic-card" href="linear_regression_guide.html" style="--accent:#9898b0">
-          <span class="card-topic">Linear Regression from Scratch</span>
-          <span class="card-subtitle">DS Interview Track</span>
-        </a>
-        <a class="card topic-card" href="tree_models_qa_notes.html" style="--accent:#9898b0">
-          <span class="card-topic">Tree Models &amp; Boosting</span>
-          <span class="card-subtitle">Full Q&amp;A Notes</span>
         </a>
       </div>
     </section>

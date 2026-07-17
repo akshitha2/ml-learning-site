@@ -78,6 +78,29 @@ def build_header(categories, current_file, current_category):
       if (nav) nav.classList.remove('open');
     }}
   }});
+
+  // Some pages ship their own sticky in-page nav (e.g. a section-jump bar)
+  // right after this header. It doesn't know this header's height, so push
+  // it down to sit just below the header instead of colliding with it.
+  (function() {{
+    var header = document.querySelector('.site-header');
+    if (!header) return;
+    function offsetStickySiblings() {{
+      var h = header.offsetHeight;
+      var el = header.nextElementSibling;
+      while (el) {{
+        if (getComputedStyle(el).position === 'sticky') {{
+          el.style.top = h + 'px';
+        }}
+        el = el.nextElementSibling;
+      }}
+    }}
+    offsetStickySiblings();
+    window.addEventListener('resize', offsetStickySiblings);
+    if (window.ResizeObserver) {{
+      new ResizeObserver(offsetStickySiblings).observe(header);
+    }}
+  }})();
 </script>
 {END}'''
 
