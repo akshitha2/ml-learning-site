@@ -43,6 +43,7 @@ CATEGORIES = [
     }),
     ("Classic ML", "\U0001F4D0", "green", "Foundations, evaluation, and general ML", {
         "linear_regress": 0,
+        "bias_varian": 0.5,
         "regulariz": 1,
         "evaluation": 2,
         "metric": 2,
