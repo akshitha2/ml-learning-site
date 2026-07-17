@@ -3,480 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hypothesis Testing — Complete Reference</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A7%AA</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Hypothesis Testing</title>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A7%AA</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #030712;
-    --panel: #0f1420;
-    --ink: #e7ebf3;
-    --ink-soft: #97a1b3;
-    --rule: rgba(255,255,255,0.08);
-    --accent: #f5a623;
-    --accent-soft: rgba(245,166,35,0.1);
-    --mono-bg: #0a0e1a;
-    --good: #2dd4a0;
-    --good-bg: rgba(45,212,160,0.1);
-    --bad: #f07060;
-    --bad-bg: rgba(240,112,96,0.1);
-    --sidebar-w: 280px;
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e2a; --border: #2a2f3f;
+    --accent-a: #3b82f6; --accent-b: #f97316; --accent-c: #a855f7;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --code-bg: #0a0c10;
   }
-
-  * { box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    line-height: 1.62;
-    font-size: 17px;
-  }
-
-  h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; }
-
-  .layout {
-    display: flex;
-    max-width: 1320px;
-    margin: 0 auto;
-  }
-
-  /* SIDEBAR */
-  nav.toc {
-    width: var(--sidebar-w);
-    flex-shrink: 0;
-    position: sticky;
-    top: 52px;
-    height: calc(100vh - 52px);
-    overflow-y: auto;
-    padding: 36px 22px 36px 32px;
-    border-right: 1px solid var(--rule);
-    background: color-mix(in srgb, var(--panel) 55%, transparent);
-    backdrop-filter: blur(10px);
-  }
-
-  nav.toc .toc-eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 6px;
-  }
-
-  nav.toc h2 {
-    font-size: 19px;
-    margin: 0 0 22px 0;
-    font-weight: 600;
-  }
-
-  nav.toc ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    counter-reset: subtopic;
-  }
-
-  nav.toc li {
-    counter-increment: subtopic;
-    margin-bottom: 2px;
-  }
-
-  nav.toc a {
-    display: flex;
-    gap: 10px;
-    padding: 7px 10px;
-    border-radius: 6px;
-    color: var(--ink-soft);
-    text-decoration: none;
-    font-size: 14.5px;
-    font-family: 'Inter', sans-serif;
-    transition: background 0.2s, color 0.2s;
-    line-height: 1.35;
-  }
-
-  nav.toc a:hover { background: var(--accent-soft); color: var(--accent); }
-  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-
-  nav.toc a::before {
-    content: counter(subtopic);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
-    flex-shrink: 0;
-    width: 16px;
-  }
-
-  nav.toc .toc-divider {
-    border: none;
-    border-top: 1px solid var(--rule);
-    margin: 18px 0;
-  }
-
-  nav.toc .toc-sub {
-    font-family: 'Inter', sans-serif;
-    font-size: 12.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ink-soft);
-    opacity: 0.7;
-    margin: 22px 0 8px 10px;
-  }
-
-  /* MAIN CONTENT */
-  main {
-    flex: 1;
-    min-width: 0;
-    padding: 48px 56px 120px 56px;
-  }
-
-  header.doc-header {
-    margin-bottom: 56px;
-    padding-bottom: 32px;
-    border-bottom: 2px solid var(--rule);
-  }
-
-  header.doc-header .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 14px;
-  }
-
-  header.doc-header h1 {
-    font-size: 44px;
-    margin: 0 0 14px 0;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-
-  header.doc-header p.lede {
-    font-size: 18px;
-    color: var(--ink-soft);
-    max-width: 640px;
-    margin: 0;
-  }
-
-  section.subtopic {
-    margin-bottom: 72px;
-    scroll-margin-top: 24px;
-  }
-
-  section.subtopic .num-tag {
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  section.subtopic h2 {
-    font-size: 30px;
-    margin: 0 0 28px 0;
-    font-weight: 600;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  h3.block-title {
-    font-size: 21px;
-    margin: 38px 0 14px 0;
-    font-weight: 600;
-    color: var(--ink);
-  }
-
-  h4.block-subtitle {
-    font-size: 16.5px;
-    margin: 26px 0 10px 0;
-    font-weight: 700;
-    color: var(--ink);
-  }
-
-  p { margin: 0 0 16px 0; }
-
-  ul, ol.normal-list { margin: 0 0 16px 0; padding-left: 24px; }
-  li { margin-bottom: 6px; }
-
-  strong { font-weight: 700; }
-
-  code {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--mono-bg);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.88em;
-    color: var(--ink);
-  }
-
-  pre {
-    background: var(--mono-bg);
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    padding: 18px 20px;
-    overflow-x: auto;
-    margin: 0 0 18px 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14.5px;
-    line-height: 1.6;
-  }
-
-  pre code { background: none; padding: 0; }
-
-  /* Formula callout — tactile card */
-  .formula-box {
-    background: color-mix(in srgb, var(--panel) 80%, transparent);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 12px 12px 0;
-    padding: 18px 22px;
-    margin: 0 0 20px 0;
-    transition: all 0.3s;
-  }
-  .formula-box:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--accent) 30%, transparent); }
-
-  .formula-box .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .formula-box .formula {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
-    text-align: center;
-    padding: 6px 0;
-    color: var(--ink);
-  }
-
-  /* Example box — tactile card */
-  .example-box {
-    background: color-mix(in srgb, var(--mono-bg) 85%, transparent);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
-    padding: 20px 22px;
-    margin: 0 0 20px 0;
-  }
-
-  .example-box .label {
-    font-family: 'Inter', sans-serif;
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-
-  /* Trap / misconception box */
-  .trap-box {
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 0 0 20px 0;
-    border: 1px solid var(--rule);
-  }
-
-  .trap-row {
-    padding: 13px 18px;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  .trap-row.wrong { background: var(--bad-bg); color: #f4a898; }
-  .trap-row.right { background: var(--good-bg); color: #a8e8cf; }
-
-  .trap-row .glyph { font-weight: 800; flex-shrink: 0; }
-
-  /* Tables */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0 0 22px 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 14.5px;
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  th {
-    text-align: left;
-    background: color-mix(in srgb, var(--panel) 90%, transparent);
-    color: var(--accent);
-    padding: 10px 14px;
-    font-weight: 600;
-    font-size: 12.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
-
-  /* Insight / callout — tactile card */
-  .insight-box {
-    background: color-mix(in srgb, var(--panel) 80%, transparent);
-    backdrop-filter: blur(10px);
-    border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--rule));
-    border-radius: 12px;
-    padding: 20px 22px;
-    margin: 24px 0;
-    position: relative;
-  }
-
-  .insight-box .label {
-    font-family: 'Inter', sans-serif;
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .insight-box p { margin: 0; font-style: italic; color: var(--ink-soft); }
-
-  /* Decision framework summary */
-  .summary-grid {
-    background: var(--panel);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
-    padding: 4px 0;
-    margin: 20px 0;
-  }
-
-  /* Subtopic nav footer */
-  .subtopic-footer {
-    margin-top: 36px;
-    padding-top: 20px;
-    border-top: 1px dashed var(--rule);
-    font-family: 'Inter', sans-serif;
-    font-size: 13.5px;
-    color: var(--ink-soft);
-  }
-
-  .subtopic-footer .takeaway-label {
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 11.5px;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
-
-  /* INTERVIEW Q SECTION */
-  .iq-difficulty-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin: 44px 0 20px 0;
-  }
-
-  .iq-difficulty-header .pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 5px 14px;
-    border-radius: 20px;
-    border: 1px solid transparent;
-  }
-
-  .pill.easy { background: var(--good-bg); color: var(--good); border-color: rgba(45,212,160,0.25); }
-  .pill.medium { background: rgba(245,166,35,0.1); color: #f5a623; border-color: rgba(245,166,35,0.25); }
-  .pill.hard { background: var(--bad-bg); color: var(--bad); border-color: rgba(240,112,96,0.25); }
-
-  .iq-difficulty-header .rule-line {
-    flex: 1;
-    height: 1px;
-    background: var(--rule);
-  }
-
-  details.iq-item {
-    background: color-mix(in srgb, var(--panel) 85%, transparent);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    transition: all 0.3s;
-  }
-  details.iq-item:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--rule)); }
-  details.iq-item[open] { border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
-
-  details.iq-item summary {
-    padding: 15px 20px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    list-style: none;
-    display: flex;
-    gap: 14px;
-    align-items: baseline;
-    color: var(--ink);
-  }
-
-  details.iq-item summary::-webkit-details-marker { display: none; }
-
-  details.iq-item summary .qnum {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent);
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  details.iq-item summary::after {
-    content: '+';
-    margin-left: auto;
-    font-size: 20px;
-    color: var(--accent);
-    flex-shrink: 0;
-  }
-
-  details.iq-item[open] summary::after { content: '−'; }
-
-  details.iq-item .iq-answer {
-    padding: 4px 20px 20px 54px;
-    font-size: 15px;
-    color: var(--ink-soft);
-    border-top: 1px solid var(--rule);
-    padding-top: 16px;
-  }
-
-  details.iq-item .iq-answer p:last-child { margin-bottom: 0; }
-
-  /* responsive */
-  @media (max-width: 920px) {
-    nav.toc { display: none; }
-    main { padding: 32px 24px 100px 24px; }
-    header.doc-header h1 { font-size: 32px; }
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); } .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 680px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  h4 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-dim); margin: 22px 0 10px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; } ul.plain li { margin-bottom: 6px; }
+  ul:not(.plain), ol { margin: 0 0 14px 20px; } ul:not(.plain) li, ol li { margin-bottom: 6px; }
+  .formula { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #a5b4fc; text-align: center; }
+  .formula-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin: 16px 0 -8px; }
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); } .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); } .callout-warning .callout-title { color: var(--yellow); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; } .key-insight p { margin: 0; font-size: 14px; }
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+  /* Myth vs. Fact — paired wrong/right statement box */
+  .myth-fact { border-radius: 4px; overflow: hidden; margin: 16px 0; border: 1px solid var(--border); }
+  .myth-row { padding: 12px 18px; font-size: 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .myth-row.wrong { background: rgba(239,68,68,0.08); color: #f4a898; }
+  .myth-row.right { background: rgba(34,197,94,0.08); color: #a8e8cf; }
+  .myth-row .glyph { font-weight: 800; flex-shrink: 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; } .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-diff { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; margin-top: 3px; }
+  .diff-easy { color: var(--green); border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.08); }
+  .diff-medium { color: var(--yellow); border: 1px solid rgba(234,179,8,0.35); background: rgba(234,179,8,0.08); }
+  .diff-hard { color: var(--red); border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; padding-top: 16px; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
@@ -491,27 +113,27 @@
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
       <a class="nav-group-link active" href="hypothesis_testing.html">Hypothesis Testing</a>
-      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics Deep Dive</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
-      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures for Beginners</a>
-      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP for Beginners</a>
-      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP Interview Study Guide</a>
-      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">ML EDA &amp; Core Libraries</a>
-      <a class="nav-group-link" href="sql_interview_questions_guide.html">SQL Interview Drill</a>
-      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL Interview Study Guide</a>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">EDA &amp; Core Libraries</a>
+      <a class="nav-group-link" href="sql_interview_questions_guide.html">SQL &amp; Pandas</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
-      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
-      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
-      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
-      <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression</a>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Evaluation Metrics</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Validation</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#818cf8">🧩 Unsupervised Learning</div>
-      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
+      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
@@ -519,25 +141,25 @@
       <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
       <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
       <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
-      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting Machines</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting</a>
       <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
       <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
       <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
       <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
       <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
-      <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance</a>
+      <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance Tradeoff</a>
       <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
       <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
-      <a class="nav-group-link" href="arima_guide.html">Time Series Masterclass</a>
-      <a class="nav-group-link" href="timeseries_guide.html">Time Series Mastery</a>
+      <a class="nav-group-link" href="arima_guide.html">ARIMA &amp; SARIMAX</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Forecasting</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
-      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture Fundamentals</a>
-      <a class="nav-group-link" href="react_study_guide.html">ReAct</a>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct Pattern</a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
@@ -584,766 +206,784 @@
 </script>
 <!-- SITE-NAV:END -->
 
-<div class="layout">
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">Hypothesis Testing · Statistics · DS Interview Track</div>
+    <h1><span class="a">Hypothesis</span> <span class="b">Testing</span></h1>
+    <p class="hero-sub">A complete reference covering the logic, math, assumptions, and traps of hypothesis testing — built for interview prep and practical ML/DS work.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Core Logic</div>
+      <div class="progress-item done">✓ Type I &amp; II Errors</div>
+      <div class="progress-item done">✓ One vs Two-Tailed</div>
+      <div class="progress-item done">✓ Common Tests</div>
+      <div class="progress-item done">✓ Assumptions</div>
+      <div class="progress-item done">✓ Stat vs Practical Sig.</div>
+      <div class="progress-item done">✓ Multiple Testing</div>
+      <div class="progress-item done">✓ Interview Traps</div>
+      <div class="progress-item done">✓ 30 Interview Qs</div>
+    </div>
+  </div>
+</div>
 
-  <nav class="toc" id="tocNav">
-    <div class="toc-eyebrow">Reference Doc</div>
-    <h2>Hypothesis Testing</h2>
-    <ol>
-      <li><a href="#s1">Core Logic — H₀, H₁, p-value</a></li>
-      <li><a href="#s2">Type I &amp; II Errors, Power</a></li>
-      <li><a href="#s3">One-Tailed vs Two-Tailed</a></li>
-      <li><a href="#s4">Common Tests (z, t, χ², F)</a></li>
-      <li><a href="#s5">Assumptions</a></li>
-      <li><a href="#s6">Statistical vs Practical Significance</a></li>
-      <li><a href="#s7">Multiple Testing Problem</a></li>
-      <li><a href="#s8">Interview Traps</a></li>
-    </ol>
-    <hr class="toc-divider">
-    <div class="toc-sub">Practice</div>
-    <ol style="counter-reset: none;">
-      <li><a href="#iq" style="padding-left:10px;"><span style="display:none"></span>30 Interview Questions →</a></li>
-    </ol>
-  </nav>
+<nav class="nav">
+  <a href="#s1" class="a">Core Logic</a>
+  <a href="#s2" class="a">Type I / II Errors</a>
+  <a href="#s3" class="a">One vs Two-Tailed</a>
+  <a href="#s4" class="b">Common Tests</a>
+  <a href="#s5" class="b">Assumptions</a>
+  <a href="#s6" class="c">Stat vs Practical</a>
+  <a href="#s7" class="c">Multiple Testing</a>
+  <a href="#s8">Interview Traps</a>
+  <a href="#iq" class="c">30 Interview Qs</a>
+</nav>
 
-  <main>
-    <header class="doc-header">
-      <div class="eyebrow">Statistics Deep Dive · Topic 5 of 11</div>
-      <h1>Hypothesis Testing</h1>
-      <p class="lede">A complete reference covering the logic, math, assumptions, and traps of hypothesis testing — built for interview prep and practical ML/DS work.</p>
-    </header>
+<div class="container">
 
-    <!-- SUBTOPIC 1 -->
-    <section class="subtopic" id="s1">
-      <div class="num-tag">Subtopic 1 of 8</div>
-      <h2>The Core Logic</h2>
+  <!-- 1. CORE LOGIC -->
+  <section class="section fade-in" id="s1">
+    <div class="section-header">
+      <span class="section-tag tag-a">Topic 1</span>
+      <h2>The Core Logic — H₀, H₁, p-value</h2>
+    </div>
+    <p>You have data. You want to make a claim about the world. But data is noisy — how do you know you're seeing a real signal and not random chance? Hypothesis testing gives you a structured framework to answer: <strong>"Is this result surprising enough to reject the assumption that nothing is happening?"</strong></p>
 
-      <p>You have data. You want to make a claim about the world. But data is noisy — how do you know you're seeing a real signal and not random chance? Hypothesis testing gives you a structured framework to answer: <strong>"Is this result surprising enough to reject the assumption that nothing is happening?"</strong></p>
+    <h3>H₀ and H₁</h3>
+    <p><strong>H₀ (Null):</strong> the default assumption — "nothing interesting is happening." No effect, no difference, no relationship.</p>
+    <p><strong>H₁ (Alternative):</strong> what you're trying to show evidence for.</p>
 
-      <h3 class="block-title">H₀ and H₁</h3>
-      <p><strong>H₀ (Null):</strong> the default assumption — "nothing interesting is happening." No effect, no difference, no relationship.</p>
-      <p><strong>H₁ (Alternative):</strong> what you're trying to show evidence for.</p>
+    <div class="callout callout-a">
+      <div class="callout-title">Example</div>
+      <p>You change a recommendation algorithm.<br>
+      H₀: New algo performs the same as old algo (μ_new = μ_old)<br>
+      H₁: New algo performs differently (μ_new ≠ μ_old)</p>
+    </div>
 
-      <div class="example-box">
-        <div class="label">Example</div>
-        You change a recommendation algorithm.<br>
-        H₀: New algo performs the same as old algo (μ_new = μ_old)<br>
-        H₁: New algo performs differently (μ_new ≠ μ_old)
-      </div>
+    <p><strong>Key mindset:</strong> you never "prove" H₁. You either <strong>reject H₀</strong> (data is inconsistent with H₀) or <strong>fail to reject H₀</strong> (not enough evidence against it). You never "accept H₀." Absence of evidence ≠ evidence of absence.</p>
 
-      <p><strong>Key mindset:</strong> you never "prove" H₁. You either <strong>reject H₀</strong> (data is inconsistent with H₀) or <strong>fail to reject H₀</strong> (not enough evidence against it). You never "accept H₀." Absence of evidence ≠ evidence of absence.</p>
+    <h3>The Test Statistic</h3>
+    <p>You reduce your data to a single number measuring how far your observation is from what H₀ predicts.</p>
 
-      <h3 class="block-title">The Test Statistic</h3>
-      <p>You reduce your data to a single number measuring how far your observation is from what H₀ predicts.</p>
+    <div class="formula-label">General Form</div>
+    <div class="formula">test statistic = (observed − expected under H₀) / standard error</div>
 
-      <div class="formula-box">
-        <div class="label">General Form</div>
-        <div class="formula">test statistic = (observed − expected under H₀) / standard error</div>
-      </div>
+    <p>Intuitively: <strong>how many standard errors away from the null is your observation?</strong></p>
 
-      <p>Intuitively: <strong>how many standard errors away from the null is your observation?</strong></p>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>Sample mean x̄ = 52, H₀ says μ = 50, SE = 2.</p>
+      <p><code>z = (52 − 50) / 2 = 1.0</code> → 1 SE away, not surprising (p ≈ 0.317)<br>
+      <code>z = (58 − 50) / 2 = 4.0</code> → 4 SEs away, extremely surprising (p ≈ 0.000063)</p>
+    </div>
 
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        Sample mean x̄ = 52, H₀ says μ = 50, SE = 2.<br><br>
-        <code>z = (52 − 50) / 2 = 1.0</code> → 1 SE away, not surprising (p ≈ 0.317)<br>
-        <code>z = (58 − 50) / 2 = 4.0</code> → 4 SEs away, extremely surprising (p ≈ 0.000063)
-      </div>
+    <h3>The p-value</h3>
+    <div class="formula-label">Definition</div>
+    <div class="formula">p-value = P(data this extreme or more | H₀ is true)</div>
+    <p><strong>Decision rule:</strong> if p &lt; α (typically 0.05), reject H₀.</p>
 
-      <h3 class="block-title">The p-value</h3>
-      <div class="formula-box">
-        <div class="label">Definition</div>
-        <div class="formula">p-value = P(data this extreme or more | H₀ is true)</div>
-      </div>
-      <p><strong>Decision rule:</strong> if p &lt; α (typically 0.05), reject H₀.</p>
+    <div class="myth-fact">
+      <div class="myth-row wrong"><span class="glyph">✗</span><span>"p-value is the probability that H₀ is true"</span></div>
+      <div class="myth-row right"><span class="glyph">✓</span><span>p-value is the probability of your data (or more extreme), <em>given</em> H₀ is true. P(data | H₀) ≠ P(H₀ | data) — these are completely different things.</span></div>
+    </div>
 
-      <div class="trap-box">
-        <div class="trap-row wrong"><span class="glyph">✗</span><span>"p-value is the probability that H₀ is true"</span></div>
-        <div class="trap-row right"><span class="glyph">✓</span><span>p-value is the probability of your data (or more extreme), <em>given</em> H₀ is true. P(data | H₀) ≠ P(H₀ | data) — these are completely different things.</span></div>
-      </div>
+    <h3>The Cookie Jar Intuition</h3>
+    <p>Your mom baked 100 cookies and claims "I didn't eat any" (H₀). You find only 3 left. If her claim were true, this would be extremely hard to explain — that's a low p-value. So you reject her claim. You're not 100% certain she's guilty (maybe a sibling ate them) — you just have strong evidence against the claim.</p>
 
-      <h3 class="block-title">The Cookie Jar Intuition</h3>
-      <p>Your mom baked 100 cookies and claims "I didn't eat any" (H₀). You find only 3 left. If her claim were true, this would be extremely hard to explain — that's a low p-value. So you reject her claim. You're not 100% certain she's guilty (maybe a sibling ate them) — you just have strong evidence against the claim.</p>
+    <table class="compare-table">
+      <tr><th>Cookie Story</th><th>Statistics</th></tr>
+      <tr><td>Mom's claim ("I didn't eat any")</td><td>H₀ — null hypothesis</td></tr>
+      <tr><td>Counting missing cookies</td><td>Collecting data</td></tr>
+      <tr><td>"Hard to explain if she's innocent"</td><td>Low p-value</td></tr>
+      <tr><td>"I don't believe her"</td><td>Reject H₀</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Cookie Story</th><th>Statistics</th></tr>
-        <tr><td>Mom's claim ("I didn't eat any")</td><td>H₀ — null hypothesis</td></tr>
-        <tr><td>Counting missing cookies</td><td>Collecting data</td></tr>
-        <tr><td>"Hard to explain if she's innocent"</td><td>Low p-value</td></tr>
-        <tr><td>"I don't believe her"</td><td>Reject H₀</td></tr>
-      </table>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> H₀ = default claim, H₁ = what you're trying to show · p-value = P(data this extreme | H₀ true) · reject H₀ when p &lt; α · never "accept H₀," never say p-value = P(H₀ true)</p>
+    </div>
+  </section>
 
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        H₀ = default claim, H₁ = what you're trying to show · p-value = P(data this extreme | H₀ true) · reject H₀ when p &lt; α · never "accept H₀," never say p-value = P(H₀ true)
-      </div>
-    </section>
-
-    <!-- SUBTOPIC 2 -->
-    <section class="subtopic" id="s2">
-      <div class="num-tag">Subtopic 2 of 8</div>
+  <!-- 2. TYPE I & II ERRORS -->
+  <section class="section fade-in" id="s2">
+    <div class="section-header">
+      <span class="section-tag tag-a">Topic 2</span>
       <h2>Type I &amp; Type II Errors, Power</h2>
+    </div>
+    <p>When you make a decision (reject or don't reject H₀), you can be wrong in two different ways.</p>
 
-      <p>When you make a decision (reject or don't reject H₀), you can be wrong in two different ways.</p>
+    <h3>The Courtroom Analogy</h3>
+    <p>Think of H₀ as "defendant is innocent."</p>
 
-      <h3 class="block-title">The Courtroom Analogy</h3>
-      <p>Think of H₀ as "defendant is innocent."</p>
+    <table class="compare-table">
+      <tr><th></th><th>You say: Guilty (Reject H₀)</th><th>You say: Innocent (Fail to reject H₀)</th></tr>
+      <tr><td><strong>Actually innocent</strong></td><td>✗ Type I Error</td><td>✓ Correct</td></tr>
+      <tr><td><strong>Actually guilty</strong></td><td>✓ Correct</td><td>✗ Type II Error</td></tr>
+    </table>
 
-      <table>
-        <tr><th></th><th>You say: Guilty (Reject H₀)</th><th>You say: Innocent (Fail to reject H₀)</th></tr>
-        <tr><td><strong>Actually innocent</strong></td><td>✗ Type I Error</td><td>✓ Correct</td></tr>
-        <tr><td><strong>Actually guilty</strong></td><td>✓ Correct</td><td>✗ Type II Error</td></tr>
-      </table>
+    <ul class="plain">
+      <li><strong>Type I Error (α):</strong> convicted an innocent person — false alarm / false positive</li>
+      <li><strong>Type II Error (β):</strong> let a guilty person go free — missed it / false negative</li>
+    </ul>
 
-      <ul>
-        <li><strong>Type I Error (α):</strong> convicted an innocent person — false alarm / false positive</li>
-        <li><strong>Type II Error (β):</strong> let a guilty person go free — missed it / false negative</li>
-      </ul>
+    <p>α is your significance level — setting α = 0.05 means "I'm okay with a 5% chance of a false alarm."</p>
 
-      <p>α is your significance level — setting α = 0.05 means "I'm okay with a 5% chance of a false alarm."</p>
+    <h3>Power = 1 − β</h3>
+    <p><strong>Power</strong> = probability of correctly detecting a real effect. If β = 0.20, power = 0.80 → an 80% chance of catching a real signal. Industry standard target: <strong>0.80</strong>.</p>
 
-      <h3 class="block-title">Power = 1 − β</h3>
-      <p><strong>Power</strong> = probability of correctly detecting a real effect. If β = 0.20, power = 0.80 → an 80% chance of catching a real signal. Industry standard target: <strong>0.80</strong>.</p>
+    <h3>The Tradeoff</h3>
+    <p>Lowering α (stricter threshold) → fewer Type I errors → <strong>more</strong> Type II errors. They pull against each other. The only way to reduce both at once is <strong>more data</strong>.</p>
 
-      <h3 class="block-title">The Tradeoff</h3>
-      <p>Lowering α (stricter threshold) → fewer Type I errors → <strong>more</strong> Type II errors. They pull against each other. The only way to reduce both at once is <strong>more data</strong>.</p>
+    <table class="compare-table">
+      <tr><th></th><th>False Positive</th><th>False Negative</th></tr>
+      <tr><td>Name</td><td>Type I Error</td><td>Type II Error</td></tr>
+      <tr><td>Symbol</td><td>α</td><td>β</td></tr>
+      <tr><td>Meaning</td><td>Rejected H₀ wrongly</td><td>Missed a real effect</td></tr>
+      <tr><td>Controlled by</td><td>Significance level</td><td>Power (1−β)</td></tr>
+    </table>
 
-      <table>
-        <tr><th></th><th>False Positive</th><th>False Negative</th></tr>
-        <tr><td>Name</td><td>Type I Error</td><td>Type II Error</td></tr>
-        <tr><td>Symbol</td><td>α</td><td>β</td></tr>
-        <tr><td>Meaning</td><td>Rejected H₀ wrongly</td><td>Missed a real effect</td></tr>
-        <tr><td>Controlled by</td><td>Significance level</td><td>Power (1−β)</td></tr>
-      </table>
+    <h3>Deep Dive: Deriving the Test Statistic</h3>
+    <p>The formula isn't arbitrary — it comes from <strong>standardization</strong> (z-scores). Recall <code>z = (x − μ) / σ</code> for a single value. A test statistic does the same for a <strong>sample statistic</strong> like x̄.</p>
 
-      <h3 class="block-title">Deep Dive: Deriving the Test Statistic</h3>
-      <p>The formula isn't arbitrary — it comes from <strong>standardization</strong> (z-scores). Recall <code>z = (x − μ) / σ</code> for a single value. A test statistic does the same for a <strong>sample statistic</strong> like x̄.</p>
+    <p><strong>Step 1</strong> — From CLT: <code>x̄ ~ N(μ, σ²/n)</code>. Under H₀, μ = μ₀, so <code>x̄ ~ N(μ₀, σ²/n)</code>.</p>
+    <p><strong>Step 2</strong> — Standardize using this distribution's own mean and SD:</p>
 
-      <p><strong>Step 1</strong> — From CLT: <code>x̄ ~ N(μ, σ²/n)</code>. Under H₀, μ = μ₀, so <code>x̄ ~ N(μ₀, σ²/n)</code>.</p>
-      <p><strong>Step 2</strong> — Standardize using this distribution's own mean and SD:</p>
+    <div class="formula">z = (x̄ − μ₀) / (σ/√n)</div>
 
-      <div class="formula-box">
-        <div class="formula">z = (x̄ − μ₀) / (σ/√n)</div>
-      </div>
+    <p>That denominator <code>σ/√n</code> is the <strong>standard error</strong> — the spread of the sampling distribution, not raw data spread.</p>
 
-      <p>That denominator <code>σ/√n</code> is the <strong>standard error</strong> — the spread of the sampling distribution, not raw data spread.</p>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>Factory claims μ₀ = 1000 hrs bulb life, σ = 50 (known). Sample n=25, x̄ = 980.</p>
+      <p><code>SE = 50/√25 = 10</code><br>
+      <code>z = (980 − 1000) / 10 = −2.0</code><br>
+      Sample mean is 2 SEs below the claim → p ≈ 0.0455 (two-tailed), borderline significant at α=0.05.</p>
+    </div>
 
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        Factory claims μ₀ = 1000 hrs bulb life, σ = 50 (known). Sample n=25, x̄ = 980.<br><br>
-        <code>SE = 50/√25 = 10</code><br>
-        <code>z = (980 − 1000) / 10 = −2.0</code><br>
-        Sample mean is 2 SEs below the claim → p ≈ 0.0455 (two-tailed), borderline significant at α=0.05.
-      </div>
+    <div class="formula-label">The General Pattern (memorize the skeleton, not just one formula)</div>
+    <div class="formula">test statistic = (estimate − hypothesized value) / SE of the estimate</div>
+    <ul class="plain">
+      <li>Mean → SE = σ/√n or s/√n</li>
+      <li>Proportion → SE = √(p(1−p)/n)</li>
+      <li>Difference of means (A/B test) → SE = √(σ₁²/n₁ + σ₂²/n₂)</li>
+    </ul>
 
-      <div class="formula-box">
-        <div class="label">The General Pattern (memorize the skeleton, not just one formula)</div>
-        <div class="formula">test statistic = (estimate − hypothesized value) / SE of the estimate</div>
-      </div>
-      <ul>
-        <li>Mean → SE = σ/√n or s/√n</li>
-        <li>Proportion → SE = √(p(1−p)/n)</li>
-        <li>Difference of means (A/B test) → SE = √(σ₁²/n₁ + σ₂²/n₂)</li>
-      </ul>
+    <h3>Deep Dive: How α and Power Are Actually Decided</h3>
+    <p><strong>α is not computed</strong> — it's a business/risk decision made <em>before</em> the test, based on the cost of a false positive.</p>
 
-      <h3 class="block-title">Deep Dive: How α and Power Are Actually Decided</h3>
-      <p><strong>α is not computed</strong> — it's a business/risk decision made <em>before</em> the test, based on the cost of a false positive.</p>
+    <table class="compare-table">
+      <tr><th>Context</th><th>Typical α</th><th>Why</th></tr>
+      <tr><td>Drug approval (FDA)</td><td>0.01 – 0.05</td><td>False positive harms patients</td></tr>
+      <tr><td>A/B test, button color</td><td>0.05 – 0.10</td><td>Low stakes, fast iteration valued</td></tr>
+      <tr><td>Particle physics</td><td>~0.0000003 (5σ)</td><td>Extraordinary claims need extraordinary evidence</td></tr>
+      <tr><td>Spam filter</td><td>Tunable, asymmetric</td><td>Blocking real email is worse than missing spam</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Context</th><th>Typical α</th><th>Why</th></tr>
-        <tr><td>Drug approval (FDA)</td><td>0.01 – 0.05</td><td>False positive harms patients</td></tr>
-        <tr><td>A/B test, button color</td><td>0.05 – 0.10</td><td>Low stakes, fast iteration valued</td></tr>
-        <tr><td>Particle physics</td><td>~0.0000003 (5σ)</td><td>Extraordinary claims need extraordinary evidence</td></tr>
-        <tr><td>Spam filter</td><td>Tunable, asymmetric</td><td>Blocking real email is worse than missing spam</td></tr>
-      </table>
+    <p><strong>Power</strong> isn't chosen directly — you set a target (usually 0.80) and solve for required sample size.</p>
 
-      <p><strong>Power</strong> isn't chosen directly — you set a target (usually 0.80) and solve for required sample size.</p>
+    <div class="formula">Power = f(α, effect size, σ, n)</div>
 
-      <div class="formula-box">
-        <div class="formula">Power = f(α, effect size, σ, n)</div>
-      </div>
+    <table class="compare-table">
+      <tr><th>Increase this</th><th>Effect on Power</th></tr>
+      <tr><td>α (looser threshold)</td><td>Power ↑</td></tr>
+      <tr><td>Effect size (bigger true difference)</td><td>Power ↑</td></tr>
+      <tr><td>σ (more noise in data)</td><td>Power ↓</td></tr>
+      <tr><td>n (more data)</td><td>Power ↑</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Increase this</th><th>Effect on Power</th></tr>
-        <tr><td>α (looser threshold)</td><td>Power ↑</td></tr>
-        <tr><td>Effect size (bigger true difference)</td><td>Power ↑</td></tr>
-        <tr><td>σ (more noise in data)</td><td>Power ↓</td></tr>
-        <tr><td>n (more data)</td><td>Power ↑</td></tr>
-      </table>
+    <div class="callout callout-insight">
+      <div class="callout-title">Interview-Level Insight</div>
+      <p>"α is a policy choice about false positive tolerance. Power is what you solve for via sample size, given your α and the smallest effect size you care about detecting."</p>
+    </div>
 
-      <div class="insight-box">
-        <div class="label">Interview-Level Insight</div>
-        <p>"α is a policy choice about false positive tolerance. Power is what you solve for via sample size, given your α and the smallest effect size you care about detecting."</p>
-      </div>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> Type I (α) = false positive, Type II (β) = false negative · Power = 1−β, target is usually 0.80 · α↓ causes Power↓ (tradeoff) · only more data improves both · test statistic skeleton: (estimate − hypothesized)/SE</p>
+    </div>
+  </section>
 
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        Type I (α) = false positive, Type II (β) = false negative · Power = 1−β, target is usually 0.80 · α↓ causes Power↓ (tradeoff) · only more data improves both · test statistic skeleton: (estimate − hypothesized)/SE
-      </div>
-    </section>
-
-    <!-- SUBTOPIC 3 -->
-    <section class="subtopic" id="s3">
-      <div class="num-tag">Subtopic 3 of 8</div>
+  <!-- 3. ONE VS TWO-TAILED -->
+  <section class="section fade-in" id="s3">
+    <div class="section-header">
+      <span class="section-tag tag-a">Topic 3</span>
       <h2>One-Tailed vs Two-Tailed Tests</h2>
+    </div>
+    <p>When you reject H₀, you need to define what counts as "extreme" — too high, too low, or either direction. This is what tails decide.</p>
 
-      <p>When you reject H₀, you need to define what counts as "extreme" — too high, too low, or either direction. This is what tails decide.</p>
+    <h3>Two-Tailed Test</h3>
+    <p><strong>H₀:</strong> μ = μ₀ &nbsp;&nbsp; <strong>H₁:</strong> μ ≠ μ₀ — you don't care about direction, just "different." At α=0.05, split 2.5% into each tail. Critical values: <strong>±1.96</strong>.</p>
 
-      <h3 class="block-title">Two-Tailed Test</h3>
-      <p><strong>H₀:</strong> μ = μ₀ &nbsp;&nbsp; <strong>H₁:</strong> μ ≠ μ₀ — you don't care about direction, just "different." At α=0.05, split 2.5% into each tail. Critical values: <strong>±1.96</strong>.</p>
+    <h3>One-Tailed Test</h3>
+    <p>Right-tailed example — <strong>H₀:</strong> μ ≤ μ₀ &nbsp;&nbsp; <strong>H₁:</strong> μ &gt; μ₀ — all 5% sits in one tail. Critical value: <strong>1.645</strong>.</p>
 
-      <h3 class="block-title">One-Tailed Test</h3>
-      <p>Right-tailed example — <strong>H₀:</strong> μ ≤ μ₀ &nbsp;&nbsp; <strong>H₁:</strong> μ &gt; μ₀ — all 5% sits in one tail. Critical value: <strong>1.645</strong>.</p>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example — Same Data, Different Conclusion</div>
+      <p>Drug test: μ₀ = 100, z = 1.75.</p>
+      <p><strong>Two-tailed</strong> (H₁: μ≠100): critical = ±1.96 → 1.75 &lt; 1.96 → <strong>fail to reject</strong><br>
+      <strong>One-tailed</strong> (H₁: μ&gt;100): critical = 1.645 → 1.75 &gt; 1.645 → <strong>reject H₀</strong></p>
+      <p>Same data, same z — opposite conclusions. Direction must be decided <em>before</em> seeing data.</p>
+    </div>
 
-      <div class="example-box">
-        <div class="label">Numerical Example — Same Data, Different Conclusion</div>
-        Drug test: μ₀ = 100, z = 1.75.<br><br>
-        <strong>Two-tailed</strong> (H₁: μ≠100): critical = ±1.96 → 1.75 &lt; 1.96 → <strong>fail to reject</strong><br>
-        <strong>One-tailed</strong> (H₁: μ&gt;100): critical = 1.645 → 1.75 &gt; 1.645 → <strong>reject H₀</strong><br><br>
-        Same data, same z — opposite conclusions. Direction must be decided <em>before</em> seeing data.
-      </div>
+    <div class="myth-fact">
+      <div class="myth-row wrong"><span class="glyph">✗</span><span>"I'll look at the data first, see which direction it went, then pick a one-tailed test in that direction to make my result significant."</span></div>
+      <div class="myth-row right"><span class="glyph">✓</span><span>This is p-hacking. Picking direction after seeing results means your real false-positive rate is no longer the α you claim.</span></div>
+    </div>
 
-      <div class="trap-box">
-        <div class="trap-row wrong"><span class="glyph">✗</span><span>"I'll look at the data first, see which direction it went, then pick a one-tailed test in that direction to make my result significant."</span></div>
-        <div class="trap-row right"><span class="glyph">✓</span><span>This is p-hacking. Picking direction after seeing results means your real false-positive rate is no longer the α you claim.</span></div>
-      </div>
+    <table class="compare-table">
+      <tr><th>Use Two-Tailed When</th><th>Use One-Tailed When</th></tr>
+      <tr><td>You care about any difference (most A/B tests)</td><td>Strong pre-registered directional hypothesis</td></tr>
+      <tr><td>Default/safe choice in industry</td><td>Rare, viewed skeptically by reviewers</td></tr>
+      <tr><td>Conservative — needs more evidence</td><td>Easier to reach significance</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Use Two-Tailed When</th><th>Use One-Tailed When</th></tr>
-        <tr><td>You care about any difference (most A/B tests)</td><td>Strong pre-registered directional hypothesis</td></tr>
-        <tr><td>Default/safe choice in industry</td><td>Rare, viewed skeptically by reviewers</td></tr>
-        <tr><td>Conservative — needs more evidence</td><td>Easier to reach significance</td></tr>
-      </table>
+    <h3>Deep Dive: How Critical Values Are Calculated</h3>
+    <p>The critical value is the z (or t) score that cuts off exactly α of probability in the tail(s). You work backward from a probability to a score using the <strong>inverse CDF</strong>.</p>
 
-      <h3 class="block-title">Deep Dive: How Critical Values Are Calculated</h3>
-      <p>The critical value is the z (or t) score that cuts off exactly α of probability in the tail(s). You work backward from a probability to a score using the <strong>inverse CDF</strong>.</p>
+    <table class="compare-table">
+      <tr><th>Test Type</th><th>Tail Area</th><th>Critical Value (α=0.05)</th></tr>
+      <tr><td>Two-tailed</td><td>0.025 each side</td><td>±1.96</td></tr>
+      <tr><td>Right-tailed</td><td>0.05 on right</td><td>+1.645</td></tr>
+      <tr><td>Left-tailed</td><td>0.05 on left</td><td>−1.645</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Test Type</th><th>Tail Area</th><th>Critical Value (α=0.05)</th></tr>
-        <tr><td>Two-tailed</td><td>0.025 each side</td><td>±1.96</td></tr>
-        <tr><td>Right-tailed</td><td>0.05 on right</td><td>+1.645</td></tr>
-        <tr><td>Left-tailed</td><td>0.05 on left</td><td>−1.645</td></tr>
-      </table>
+    <div class="code-block">from scipy.stats import norm
 
-      <pre><code>from scipy.stats import norm
+<span class="comment"># Two-tailed, alpha = 0.05</span>
+z_two_tailed = norm.ppf(1 - 0.05/2)   <span class="comment"># → 1.96</span>
 
-# Two-tailed, alpha = 0.05
-z_two_tailed = norm.ppf(1 - 0.05/2)   # → 1.96
+<span class="comment"># One-tailed, alpha = 0.05</span>
+z_one_tailed = norm.ppf(1 - 0.05)     <span class="comment"># → 1.645</span>
 
-# One-tailed, alpha = 0.05
-z_one_tailed = norm.ppf(1 - 0.05)     # → 1.645
-
-# t-test version (needs degrees of freedom)
+<span class="comment"># t-test version (needs degrees of freedom)</span>
 from scipy.stats import t
-t_critical = t.ppf(1 - 0.05/2, df=24)  # for n=25 sample</code></pre>
+t_critical = t.ppf(1 - 0.05/2, df=24)  <span class="comment"># for n=25 sample</span></div>
 
-      <p>t-critical values are always slightly larger than z-critical for the same α (fatter tails) — the gap shrinks as n grows, converging to z as df → ∞.</p>
+    <p>t-critical values are always slightly larger than z-critical for the same α (fatter tails) — the gap shrinks as n grows, converging to z as df → ∞.</p>
 
-      <div class="insight-box">
-        <div class="label">Intuition for Stricter α</div>
-        <p>α=0.01 means accepting only a 1% false-positive chance. To carve out a smaller sliver of tail area, you must go further out — the curve is thin out there, so more distance is needed to capture less area. Stricter α → larger critical value in magnitude.</p>
-      </div>
+    <div class="callout callout-insight">
+      <div class="callout-title">Intuition for Stricter α</div>
+      <p>α=0.01 means accepting only a 1% false-positive chance. To carve out a smaller sliver of tail area, you must go further out — the curve is thin out there, so more distance is needed to capture less area. Stricter α → larger critical value in magnitude.</p>
+    </div>
 
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        Two-tailed splits α across both tails; one-tailed concentrates it in one → smaller critical value, easier to reject · direction must be pre-registered or it's p-hacking · critical values come from inverse CDF (norm.ppf / t.ppf) · industry default is two-tailed
-      </div>
-    </section>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> Two-tailed splits α across both tails; one-tailed concentrates it in one → smaller critical value, easier to reject · direction must be pre-registered or it's p-hacking · critical values come from inverse CDF (norm.ppf / t.ppf) · industry default is two-tailed</p>
+    </div>
+  </section>
 
-    <!-- SUBTOPIC 4 -->
-    <section class="subtopic" id="s4">
-      <div class="num-tag">Subtopic 4 of 8</div>
+  <!-- 4. COMMON TESTS -->
+  <section class="section fade-in" id="s4">
+    <div class="section-header">
+      <span class="section-tag tag-b">Topic 4</span>
       <h2>Common Tests — z, t, χ², F</h2>
+    </div>
+    <p>Every test is the same skeleton — <code>(estimate − hypothesized)/SE</code> — applied to a different situation. Choice depends on data type, what's being compared, and whether σ is known.</p>
 
-      <p>Every test is the same skeleton — <code>(estimate − hypothesized)/SE</code> — applied to a different situation. Choice depends on data type, what's being compared, and whether σ is known.</p>
+    <h4>1. Z-Test</h4>
+    <p><strong>When:</strong> testing a mean/proportion, population σ known (or n≥30 so s≈σ).</p>
+    <div class="formula">z = (x̄ − μ₀) / (σ/√n)</div>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>σ=40 (known), n=64, x̄=990, μ₀=1000.<br>
+      <code>SE = 40/√64 = 5</code> → <code>z = (990−1000)/5 = −2.0</code> → p≈0.0455 → reject H₀.</p>
+    </div>
+    <p>True z-tests are rare in practice — you almost never know population σ. Mostly used for proportions.</p>
 
-      <h4 class="block-subtitle">1. Z-Test</h4>
-      <p><strong>When:</strong> testing a mean/proportion, population σ known (or n≥30 so s≈σ).</p>
-      <div class="formula-box"><div class="formula">z = (x̄ − μ₀) / (σ/√n)</div></div>
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        σ=40 (known), n=64, x̄=990, μ₀=1000.<br>
-        <code>SE = 40/√64 = 5</code> → <code>z = (990−1000)/5 = −2.0</code> → p≈0.0455 → reject H₀.
-      </div>
-      <p>True z-tests are rare in practice — you almost never know population σ. Mostly used for proportions.</p>
+    <h4>2. T-Test</h4>
+    <p><strong>When:</strong> testing a mean, σ unknown (the normal real-world case) — estimate with sample s.</p>
+    <div class="formula">t = (x̄ − μ₀) / (s/√n), &nbsp; df = n − 1</div>
+    <p>The t-distribution has fatter tails than normal to account for the extra uncertainty of estimating σ. As n grows, t → normal.</p>
 
-      <h4 class="block-subtitle">2. T-Test</h4>
-      <p><strong>When:</strong> testing a mean, σ unknown (the normal real-world case) — estimate with sample s.</p>
-      <div class="formula-box"><div class="formula">t = (x̄ − μ₀) / (s/√n), &nbsp; df = n − 1</div></div>
-      <p>The t-distribution has fatter tails than normal to account for the extra uncertainty of estimating σ. As n grows, t → normal.</p>
+    <table class="compare-table">
+      <tr><th>Type</th><th>Use Case</th><th>Example</th></tr>
+      <tr><td>One-sample</td><td>Compare sample mean to fixed value</td><td>"Is avg delivery time ≠ 30 mins?"</td></tr>
+      <tr><td>Independent two-sample</td><td>Compare means of two separate groups</td><td>A/B test mean comparison</td></tr>
+      <tr><td>Paired</td><td>Same subjects, before/after</td><td>Weight before vs after diet</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Type</th><th>Use Case</th><th>Example</th></tr>
-        <tr><td>One-sample</td><td>Compare sample mean to fixed value</td><td>"Is avg delivery time ≠ 30 mins?"</td></tr>
-        <tr><td>Independent two-sample</td><td>Compare means of two separate groups</td><td>A/B test mean comparison</td></tr>
-        <tr><td>Paired</td><td>Same subjects, before/after</td><td>Weight before vs after diet</td></tr>
+    <div class="formula-label">Independent Two-Sample (A/B test core formula)</div>
+    <div class="formula">t = (x̄₁ − x̄₂) / √(s₁²/n₁ + s₂²/n₂)</div>
+
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example — Paired Test</div>
+      <p>5 people's weight diff before/after diet: [−2,−1,−3,0,−2] kg</p>
+      <p><code>mean diff (d̄) = −1.6</code>, <code>s_d ≈ 1.14</code>, <code>SE ≈ 0.51</code><br>
+      <code>t = −1.6/0.51 ≈ −3.14</code>, df=4 → critical t ≈ ±2.78 → |−3.14|&gt;2.78 → <strong>reject H₀</strong>, diet had a real effect.</p>
+      <p>Paired beats independent here because differencing per-person cancels person-to-person variation — same logic as variance reduction.</p>
+    </div>
+
+    <h4>3. Chi-Square Test (χ²)</h4>
+    <p><strong>When:</strong> data is categorical. Two cases: <strong>(a) Goodness of Fit</strong> — does observed match expected? <strong>(b) Independence</strong> — are two categorical variables related?</p>
+    <div class="formula">χ² = Σ (Observed − Expected)² / Expected</div>
+
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example — Goodness of Fit</div>
+      <p>Roll a die 60 times, expect 10/face.</p>
+      <table class="compare-table" style="margin-top:10px;">
+        <tr><th>Face</th><th>Obs</th><th>Exp</th><th>(O−E)²/E</th></tr>
+        <tr><td>1</td><td>8</td><td>10</td><td>0.4</td></tr>
+        <tr><td>2</td><td>12</td><td>10</td><td>0.4</td></tr>
+        <tr><td>3</td><td>15</td><td>10</td><td>2.5</td></tr>
+        <tr><td>4</td><td>9</td><td>10</td><td>0.1</td></tr>
+        <tr><td>5</td><td>7</td><td>10</td><td>0.9</td></tr>
+        <tr><td>6</td><td>9</td><td>10</td><td>0.1</td></tr>
       </table>
+      <p><code>χ² = 4.4</code>, df=5 → critical χ²≈11.07 → 4.4&lt;11.07 → <strong>fail to reject</strong>, die looks fair.</p>
+    </div>
 
-      <div class="formula-box">
-        <div class="label">Independent Two-Sample (A/B test core formula)</div>
-        <div class="formula">t = (x̄₁ − x̄₂) / √(s₁²/n₁ + s₂²/n₂)</div>
-      </div>
+    <h4>4. F-Test</h4>
+    <p><strong>When:</strong> comparing variances. Basis of ANOVA and the equal-variance check before a t-test.</p>
+    <div class="formula">F = s₁² / s₂² &nbsp; (larger variance on top)</div>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>Group A var=25, Group B var=10 → <code>F = 25/10 = 2.5</code>. Compare against critical F (depends on both df's).</p>
+    </div>
+    <p>ANOVA's F-statistic asks: "is between-group variance large relative to within-group variance?" — same signal/noise logic throughout this entire subtopic.</p>
 
-      <div class="example-box">
-        <div class="label">Numerical Example — Paired Test</div>
-        5 people's weight diff before/after diet: [−2,−1,−3,0,−2] kg<br><br>
-        <code>mean diff (d̄) = −1.6</code>, <code>s_d ≈ 1.14</code>, <code>SE ≈ 0.51</code><br>
-        <code>t = −1.6/0.51 ≈ −3.14</code>, df=4 → critical t ≈ ±2.78 → |−3.14|&gt;2.78 → <strong>reject H₀</strong>, diet had a real effect.<br><br>
-        Paired beats independent here because differencing per-person cancels person-to-person variation — same logic as variance reduction.
-      </div>
+    <h3>Decision Framework</h3>
+    <table class="compare-table">
+      <tr><th>Question</th><th>Test</th></tr>
+      <tr><td>One mean vs known value, σ known</td><td>Z-test</td></tr>
+      <tr><td>One mean vs known value, σ unknown</td><td>One-sample T-test</td></tr>
+      <tr><td>Two independent group means</td><td>Independent T-test</td></tr>
+      <tr><td>Same subjects, before/after</td><td>Paired T-test</td></tr>
+      <tr><td>Categorical: fits expected distribution?</td><td>Chi-square goodness of fit</td></tr>
+      <tr><td>Categorical: two variables related?</td><td>Chi-square independence</td></tr>
+      <tr><td>Comparing variances / 3+ group means</td><td>F-test / ANOVA</td></tr>
+    </table>
 
-      <h4 class="block-subtitle">3. Chi-Square Test (χ²)</h4>
-      <p><strong>When:</strong> data is categorical. Two cases: <strong>(a) Goodness of Fit</strong> — does observed match expected? <strong>(b) Independence</strong> — are two categorical variables related?</p>
-      <div class="formula-box"><div class="formula">χ² = Σ (Observed − Expected)² / Expected</div></div>
+    <div class="myth-fact">
+      <div class="myth-row wrong"><span class="glyph">✗</span><span>"Conversion rate" sounds continuous because it's a percentage, so I'll use a t-test.</span></div>
+      <div class="myth-row right"><span class="glyph">✓</span><span>Look at the raw underlying data: each user converted (1) or not (0) — that's categorical. Use chi-square (or an equivalent two-proportion z-test), not a t-test.</span></div>
+    </div>
 
-      <div class="example-box">
-        <div class="label">Numerical Example — Goodness of Fit</div>
-        Roll a die 60 times, expect 10/face.
-        <table style="margin-top:10px;">
-          <tr><th>Face</th><th>Obs</th><th>Exp</th><th>(O−E)²/E</th></tr>
-          <tr><td>1</td><td>8</td><td>10</td><td>0.4</td></tr>
-          <tr><td>2</td><td>12</td><td>10</td><td>0.4</td></tr>
-          <tr><td>3</td><td>15</td><td>10</td><td>2.5</td></tr>
-          <tr><td>4</td><td>9</td><td>10</td><td>0.1</td></tr>
-          <tr><td>5</td><td>7</td><td>10</td><td>0.9</td></tr>
-          <tr><td>6</td><td>9</td><td>10</td><td>0.1</td></tr>
-        </table>
-        <code>χ² = 4.4</code>, df=5 → critical χ²≈11.07 → 4.4&lt;11.07 → <strong>fail to reject</strong>, die looks fair.
-      </div>
+    <h3>Degrees of Freedom (df)</h3>
+    <p><strong>df = the number of values free to vary, once constraints are fixed.</strong> Example: 5 numbers with a fixed mean of 10 (sum=50) — you can freely pick 4, the 5th is forced. 5 numbers, 4 degrees of freedom.</p>
 
-      <h4 class="block-subtitle">4. F-Test</h4>
-      <p><strong>When:</strong> comparing variances. Basis of ANOVA and the equal-variance check before a t-test.</p>
-      <div class="formula-box"><div class="formula">F = s₁² / s₂² &nbsp; (larger variance on top)</div></div>
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        Group A var=25, Group B var=10 → <code>F = 25/10 = 2.5</code>. Compare against critical F (depends on both df's).
-      </div>
-      <p>ANOVA's F-statistic asks: "is between-group variance large relative to within-group variance?" — same signal/noise logic throughout this entire subtopic.</p>
+    <p>This is why sample variance uses (n−1): <code>s² = Σ(xᵢ−x̄)²/(n−1)</code> — computing x̄ already used up 1 degree of freedom.</p>
 
-      <h3 class="block-title">Decision Framework</h3>
-      <table>
-        <tr><th>Question</th><th>Test</th></tr>
-        <tr><td>One mean vs known value, σ known</td><td>Z-test</td></tr>
-        <tr><td>One mean vs known value, σ unknown</td><td>One-sample T-test</td></tr>
-        <tr><td>Two independent group means</td><td>Independent T-test</td></tr>
-        <tr><td>Same subjects, before/after</td><td>Paired T-test</td></tr>
-        <tr><td>Categorical: fits expected distribution?</td><td>Chi-square goodness of fit</td></tr>
-        <tr><td>Categorical: two variables related?</td><td>Chi-square independence</td></tr>
-        <tr><td>Comparing variances / 3+ group means</td><td>F-test / ANOVA</td></tr>
-      </table>
+    <table class="compare-table">
+      <tr><th>Test</th><th>df Formula</th></tr>
+      <tr><td>One-sample t-test</td><td>n − 1</td></tr>
+      <tr><td>Independent two-sample t-test</td><td>n₁ + n₂ − 2</td></tr>
+      <tr><td>Chi-square goodness of fit</td><td>categories − 1</td></tr>
+      <tr><td>Chi-square independence</td><td>(rows−1) × (columns−1)</td></tr>
+    </table>
 
-      <div class="trap-box">
-        <div class="trap-row wrong"><span class="glyph">✗</span><span>"Conversion rate" sounds continuous because it's a percentage, so I'll use a t-test.</span></div>
-        <div class="trap-row right"><span class="glyph">✓</span><span>Look at the raw underlying data: each user converted (1) or not (0) — that's categorical. Use chi-square (or an equivalent two-proportion z-test), not a t-test.</span></div>
-      </div>
+    <p><strong>Why it matters:</strong> lower df → fatter tails → need a more extreme statistic to reach significance.</p>
+    <div class="code-block">from scipy.stats import t
+t.ppf(0.975, df=4)   <span class="comment"># ≈ 2.776  (small sample, fat tails)</span>
+t.ppf(0.975, df=100) <span class="comment"># ≈ 1.984  (large sample, ≈ normal)</span></div>
 
-      <h3 class="block-title">Degrees of Freedom (df)</h3>
-      <p><strong>df = the number of values free to vary, once constraints are fixed.</strong> Example: 5 numbers with a fixed mean of 10 (sum=50) — you can freely pick 4, the 5th is forced. 5 numbers, 4 degrees of freedom.</p>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> z-test (σ known, rare) vs t-test (σ unknown, common) · 3 t-test flavors: one-sample, independent, paired · chi-square for categorical data · F-test compares variances, basis of ANOVA · df = "values free to vary," costs 1 per estimated parameter</p>
+    </div>
+  </section>
 
-      <p>This is why sample variance uses (n−1): <code>s² = Σ(xᵢ−x̄)²/(n−1)</code> — computing x̄ already used up 1 degree of freedom.</p>
-
-      <table>
-        <tr><th>Test</th><th>df Formula</th></tr>
-        <tr><td>One-sample t-test</td><td>n − 1</td></tr>
-        <tr><td>Independent two-sample t-test</td><td>n₁ + n₂ − 2</td></tr>
-        <tr><td>Chi-square goodness of fit</td><td>categories − 1</td></tr>
-        <tr><td>Chi-square independence</td><td>(rows−1) × (columns−1)</td></tr>
-      </table>
-
-      <p><strong>Why it matters:</strong> lower df → fatter tails → need a more extreme statistic to reach significance.</p>
-      <pre><code>from scipy.stats import t
-t.ppf(0.975, df=4)   # ≈ 2.776  (small sample, fat tails)
-t.ppf(0.975, df=100) # ≈ 1.984  (large sample, ≈ normal)</code></pre>
-
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        z-test (σ known, rare) vs t-test (σ unknown, common) · 3 t-test flavors: one-sample, independent, paired · chi-square for categorical data · F-test compares variances, basis of ANOVA · df = "values free to vary," costs 1 per estimated parameter
-      </div>
-    </section>
-
-    <!-- SUBTOPIC 5 -->
-    <section class="subtopic" id="s5">
-      <div class="num-tag">Subtopic 5 of 8</div>
+  <!-- 5. ASSUMPTIONS -->
+  <section class="section fade-in" id="s5">
+    <div class="section-header">
+      <span class="section-tag tag-b">Topic 5</span>
       <h2>Assumptions</h2>
+    </div>
+    <p>Every test has fine print — assumptions that must hold for p-values and critical values to be valid. Violate them, and "p = 0.03" can be meaningless.</p>
 
-      <p>Every test has fine print — assumptions that must hold for p-values and critical values to be valid. Violate them, and "p = 0.03" can be meaningless.</p>
+    <h4>1. Normality</h4>
+    <div class="myth-fact">
+      <div class="myth-row wrong"><span class="glyph">✗</span><span>"T-tests require my raw data to be normally distributed."</span></div>
+      <div class="myth-row right"><span class="glyph">✓</span><span>T-tests require the sampling distribution of the mean to be approximately normal — CLT makes this hold even with non-normal raw data, given reasonably large n.</span></div>
+    </div>
+    <p><strong>Breaks when:</strong> small n (&lt;30ish) with heavily skewed/heavy-tailed raw data — CLT hasn't kicked in yet.</p>
+    <p><strong>Check:</strong> Q-Q plot, Shapiro-Wilk test, histogram shape. <strong>Fix:</strong> larger n, log-transform skewed data, or use a non-parametric test (e.g. Mann-Whitney U).</p>
 
-      <h4 class="block-subtitle">1. Normality</h4>
-      <div class="trap-box">
-        <div class="trap-row wrong"><span class="glyph">✗</span><span>"T-tests require my raw data to be normally distributed."</span></div>
-        <div class="trap-row right"><span class="glyph">✓</span><span>T-tests require the sampling distribution of the mean to be approximately normal — CLT makes this hold even with non-normal raw data, given reasonably large n.</span></div>
-      </div>
-      <p><strong>Breaks when:</strong> small n (&lt;30ish) with heavily skewed/heavy-tailed raw data — CLT hasn't kicked in yet.</p>
-      <p><strong>Check:</strong> Q-Q plot, Shapiro-Wilk test, histogram shape. <strong>Fix:</strong> larger n, log-transform skewed data, or use a non-parametric test (e.g. Mann-Whitney U).</p>
+    <h4>2. Independence</h4>
+    <p>Each observation should be unrelated to others. <strong>Violation example:</strong> the same user appearing multiple times in an A/B test, counted as separate "independent" rows.</p>
+    <p><strong>Why it matters:</strong> violating independence artificially shrinks SE, inflating your test statistic and your true false-positive rate beyond stated α.</p>
+    <p><strong>Common violations:</strong> repeated measurements per user, time-series autocorrelation, clustered data (students in a classroom).</p>
+    <p><strong>Fix:</strong> aggregate to one row per independent unit, use mixed-effects models / clustered SEs, or autocorrelation-aware models for time series.</p>
 
-      <h4 class="block-subtitle">2. Independence</h4>
-      <p>Each observation should be unrelated to others. <strong>Violation example:</strong> the same user appearing multiple times in an A/B test, counted as separate "independent" rows.</p>
-      <p><strong>Why it matters:</strong> violating independence artificially shrinks SE, inflating your test statistic and your true false-positive rate beyond stated α.</p>
-      <p><strong>Common violations:</strong> repeated measurements per user, time-series autocorrelation, clustered data (students in a classroom).</p>
-      <p><strong>Fix:</strong> aggregate to one row per independent unit, use mixed-effects models / clustered SEs, or autocorrelation-aware models for time series.</p>
+    <h4>3. Homoscedasticity (Equal Variance)</h4>
+    <p>Groups being compared should have similar spread, not just similar means.</p>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>Group A (control) var=10, Group B (new feature) var=200. Even with similar means, B's huge variance distorts the pooled SE estimate → unreliable test statistic.</p>
+    </div>
+    <p><strong>Check:</strong> Levene's test, the F-test (F=s₁²/s₂²), side-by-side boxplots. <strong>Fix:</strong> Welch's t-test — doesn't assume equal variance, adjusts df automatically. Many statisticians default to Welch's always.</p>
 
-      <h4 class="block-subtitle">3. Homoscedasticity (Equal Variance)</h4>
-      <p>Groups being compared should have similar spread, not just similar means.</p>
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        Group A (control) var=10, Group B (new feature) var=200. Even with similar means, B's huge variance distorts the pooled SE estimate → unreliable test statistic.
-      </div>
-      <p><strong>Check:</strong> Levene's test, the F-test (F=s₁²/s₂²), side-by-side boxplots. <strong>Fix:</strong> Welch's t-test — doesn't assume equal variance, adjusts df automatically. Many statisticians default to Welch's always.</p>
+    <table class="compare-table">
+      <tr><th>Assumption</th><th>What Breaks</th><th>Detection</th><th>Fix</th></tr>
+      <tr><td>Normality</td><td>Skewed/small-n data</td><td>Q-Q plot, Shapiro-Wilk</td><td>More data, transform, non-parametric test</td></tr>
+      <tr><td>Independence</td><td>Repeated/clustered/time-dependent data</td><td>Domain logic, Durbin-Watson</td><td>Aggregate per unit, mixed models</td></tr>
+      <tr><td>Homoscedasticity</td><td>Unequal variance between groups</td><td>Levene's test, F-test</td><td>Welch's t-test</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Assumption</th><th>What Breaks</th><th>Detection</th><th>Fix</th></tr>
-        <tr><td>Normality</td><td>Skewed/small-n data</td><td>Q-Q plot, Shapiro-Wilk</td><td>More data, transform, non-parametric test</td></tr>
-        <tr><td>Independence</td><td>Repeated/clustered/time-dependent data</td><td>Domain logic, Durbin-Watson</td><td>Aggregate per unit, mixed models</td></tr>
-        <tr><td>Homoscedasticity</td><td>Unequal variance between groups</td><td>Levene's test, F-test</td><td>Welch's t-test</td></tr>
-      </table>
+    <div class="callout callout-insight">
+      <div class="callout-title">Interview-Level Insight</div>
+      <p>Independence is the assumption that's hardest to fix after the fact and most likely to silently inflate your false positive rate. Normality is usually the <em>least</em> dangerous violation because CLT bails you out with reasonable sample sizes. Danger ranking: independence &gt; homoscedasticity &gt; normality — many candidates get this backward.</p>
+    </div>
 
-      <div class="insight-box">
-        <div class="label">Interview-Level Insight</div>
-        <p>Independence is the assumption that's hardest to fix after the fact and most likely to silently inflate your false positive rate. Normality is usually the <em>least</em> dangerous violation because CLT bails you out with reasonable sample sizes. Danger ranking: independence &gt; homoscedasticity &gt; normality — many candidates get this backward.</p>
-      </div>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> Normality: CLT often saves you, least dangerous · Independence: inflates false positives by shrinking SE — most dangerous, hardest to fix · Homoscedasticity: unequal variance distorts pooled SE; Welch's t-test is the safe default</p>
+    </div>
+  </section>
 
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        Normality: CLT often saves you, least dangerous · Independence: inflates false positives by shrinking SE — most dangerous, hardest to fix · Homoscedasticity: unequal variance distorts pooled SE; Welch's t-test is the safe default
-      </div>
-    </section>
-
-    <!-- SUBTOPIC 6 -->
-    <section class="subtopic" id="s6">
-      <div class="num-tag">Subtopic 6 of 8</div>
+  <!-- 6. STATISTICAL VS PRACTICAL SIGNIFICANCE -->
+  <section class="section fade-in" id="s6">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 6</span>
       <h2>Statistical vs Practical Significance</h2>
+    </div>
+    <p>You can get p = 0.001 for an effect that's completely useless in the real world. p-values alone are dangerously incomplete.</p>
 
-      <p>You can get p = 0.001 for an effect that's completely useless in the real world. p-values alone are dangerously incomplete.</p>
+    <p><strong>Statistical significance</strong> answers: "Is this effect likely real, or just noise?" (the p-value question)<br>
+    <strong>Practical significance</strong> answers: "Does this effect actually matter?" (a business/domain question)</p>
 
-      <p><strong>Statistical significance</strong> answers: "Is this effect likely real, or just noise?" (the p-value question)<br>
-      <strong>Practical significance</strong> answers: "Does this effect actually matter?" (a business/domain question)</p>
+    <h3>The Trap: Large n Makes Everything "Significant"</h3>
+    <p>Since <code>z = (x̄−μ₀)/(σ/√n)</code>, as n grows, SE shrinks toward 0 — even a meaningless difference eventually produces a tiny p-value.</p>
 
-      <h3 class="block-title">The Trap: Large n Makes Everything "Significant"</h3>
-      <p>Since <code>z = (x̄−μ₀)/(σ/√n)</code>, as n grows, SE shrinks toward 0 — even a meaningless difference eventually produces a tiny p-value.</p>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>Website redesign A/B test: control 10.00% conversion, treatment 10.01%.</p>
+      <p>n=100/group → p=0.85 (not significant, as expected)<br>
+      n=10,000,000/group → p=0.001 (statistically significant!)</p>
+      <p>The 0.01 percentage point difference never changed — only n changed.</p>
+    </div>
 
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        Website redesign A/B test: control 10.00% conversion, treatment 10.01%.<br><br>
-        n=100/group → p=0.85 (not significant, as expected)<br>
-        n=10,000,000/group → p=0.001 (statistically significant!)<br><br>
-        The 0.01 percentage point difference never changed — only n changed.
-      </div>
+    <h3>Effect Size — Cohen's d</h3>
+    <div class="formula">d = (x̄₁ − x̄₂) / s_pooled</div>
+    <table class="compare-table">
+      <tr><th>d</th><th>Interpretation</th></tr>
+      <tr><td>0.2</td><td>Small effect</td></tr>
+      <tr><td>0.5</td><td>Medium effect</td></tr>
+      <tr><td>0.8</td><td>Large effect</td></tr>
+    </table>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>Mean difference = 5, pooled std = 10 → <code>d = 5/10 = 0.5</code> — medium effect, even if p&lt;0.001.</p>
+    </div>
 
-      <h3 class="block-title">Effect Size — Cohen's d</h3>
-      <div class="formula-box"><div class="formula">d = (x̄₁ − x̄₂) / s_pooled</div></div>
-      <table>
-        <tr><th>d</th><th>Interpretation</th></tr>
-        <tr><td>0.2</td><td>Small effect</td></tr>
-        <tr><td>0.5</td><td>Medium effect</td></tr>
-        <tr><td>0.8</td><td>Large effect</td></tr>
-      </table>
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        Mean difference = 5, pooled std = 10 → <code>d = 5/10 = 0.5</code> — medium effect, even if p&lt;0.001.
-      </div>
+    <h3>Effect Size for Proportions</h3>
+    <div class="formula">Absolute lift = p_treatment − p_control<br>Relative lift = (p_treatment − p_control) / p_control</div>
+    <p>10.00%→10.01% is a 0.01pp absolute lift, or 0.1% relative lift. No reasonable business ships for that, even with p&lt;0.001 — implementation cost likely exceeds the value.</p>
 
-      <h3 class="block-title">Effect Size for Proportions</h3>
-      <div class="formula-box">
-        <div class="formula">Absolute lift = p_treatment − p_control<br>Relative lift = (p_treatment − p_control) / p_control</div>
-      </div>
-      <p>10.00%→10.01% is a 0.01pp absolute lift, or 0.1% relative lift. No reasonable business ships for that, even with p&lt;0.001 — implementation cost likely exceeds the value.</p>
+    <div class="callout callout-insight">
+      <div class="callout-title">Interview-Level Insight</div>
+      <p>p-value tells you the result is unlikely to be noise. Effect size tells you whether it's big enough to act on. Always report both — at internet scale, n is huge and everything becomes "significant."</p>
+    </div>
 
-      <div class="insight-box">
-        <div class="label">Interview-Level Insight</div>
-        <p>p-value tells you the result is unlikely to be noise. Effect size tells you whether it's big enough to act on. Always report both — at internet scale, n is huge and everything becomes "significant."</p>
-      </div>
+    <h3>Confidence Intervals Bridge Both</h3>
+    <p>Instead of just a p-value, report: <em>"Conversion increased by 0.01% [CI: 0.005% to 0.015%]"</em> — communicates significance (excludes 0?) and magnitude (how big, with uncertainty) in one number.</p>
 
-      <h3 class="block-title">Confidence Intervals Bridge Both</h3>
-      <p>Instead of just a p-value, report: <em>"Conversion increased by 0.01% [CI: 0.005% to 0.015%]"</em> — communicates significance (excludes 0?) and magnitude (how big, with uncertainty) in one number. (Full topic next in the roadmap.)</p>
+    <table class="compare-table">
+      <tr><th>Concept</th><th>Answers</th><th>Formula/Metric</th></tr>
+      <tr><td>Statistical significance</td><td>Is it real?</td><td>p-value</td></tr>
+      <tr><td>Practical significance</td><td>Does it matter?</td><td>Effect size, lift %</td></tr>
+      <tr><td>Both at once</td><td>Real AND how big, with uncertainty</td><td>Confidence interval</td></tr>
+    </table>
 
-      <table>
-        <tr><th>Concept</th><th>Answers</th><th>Formula/Metric</th></tr>
-        <tr><td>Statistical significance</td><td>Is it real?</td><td>p-value</td></tr>
-        <tr><td>Practical significance</td><td>Does it matter?</td><td>Effect size, lift %</td></tr>
-        <tr><td>Both at once</td><td>Real AND how big, with uncertainty</td><td>Confidence interval</td></tr>
-      </table>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> Large n → tiny effects become "significant" (expected, not a flaw) · effect size tells magnitude, p-value tells reality · always report both · decision to ship should weigh effect size against cost, not just p&lt;0.05</p>
+    </div>
+  </section>
 
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        Large n → tiny effects become "significant" (expected, not a flaw) · effect size tells magnitude, p-value tells reality · always report both · decision to ship should weigh effect size against cost, not just p&lt;0.05
-      </div>
-    </section>
-
-    <!-- SUBTOPIC 7 -->
-    <section class="subtopic" id="s7">
-      <div class="num-tag">Subtopic 7 of 8</div>
+  <!-- 7. MULTIPLE TESTING PROBLEM -->
+  <section class="section fade-in" id="s7">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 7</span>
       <h2>Multiple Testing Problem</h2>
+    </div>
+    <p>Every test has some chance of a false positive (α, typically 5%). Fine for one test. But run <strong>many</strong> tests, and by pure chance you'll likely see false "wins."</p>
 
-      <p>Every test has some chance of a false positive (α, typically 5%). Fine for one test. But run <strong>many</strong> tests, and by pure chance you'll likely see false "wins."</p>
+    <h3>The Math</h3>
+    <div class="formula">P(at least one false positive) = 1 − (1 − α)^m</div>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>m=20 tests, α=0.05 → <code>1 − (0.95)^20 = 1 − 0.358 = 0.642</code></p>
+      <p><strong>64% chance</strong> of at least one false "significant" result — even if nothing real exists anywhere. This is the <strong>Family-Wise Error Rate (FWER)</strong>.</p>
+    </div>
+    <p>This is exactly how p-hacking disasters happen: testing 20 metrics, reporting only the one significant result.</p>
 
-      <h3 class="block-title">The Math</h3>
-      <div class="formula-box"><div class="formula">P(at least one false positive) = 1 − (1 − α)^m</div></div>
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        m=20 tests, α=0.05 → <code>1 − (0.95)^20 = 1 − 0.358 = 0.642</code><br>
-        <strong>64% chance</strong> of at least one false "significant" result — even if nothing real exists anywhere. This is the <strong>Family-Wise Error Rate (FWER)</strong>.
-      </div>
-      <p>This is exactly how p-hacking disasters happen: testing 20 metrics, reporting only the one significant result.</p>
+    <h3>Fix 1: Bonferroni Correction</h3>
+    <div class="formula">α_corrected = α / m</div>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>m=20, want overall α=0.05 → <code>α_corrected = 0.05/20 = 0.0025</code>. Each test now needs p&lt;0.0025.</p>
+    </div>
+    <p><strong>Trade-off:</strong> very conservative — dramatically reduces power (more Type II errors). At m=100, bar becomes p&lt;0.0005.</p>
 
-      <h3 class="block-title">Fix 1: Bonferroni Correction</h3>
-      <div class="formula-box"><div class="formula">α_corrected = α / m</div></div>
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        m=20, want overall α=0.05 → <code>α_corrected = 0.05/20 = 0.0025</code>. Each test now needs p&lt;0.0025.
-      </div>
-      <p><strong>Trade-off:</strong> very conservative — dramatically reduces power (more Type II errors). At m=100, bar becomes p&lt;0.0005.</p>
+    <h3>Fix 2: False Discovery Rate (Benjamini-Hochberg)</h3>
+    <p>Instead of "probability of even one false positive" (strict), control the <strong>expected proportion of false positives among declared discoveries</strong>.</p>
+    <div class="formula">FDR = E[false positives / total positives declared]</div>
 
-      <h3 class="block-title">Fix 2: False Discovery Rate (Benjamini-Hochberg)</h3>
-      <p>Instead of "probability of even one false positive" (strict), control the <strong>expected proportion of false positives among declared discoveries</strong>.</p>
-      <div class="formula-box"><div class="formula">FDR = E[false positives / total positives declared]</div></div>
+    <p><strong>BH procedure:</strong></p>
+    <ol>
+      <li>Rank all m p-values smallest to largest</li>
+      <li>Find largest k such that p₍ₖ₎ ≤ (k/m) × α</li>
+      <li>Reject H₀ for all tests with rank ≤ k</li>
+    </ol>
 
-      <p><strong>BH procedure:</strong></p>
-      <ol class="normal-list">
-        <li>Rank all m p-values smallest to largest</li>
-        <li>Find largest k such that p₍ₖ₎ ≤ (k/m) × α</li>
-        <li>Reject H₀ for all tests with rank ≤ k</li>
-      </ol>
-
-      <div class="example-box">
-        <div class="label">Numerical Example</div>
-        m=5, α=0.05, sorted p-values: 0.001, 0.008, 0.02, 0.04, 0.12
-        <table style="margin-top:10px;">
-          <tr><th>Rank (k)</th><th>p-value</th><th>Threshold (k/m × α)</th><th>Pass?</th></tr>
-          <tr><td>1</td><td>0.001</td><td>0.01</td><td>✓</td></tr>
-          <tr><td>2</td><td>0.008</td><td>0.02</td><td>✓</td></tr>
-          <tr><td>3</td><td>0.02</td><td>0.03</td><td>✓</td></tr>
-          <tr><td>4</td><td>0.04</td><td>0.04</td><td>✓ (equal, passes)</td></tr>
-          <tr><td>5</td><td>0.12</td><td>0.05</td><td>✗</td></tr>
-        </table>
-        Largest k where it passes = 4 → reject H₀ for ranks 1–4.
-      </div>
-
-      <table>
-        <tr><th></th><th>Bonferroni (FWER)</th><th>Benjamini-Hochberg (FDR)</th></tr>
-        <tr><td>Controls</td><td>P(any false positive)</td><td>Expected % false positives among discoveries</td></tr>
-        <tr><td>Strictness</td><td>Very conservative</td><td>Less conservative, more power</td></tr>
-        <tr><td>Best for</td><td>Few tests, high stakes (clinical trials)</td><td>Many tests, exploratory (genomics, dozens of A/B metrics)</td></tr>
-        <tr><td>Risk</td><td>High Type II error</td><td>Tolerates some false positives</td></tr>
+    <div class="callout callout-a">
+      <div class="callout-title">Numerical Example</div>
+      <p>m=5, α=0.05, sorted p-values: 0.001, 0.008, 0.02, 0.04, 0.12</p>
+      <table class="compare-table" style="margin-top:10px;">
+        <tr><th>Rank (k)</th><th>p-value</th><th>Threshold (k/m × α)</th><th>Pass?</th></tr>
+        <tr><td>1</td><td>0.001</td><td>0.01</td><td>✓</td></tr>
+        <tr><td>2</td><td>0.008</td><td>0.02</td><td>✓</td></tr>
+        <tr><td>3</td><td>0.02</td><td>0.03</td><td>✓</td></tr>
+        <tr><td>4</td><td>0.04</td><td>0.04</td><td>✓ (equal, passes)</td></tr>
+        <tr><td>5</td><td>0.12</td><td>0.05</td><td>✗</td></tr>
       </table>
+      <p>Largest k where it passes = 4 → reject H₀ for ranks 1–4.</p>
+    </div>
 
-      <div class="insight-box">
-        <div class="label">Interview-Level Insight</div>
-        <p>If you're running a single confirmatory test, you don't need correction. The moment you run multiple comparisons and report "the significant one," you must correct — otherwise your stated α is a lie. Use Bonferroni when false positives are very costly (few tests); use FDR/BH when scanning many metrics and wanting power.</p>
-      </div>
+    <table class="compare-table">
+      <tr><th></th><th>Bonferroni (FWER)</th><th>Benjamini-Hochberg (FDR)</th></tr>
+      <tr><td>Controls</td><td>P(any false positive)</td><td>Expected % false positives among discoveries</td></tr>
+      <tr><td>Strictness</td><td>Very conservative</td><td>Less conservative, more power</td></tr>
+      <tr><td>Best for</td><td>Few tests, high stakes (clinical trials)</td><td>Many tests, exploratory (genomics, dozens of A/B metrics)</td></tr>
+      <tr><td>Risk</td><td>High Type II error</td><td>Tolerates some false positives</td></tr>
+    </table>
 
-      <div class="subtopic-footer">
-        <div class="takeaway-label">Key Takeaways</div>
-        Testing many things inflates false-positive probability (FWER) · Bonferroni: α/m, conservative, low power · BH/FDR: controls proportion of false discoveries, more power · always correct when reporting "the significant one" from many tests
-      </div>
-    </section>
+    <div class="callout callout-insight">
+      <div class="callout-title">Interview-Level Insight</div>
+      <p>If you're running a single confirmatory test, you don't need correction. The moment you run multiple comparisons and report "the significant one," you must correct — otherwise your stated α is a lie. Use Bonferroni when false positives are very costly (few tests); use FDR/BH when scanning many metrics and wanting power.</p>
+    </div>
 
-    <!-- SUBTOPIC 8 -->
-    <section class="subtopic" id="s8">
-      <div class="num-tag">Subtopic 8 of 8</div>
+    <div class="key-insight">
+      <span class="icon">📌</span>
+      <p><strong>Key Takeaways:</strong> Testing many things inflates false-positive probability (FWER) · Bonferroni: α/m, conservative, low power · BH/FDR: controls proportion of false discoveries, more power · always correct when reporting "the significant one" from many tests</p>
+    </div>
+  </section>
+
+  <!-- 8. INTERVIEW TRAPS -->
+  <section class="section fade-in" id="s8">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Topic 8</span>
       <h2>Interview Traps &amp; Common Misconceptions</h2>
+    </div>
+    <p>Rapid-fire consolidation of every trap embedded across Subtopics 1–7 — exactly how interviewers test if you actually understand this or just memorized formulas.</p>
 
-      <p>Rapid-fire consolidation of every trap embedded across Subtopics 1–7 — exactly how interviewers test if you actually understand this or just memorized formulas.</p>
+    <h4>Trap 1 — p-value misinterpretation</h4>
+    <div class="myth-fact">
+      <div class="myth-row wrong"><span class="glyph">✗</span><span>p = 0.03 means 3% chance H₀ is true</span></div>
+      <div class="myth-row right"><span class="glyph">✓</span><span>p = P(data this extreme | H₀ true)</span></div>
+    </div>
 
-      <h4 class="block-subtitle">Trap 1 — p-value misinterpretation</h4>
-      <div class="trap-box">
-        <div class="trap-row wrong"><span class="glyph">✗</span><span>p = 0.03 means 3% chance H₀ is true</span></div>
-        <div class="trap-row right"><span class="glyph">✓</span><span>p = P(data this extreme | H₀ true)</span></div>
-      </div>
+    <h4>Trap 2 — "Accepting" the null</h4>
+    <p>You can only "fail to reject" — absence of evidence ≠ evidence of absence. Maybe your test was just underpowered.</p>
 
-      <h4 class="block-subtitle">Trap 2 — "Accepting" the null</h4>
-      <p>You can only "fail to reject" — absence of evidence ≠ evidence of absence. Maybe your test was just underpowered.</p>
+    <h4>Trap 3 — Confusing α with p-value</h4>
+    <p>α is the threshold set <em>beforehand</em> (a policy decision). p-value is <em>computed from data</em>. They're compared, not the same thing.</p>
 
-      <h4 class="block-subtitle">Trap 3 — Confusing α with p-value</h4>
-      <p>α is the threshold set <em>beforehand</em> (a policy decision). p-value is <em>computed from data</em>. They're compared, not the same thing.</p>
+    <h4>Trap 4 — One-tailed test chosen after seeing data</h4>
+    <p>Direction must be pre-registered, or it's p-hacking and your real α is no longer what you claim.</p>
 
-      <h4 class="block-subtitle">Trap 4 — One-tailed test chosen after seeing data</h4>
-      <p>Direction must be pre-registered, or it's p-hacking and your real α is no longer what you claim.</p>
+    <h4>Trap 5 — "n=30 always makes things normal"</h4>
+    <p>False — CLT convergence speed depends on how skewed/heavy-tailed the original distribution is. Highly skewed data may need much larger n.</p>
 
-      <h4 class="block-subtitle">Trap 5 — "n=30 always makes things normal"</h4>
-      <p>False — CLT convergence speed depends on how skewed/heavy-tailed the original distribution is. Highly skewed data may need much larger n.</p>
+    <h4>Trap 6 — Statistical significance = practical significance</h4>
+    <p>Large n makes trivial effects "significant." Always report effect size alongside p-value.</p>
 
-      <h4 class="block-subtitle">Trap 6 — Statistical significance = practical significance</h4>
-      <p>Large n makes trivial effects "significant." Always report effect size alongside p-value.</p>
+    <h4>Trap 7 — Running multiple tests without correction</h4>
+    <p>Testing 20 metrics and reporting the 1 significant one without correction is implicit p-hacking.</p>
 
-      <h4 class="block-subtitle">Trap 7 — Running multiple tests without correction</h4>
-      <p>Testing 20 metrics and reporting the 1 significant one without correction is implicit p-hacking.</p>
+    <h4>Trap 8 — Peeking at A/B results repeatedly and stopping early</h4>
+    <p>Checking p-value every day and stopping as soon as it dips below 0.05 inflates false positive rate dramatically — "optional stopping," a special case of the multiple testing problem (each peek is another test).</p>
 
-      <h4 class="block-subtitle">Trap 8 — Peeking at A/B results repeatedly and stopping early</h4>
-      <p>Checking p-value every day and stopping as soon as it dips below 0.05 inflates false positive rate dramatically — "optional stopping," a special case of the multiple testing problem (each peek is another test).</p>
+    <h4>Trap 9 — Confusing correlation in test statistics with causation</h4>
+    <p>A significant t-test on observational data tells you means differ — it says nothing about <em>why</em>.</p>
 
-      <h4 class="block-subtitle">Trap 9 — Confusing correlation in test statistics with causation</h4>
-      <p>A significant t-test on observational data tells you means differ — it says nothing about <em>why</em>.</p>
+    <h4>Trap 10 — Assuming higher n always fixes a bad test design</h4>
+    <p>More n fixes power problems (Type II error) but does nothing for violated independence or biased sampling. Garbage data at scale is still garbage.</p>
+  </section>
 
-      <h4 class="block-subtitle">Trap 10 — Assuming higher n always fixes a bad test design</h4>
-      <p>More n fixes power problems (Type II error) but does nothing for violated independence or biased sampling. Garbage data at scale is still garbage.</p>
+  <!-- 30 INTERVIEW QUESTIONS -->
+  <section class="section fade-in" id="iq">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Final</span>
+      <h2>30 Hypothesis Testing Interview Questions</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All</button>
+      <button class="filter-btn" onclick="filterIQ('easy', this)">Easy</button>
+      <button class="filter-btn" onclick="filterIQ('medium', this)">Medium</button>
+      <button class="filter-btn" onclick="filterIQ('hard', this)">Hard</button>
+    </div>
 
-    </section>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What is a null hypothesis?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>The default assumption that nothing interesting is happening — no effect, no difference, no relationship. It's the claim you're trying to find evidence against.</p></div>
+    </div>
 
-    <!-- INTERVIEW QUESTIONS -->
-    <section class="subtopic" id="iq">
-      <div class="num-tag">Practice Set</div>
-      <h2>30 Interview Questions — Easy to Hard</h2>
-      <p>Click any question to reveal the answer. Work through in order — difficulty ramps from foundational definitions to edge cases and real production scenarios.</p>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What does a p-value actually represent?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>The probability of observing data this extreme (or more extreme), <em>assuming H₀ is true</em>. It is NOT the probability that H₀ is true.</p></div>
+    </div>
 
-      <div class="iq-difficulty-header">
-        <span class="pill easy">Easy</span>
-        <div class="rule-line"></div>
-      </div>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between H₀ and H₁?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>H₀ is the default/no-effect claim. H₁ is what you're trying to find support for — typically the presence of an effect or difference.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q1.</span> What is a null hypothesis?</summary>
-        <div class="iq-answer"><p>The default assumption that nothing interesting is happening — no effect, no difference, no relationship. It's the claim you're trying to find evidence against.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Why do we say "fail to reject H₀" instead of "accept H₀"?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Failing to find evidence against H₀ doesn't prove H₀ is true — your test might just be underpowered. Absence of evidence is not evidence of absence.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q2.</span> What does a p-value actually represent?</summary>
-        <div class="iq-answer"><p>The probability of observing data this extreme (or more extreme), <em>assuming H₀ is true</em>. It is NOT the probability that H₀ is true.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What is a Type I error? What is a Type II error?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Type I (α): rejecting H₀ when it's actually true — a false positive. Type II (β): failing to reject H₀ when it's actually false — a false negative.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q3.</span> What's the difference between H₀ and H₁?</summary>
-        <div class="iq-answer"><p>H₀ is the default/no-effect claim. H₁ is what you're trying to find support for — typically the presence of an effect or difference.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q6</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What is statistical power?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Power = 1 − β = the probability of correctly detecting a real effect when one exists. Industry standard target is 0.80.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q4.</span> Why do we say "fail to reject H₀" instead of "accept H₀"?</summary>
-        <div class="iq-answer"><p>Failing to find evidence against H₀ doesn't prove H₀ is true — your test might just be underpowered. Absence of evidence is not evidence of absence.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the difference between a one-tailed and two-tailed test?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Two-tailed tests for a difference in either direction (H₁: μ≠μ₀), splitting α across both tails. One-tailed tests for a difference in one specific direction (H₁: μ&gt;μ₀ or μ&lt;μ₀), putting all of α in one tail — making it easier to reject H₀.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q5.</span> What is a Type I error? What is a Type II error?</summary>
-        <div class="iq-answer"><p>Type I (α): rejecting H₀ when it's actually true — a false positive. Type II (β): failing to reject H₀ when it's actually false — a false negative.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q8</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">When would you use a t-test instead of a z-test?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>When the population standard deviation σ is unknown and must be estimated from the sample (s). This is the common real-world case. Z-tests require known σ.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q6.</span> What is statistical power?</summary>
-        <div class="iq-answer"><p>Power = 1 − β = the probability of correctly detecting a real effect when one exists. Industry standard target is 0.80.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q9</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What does "degrees of freedom" mean intuitively?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>The number of values free to vary once certain constraints (like a fixed mean) are set. E.g., 5 numbers with a fixed mean — 4 are free to vary, the 5th is forced. Estimating a parameter from data costs 1 degree of freedom.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q7.</span> What's the difference between a one-tailed and two-tailed test?</summary>
-        <div class="iq-answer"><p>Two-tailed tests for a difference in either direction (H₁: μ≠μ₀), splitting α across both tails. One-tailed tests for a difference in one specific direction (H₁: μ&gt;μ₀ or μ&lt;μ₀), putting all of α in one tail — making it easier to reject H₀.</p></div>
-      </details>
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q10</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What significance level (α) is most commonly used, and what does it mean?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>α = 0.05 is most common — it means you're willing to accept a 5% chance of a false positive (rejecting H₀ when it's actually true).</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q8.</span> When would you use a t-test instead of a z-test?</summary>
-        <div class="iq-answer"><p>When the population standard deviation σ is unknown and must be estimated from the sample (s). This is the common real-world case. Z-tests require known σ.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q11</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Derive the general form of a test statistic from first principles.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>From CLT, x̄ ~ N(μ, σ²/n). Under H₀, μ=μ₀, so x̄ ~ N(μ₀, σ²/n). Standardizing this (just like z=(x−μ)/σ for a single value) gives z=(x̄−μ₀)/(σ/√n). The denominator is the standard error — the spread of the sampling distribution, not raw data.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q9.</span> What does "degrees of freedom" mean intuitively?</summary>
-        <div class="iq-answer"><p>The number of values free to vary once certain constraints (like a fixed mean) are set. E.g., 5 numbers with a fixed mean — 4 are free to vary, the 5th is forced. Estimating a parameter from data costs 1 degree of freedom.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q12</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why does lowering α increase the risk of Type II errors?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Lowering α makes the rejection threshold stricter — you need stronger evidence to reject H₀. This means real effects are more likely to be missed (failed to reject when H₀ is actually false), increasing β and decreasing power.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q10.</span> What significance level (α) is most commonly used, and what does it mean?</summary>
-        <div class="iq-answer"><p>α = 0.05 is most common — it means you're willing to accept a 5% chance of a false positive (rejecting H₀ when it's actually true).</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q13</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Explain the three types of t-tests and when each is used.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>One-sample: compare a sample mean to a fixed/known value. Independent two-sample: compare means of two separate, unrelated groups (e.g., A/B test). Paired: compare two measurements on the same subjects (e.g., before/after), which cancels out subject-level variation and increases power.</p></div>
+    </div>
 
-      <div class="iq-difficulty-header">
-        <span class="pill medium">Medium</span>
-        <div class="rule-line"></div>
-      </div>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q14</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">A categorical variable like "converted or not" is being analyzed for an A/B test. Why is a t-test the wrong choice?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Because the raw underlying data is binary/categorical (1=converted, 0=not), not continuous — even though the summary statistic (conversion rate) looks like a percentage. The correct test is chi-square (or an equivalent two-proportion z-test).</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q11.</span> Derive the general form of a test statistic from first principles.</summary>
-        <div class="iq-answer"><p>From CLT, x̄ ~ N(μ, σ²/n). Under H₀, μ=μ₀, so x̄ ~ N(μ₀, σ²/n). Standardizing this (just like z=(x−μ)/σ for a single value) gives z=(x̄−μ₀)/(σ/√n). The denominator is the standard error — the spread of the sampling distribution, not raw data.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q15</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's the practical consequence of violating the independence assumption?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>It artificially shrinks the standard error, inflating the test statistic and making results look more significant than they really are — your true false-positive rate ends up higher than your stated α.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q12.</span> Why does lowering α increase the risk of Type II errors?</summary>
-        <div class="iq-answer"><p>Lowering α makes the rejection threshold stricter — you need stronger evidence to reject H₀. This means real effects are more likely to be missed (failed to reject when H₀ is actually false), increasing β and decreasing power.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q16</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why is the t-distribution's tail fatter than the normal distribution's?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Because we're estimating σ with the sample statistic s, which adds extra uncertainty. The fatter tails account for that — as n grows, s becomes a better estimate of σ, and the t-distribution converges to normal.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q13.</span> Explain the three types of t-tests and when each is used.</summary>
-        <div class="iq-answer"><p>One-sample: compare a sample mean to a fixed/known value. Independent two-sample: compare means of two separate, unrelated groups (e.g., A/B test). Paired: compare two measurements on the same subjects (e.g., before/after), which cancels out subject-level variation and increases power.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q17</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's the formula for an independent two-sample t-test, and how does it connect to A/B testing?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>t = (x̄₁−x̄₂) / √(s₁²/n₁ + s₂²/n₂). This is literally the formula behind comparing two group means in an A/B test — same "(difference)/SE" skeleton, with SE combining variance from both groups.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q14.</span> A categorical variable like "converted or not" is being analyzed for an A/B test. Why is a t-test the wrong choice?</summary>
-        <div class="iq-answer"><p>Because the raw underlying data is binary/categorical (1=converted, 0=not), not continuous — even though the summary statistic (conversion rate) looks like a percentage. The correct test is chi-square (or an equivalent two-proportion z-test).</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q18</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">An A/B test shows p=0.001 with a 0.05% relative lift on 50 million users. Should you ship it?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Not based on p-value alone. With huge n, even trivial effects become "statistically significant." You need effect size / absolute business impact, confidence interval width, cost of shipping, and any secondary metric impact before deciding — statistical significance ≠ practical significance.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q15.</span> What's the practical consequence of violating the independence assumption?</summary>
-        <div class="iq-answer"><p>It artificially shrinks the standard error, inflating the test statistic and making results look more significant than they really are — your true false-positive rate ends up higher than your stated α.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q19</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What is the Bonferroni correction and what's its main drawback?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>α_corrected = α/m, where m is the number of tests. It controls the family-wise error rate (probability of even one false positive). Drawback: very conservative, dramatically reduces power as m grows — you'll miss real effects.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q16.</span> Why is the t-distribution's tail fatter than the normal distribution's?</summary>
-        <div class="iq-answer"><p>Because we're estimating σ with the sample statistic s, which adds extra uncertainty. The fatter tails account for that — as n grows, s becomes a better estimate of σ, and the t-distribution converges to normal.</p></div>
-      </details>
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q20</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What's the difference between FWER and FDR?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>FWER (Bonferroni) controls the probability of even one false positive across all tests — very strict. FDR (Benjamini-Hochberg) controls the expected proportion of false positives among declared "discoveries" — less strict, more statistical power, better suited to many simultaneous tests (e.g., genomics, dozens of A/B metrics).</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q17.</span> What's the formula for an independent two-sample t-test, and how does it connect to A/B testing?</summary>
-        <div class="iq-answer"><p>t = (x̄₁−x̄₂) / √(s₁²/n₁ + s₂²/n₂). This is literally the formula behind comparing two group means in an A/B test — same "(difference)/SE" skeleton, with SE combining variance from both groups.</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q21</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why is "peeking" at A/B test results daily and stopping as soon as p&lt;0.05 a statistical error?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>It's a form of the multiple testing problem ("optional stopping") — each peek is effectively another test, so your real cumulative false-positive rate is much higher than the stated α. Over many days of peeking, you're almost guaranteed to hit a spurious p&lt;0.05 at some point even with no real effect. Fix: pre-register a fixed sample size/duration, or use sequential testing methods designed for repeated looks (e.g., alpha-spending functions).</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q18.</span> An A/B test shows p=0.001 with a 0.05% relative lift on 50 million users. Should you ship it?</summary>
-        <div class="iq-answer"><p>Not based on p-value alone. With huge n, even trivial effects become "statistically significant." You need effect size / absolute business impact, confidence interval width, cost of shipping, and any secondary metric impact before deciding — statistical significance ≠ practical significance.</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q22</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">You're comparing variances between two groups before deciding whether to use Student's or Welch's t-test. Walk through how you'd test this and what you'd conclude from F=2.5.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Use an F-test: F=s₁²/s₂² (larger variance on top). Compare F against a critical F-value from the F-distribution with both groups' df. If F exceeds the critical value, variances are significantly different → use Welch's t-test (doesn't assume equal variance, adjusts df). If not, Student's t-test is fine. In practice, many statisticians default to Welch's regardless, since it costs little when variances are actually equal.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q19.</span> What is the Bonferroni correction and what's its main drawback?</summary>
-        <div class="iq-answer"><p>α_corrected = α/m, where m is the number of tests. It controls the family-wise error rate (probability of even one false positive). Drawback: very conservative, dramatically reduces power as m grows — you'll miss real effects.</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q23</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why does CLT "rescue" the normality assumption for t-tests but not fix violated independence?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>CLT guarantees the sampling distribution of the mean approaches normal as n grows, regardless of the raw data's shape — this directly satisfies the normality assumption. But CLT says nothing about whether observations are independent; it assumes independence as a precondition. No amount of additional (correlated) data fixes a violated independence assumption — you need to restructure the analysis (e.g., aggregate per independent unit).</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q20.</span> What's the difference between FWER and FDR?</summary>
-        <div class="iq-answer"><p>FWER (Bonferroni) controls the probability of even one false positive across all tests — very strict. FDR (Benjamini-Hochberg) controls the expected proportion of false positives among declared "discoveries" — less strict, more statistical power, better suited to many simultaneous tests (e.g., genomics, dozens of A/B metrics).</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q24</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Derive why df = n−1 for a one-sample t-test using the constraint argument.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Computing s² requires first computing x̄ from the same data. Once x̄ is fixed, only n−1 of the n deviations (xᵢ−x̄) are free to vary — the last one is mathematically forced so that the deviations sum to zero (a property of the mean). This "using up" one piece of information is why we divide by (n−1), not n, in the sample variance formula.</p></div>
+    </div>
 
-      <div class="iq-difficulty-header">
-        <span class="pill hard">Hard</span>
-        <div class="rule-line"></div>
-      </div>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q25</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">A team runs 20 independent metric tests in an A/B experiment, all at α=0.05, with no real effects anywhere. What's the probability they see at least one false positive, and what should they do about it?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>P(at least one FP) = 1−(1−0.05)^20 ≈ 0.64 — a 64% chance of a spurious "win" purely by chance. They should apply a multiple-testing correction: Bonferroni (α/20=0.0025 per test) if false positives are very costly, or Benjamini-Hochberg if they want more power and can tolerate a controlled fraction of false discoveries among reported wins.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q21.</span> Why is "peeking" at A/B test results daily and stopping as soon as p&lt;0.05 a statistical error?</summary>
-        <div class="iq-answer"><p>It's a form of the multiple testing problem ("optional stopping") — each peek is effectively another test, so your real cumulative false-positive rate is much higher than the stated α. Over many days of peeking, you're almost guaranteed to hit a spurious p&lt;0.05 at some point even with no real effect. Fix: pre-register a fixed sample size/duration, or use sequential testing methods designed for repeated looks (e.g., alpha-spending functions).</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q26</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Explain why choosing a one-tailed test after looking at your data inflates your real false-positive rate, even if you still report α=0.05.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>A one-tailed test concentrates the entire rejection region in one direction, with a smaller critical value (e.g., 1.645 vs 1.96) than a two-tailed test. If you choose the direction post-hoc based on which way the data happened to lean, you're implicitly able to "reject" in either direction depending on outcome — giving yourself two one-tailed shots instead of committing to one. Your effective false-positive rate becomes closer to 2×α, even though you report α=0.05.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q22.</span> You're comparing variances between two groups before deciding whether to use Student's or Welch's t-test. Walk through how you'd test this and what you'd conclude from F=2.5.</summary>
-        <div class="iq-answer"><p>Use an F-test: F=s₁²/s₂² (larger variance on top). Compare F against a critical F-value from the F-distribution with both groups' df. If F exceeds the critical value, variances are significantly different → use Welch's t-test (doesn't assume equal variance, adjusts df). If not, Student's t-test is fine. In practice, many statisticians default to Welch's regardless, since it costs little when variances are actually equal.</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q27</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Your A/B test shows a statistically significant negative result on a secondary metric you didn't pre-register, found while exploring 15 different cuts of the data. How should you treat this finding?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Treat it as a hypothesis-generating signal, not a confirmed result — this is exactly the multiple testing problem (15 implicit comparisons inflate false-positive risk to roughly 1−0.95^15 ≈ 54%). The correct move is to apply a multiple testing correction retroactively, or better, run a dedicated, pre-registered follow-up test specifically on this metric before drawing conclusions or taking action.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q23.</span> Why does CLT "rescue" the normality assumption for t-tests but not fix violated independence?</summary>
-        <div class="iq-answer"><p>CLT guarantees the sampling distribution of the mean approaches normal as n grows, regardless of the raw data's shape — this directly satisfies the normality assumption. But CLT says nothing about whether observations are independent; it assumes independence as a precondition. No amount of additional (correlated) data fixes a violated independence assumption — you need to restructure the analysis (e.g., aggregate per independent unit).</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q28</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why might increasing sample size fail to "fix" a non-significant A/B test result, and how would you distinguish a true null effect from an underpowered test?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>If the true effect size is genuinely zero or negligible, no amount of additional data will make it significant in a meaningful way (or it will, but the effect will be too small to matter practically). To distinguish: run a power analysis using the smallest effect size you'd care about (MDE) — if your current n already has 80%+ power to detect that MDE and you're still not significant, that's evidence for a true null. If power is low, the test result is inconclusive, not evidence of "no effect."</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q24.</span> Derive why df = n−1 for a one-sample t-test using the constraint argument.</summary>
-        <div class="iq-answer"><p>Computing s² requires first computing x̄ from the same data. Once x̄ is fixed, only n−1 of the n deviations (xᵢ−x̄) are free to vary — the last one is mathematically forced so that the deviations sum to zero (a property of the mean). This "using up" one piece of information is why we divide by (n−1), not n, in the sample variance formula.</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q29</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why does a 2×2 contingency table for a conversion A/B test have df=1, and what does that practically mean?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>df = (rows−1)(columns−1) = (2−1)(2−1) = 1. Practically: once you know the row totals, column totals, and any one cell's value, all other 3 cells are mathematically determined. This is also why a 2×2 chi-square test is mathematically equivalent to a two-proportion z-test — both reduce to comparing one piece of independent information.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q25.</span> A team runs 20 independent metric tests in an A/B experiment, all at α=0.05, with no real effects anywhere. What's the probability they see at least one false positive, and what should they do about it?</summary>
-        <div class="iq-answer"><p>P(at least one FP) = 1−(1−0.05)^20 ≈ 0.64 — a 64% chance of a spurious "win" purely by chance. They should apply a multiple-testing correction: Bonferroni (α/20=0.0025 per test) if false positives are very costly, or Benjamini-Hochberg if they want more power and can tolerate a controlled fraction of false discoveries among reported wins.</p></div>
-      </details>
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q30</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">You're asked: "Our test is statistically significant with p=0.04, should we trust it?" What's your full checklist before answering?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>(1) Was this the only test run, or one of many — does it need multiple-testing correction? (2) Was the test direction (one/two-tailed) pre-registered? (3) Are the assumptions (independence, especially) actually satisfied — any repeated units or autocorrelation? (4) What's the effect size — is it practically meaningful, not just statistically detectable? (5) Was the sample size/stopping point pre-determined, or was this found via repeated peeking? (6) Does the confidence interval support a consistent, actionable conclusion? A single p-value in isolation answers none of these — full context matters more than the number itself.</p></div>
+    </div>
 
-      <details class="iq-item"><summary><span class="qnum">Q26.</span> Explain why choosing a one-tailed test after looking at your data inflates your real false-positive rate, even if you still report α=0.05.</summary>
-        <div class="iq-answer"><p>A one-tailed test concentrates the entire rejection region in one direction, with a smaller critical value (e.g., 1.645 vs 1.96) than a two-tailed test. If you choose the direction post-hoc based on which way the data happened to lean, you're implicitly able to "reject" in either direction depending on outcome — giving yourself two one-tailed shots instead of committing to one. Your effective false-positive rate becomes closer to 2×α, even though you report α=0.05.</p></div>
-      </details>
+  </section>
 
-      <details class="iq-item"><summary><span class="qnum">Q27.</span> Your A/B test shows a statistically significant negative result on a secondary metric you didn't pre-register, found while exploring 15 different cuts of the data. How should you treat this finding?</summary>
-        <div class="iq-answer"><p>Treat it as a hypothesis-generating signal, not a confirmed result — this is exactly the multiple testing problem (15 implicit comparisons inflate false-positive risk to roughly 1−0.95^15 ≈ 54%). The correct move is to apply a multiple testing correction retroactively, or better, run a dedicated, pre-registered follow-up test specifically on this metric before drawing conclusions or taking action.</p></div>
-      </details>
+</div>
 
-      <details class="iq-item"><summary><span class="qnum">Q28.</span> Why might increasing sample size fail to "fix" a non-significant A/B test result, and how would you distinguish a true null effect from an underpowered test?</summary>
-        <div class="iq-answer"><p>If the true effect size is genuinely zero or negligible, no amount of additional data will make it significant in a meaningful way (or it will, but the effect will be too small to matter practically — see Subtopic 6). To distinguish: run a power analysis using the smallest effect size you'd care about (MDE) — if your current n already has 80%+ power to detect that MDE and you're still not significant, that's evidence for a true null. If power is low, the test result is inconclusive, not evidence of "no effect."</p></div>
-      </details>
-
-      <details class="iq-item"><summary><span class="qnum">Q29.</span> Why does a 2×2 contingency table for a conversion A/B test have df=1, and what does that practically mean?</summary>
-        <div class="iq-answer"><p>df = (rows−1)(columns−1) = (2−1)(2−1) = 1. Practically: once you know the row totals, column totals, and any one cell's value, all other 3 cells are mathematically determined. This is also why a 2×2 chi-square test is mathematically equivalent to a two-proportion z-test — both reduce to comparing one piece of independent information.</p></div>
-      </details>
-
-      <details class="iq-item"><summary><span class="qnum">Q30.</span> You're asked: "Our test is statistically significant with p=0.04, should we trust it?" What's your full checklist before answering?</summary>
-        <div class="iq-answer"><p>(1) Was this the only test run, or one of many — does it need multiple-testing correction? (2) Was the test direction (one/two-tailed) pre-registered? (3) Are the assumptions (independence, especially) actually satisfied — any repeated units or autocorrelation? (4) What's the effect size — is it practically meaningful, not just statistically detectable? (5) Was the sample size/stopping point pre-determined, or was this found via repeated peeking? (6) Does the confidence interval support a consistent, actionable conclusion? A single p-value in isolation answers none of these — full context matters more than the number itself.</p></div>
-      </details>
-
-    </section>
-
-  </main>
+<div class="footer">
+  Hypothesis Testing · Data Scientist Interview Track · Good luck
 </div>
 
 <script>
-  // Highlight active section in sidebar nav on scroll
-  const sections = document.querySelectorAll('section.subtopic');
-  const navLinks = document.querySelectorAll('nav.toc a');
-
-  function onScroll() {
-    let current = '';
-    sections.forEach(sec => {
-      const rect = sec.getBoundingClientRect();
-      if (rect.top <= 120) current = sec.id;
-    });
-    navLinks.forEach(link => {
-      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(diff, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const d = card.getAttribute('data-diff');
+      const show = (diff === 'all') || (d === diff);
+      card.style.display = show ? '' : 'none';
     });
   }
-
-  window.addEventListener('scroll', onScroll);
-  onScroll();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 </script>
-
 </body>
 </html>
