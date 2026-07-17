@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Means Clustering from Scratch — DS Interview Track</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔵</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e2a; --border: #2a2f3f;
+    --accent-a: #3b82f6; --accent-b: #f97316; --accent-c: #a855f7;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); } .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 680px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; } ul.plain li { margin-bottom: 6px; }
+  .formula { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #a5b4fc; text-align: center; }
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); } .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); } .callout-warning .callout-title { color: var(--yellow); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; } .key-insight p { margin: 0; font-size: 14px; }
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; } .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .quiz-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 18px 0; }
+  .quiz-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-a); margin-bottom: 12px; }
+  .quiz-q { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .quiz-a { font-size: 13.5px; color: var(--text-muted); margin-bottom: 14px; }
+  .quiz-a:last-child { margin-bottom: 0; }
+  .gloss-card { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .gloss-card:last-child { border-bottom: none; }
+  .gloss-word { font-family: 'JetBrains Mono', monospace; color: var(--accent-a); font-size: 13.5px; min-width: 190px; flex-shrink: 0; font-weight: 600; }
+  .gloss-def { font-size: 13.5px; color: var(--text-muted); }
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-diff { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; margin-top: 3px; }
+  .diff-easy { color: var(--green); border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.08); }
+  .diff-medium { color: var(--yellow); border: 1px solid rgba(234,179,8,0.35); background: rgba(234,179,8,0.08); }
+  .diff-hard { color: var(--red); border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; padding-top: 16px; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<!-- SITE-NAV:START -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
+    <span class="site-header-sep">/</span>
+    <div class="nav-dropdown" id="siteNav">
+      <span class="badge nav-dropdown-trigger" style="--accent:#9898b0" onclick="document.getElementById('siteNav').classList.toggle('open')">📁 Other</span>
+      <div class="nav-dropdown-panel">
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
+      <a class="nav-group-link" href="hypothesis_testing.html">Hypothesis Testing</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics Deep Dive</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures for Beginners</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP for Beginners</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP Interview Study Guide</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">ML EDA &amp; Core Libraries</a>
+      <a class="nav-group-link" href="sql_interview_questions_guide.html">SQL Interview Drill</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL Interview Study Guide</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
+      <a class="nav-group-link" href="decision_trees_complete.html">Decision Trees</a>
+      <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
+      <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
+      <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting Machines</a>
+      <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
+      <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
+      <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
+      <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
+      <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
+      <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance</a>
+      <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
+      <a class="nav-group-link" href="arima_guide.html">Time Series Masterclass</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Mastery</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture Fundamentals</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
+      <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#9898b0">📁 Other</div>
+      <a class="nav-group-link active" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
+      <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
+    </div>
+      </div>
+    </div>
+  </div>
+</header>
+<script>
+  document.addEventListener('click', function(e) {
+    var nav = document.getElementById('siteNav');
+    if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var nav = document.getElementById('siteNav');
+      if (nav) nav.classList.remove('open');
+    }
+  });
+</script>
+<!-- SITE-NAV:END -->
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">K-Means Clustering · From Scratch · DS Interview Track</div>
+    <h1><span class="a">K-Means Clustering</span> <span class="b">from Scratch</span></h1>
+    <p class="hero-sub">Every core concept derived from first principles — intuition, math, and worked numerical examples for the objective function, Lloyd's algorithm, distance metrics, initialization (k-means++), choosing K, convergence & local optima, limitations, feature scaling, variants (K-Medoids, Mini-Batch, GMM), complexity, cluster validation, a from-scratch NumPy implementation, and common interview traps. Ends with 30 sorted interview questions.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Intuition</div>
+      <div class="progress-item done">✓ Objective Function</div>
+      <div class="progress-item done">✓ Lloyd's Algorithm</div>
+      <div class="progress-item done">✓ Distance Metrics</div>
+      <div class="progress-item done">✓ Initialization</div>
+      <div class="progress-item done">✓ Choosing K</div>
+      <div class="progress-item done">✓ Convergence</div>
+      <div class="progress-item done">✓ Limitations</div>
+      <div class="progress-item done">✓ Feature Scaling</div>
+      <div class="progress-item done">✓ Variants</div>
+      <div class="progress-item done">✓ Complexity</div>
+      <div class="progress-item done">✓ Cluster Validation</div>
+      <div class="progress-item done">✓ Implementation</div>
+      <div class="progress-item done">✓ Interview Traps</div>
+      <div class="progress-item done">✓ 30 Interview Qs</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#intuition" class="a">Intuition</a>
+  <a href="#objective" class="a">Objective Fn</a>
+  <a href="#algorithm" class="a">Lloyd's Algo</a>
+  <a href="#distance" class="b">Distance Metrics</a>
+  <a href="#init" class="b">Initialization</a>
+  <a href="#choosingk" class="b">Choosing K</a>
+  <a href="#convergence" class="c">Convergence</a>
+  <a href="#limitations" class="c">Limitations</a>
+  <a href="#scaling" class="c">Feature Scaling</a>
+  <a href="#variants" class="c">Variants</a>
+  <a href="#complexity" class="c">Complexity</a>
+  <a href="#validation" class="c">Validation</a>
+  <a href="#implementation" class="c">Implementation</a>
+  <a href="#traps">Interview Traps</a>
+  <a href="#interview" class="c">30 Interview Qs</a>
+</nav>
+
+<div class="container">
+
+  <!-- 1. INTUITION -->
+  <section class="section fade-in" id="intuition">
+    <div class="section-header">
+      <span class="section-tag tag-a">Topic 1</span>
+      <h2>Problem Setup &amp; Intuition</h2>
+    </div>
+    <p>K-Means groups unlabeled points so that points in the same group are similar to each other and different from points in other groups. There's no target <code>y</code> — it's <strong>unsupervised</strong>: we're discovering structure, not predicting a known label.</p>
+    <p>Core intuition: given N points, if you had to summarize them with just K representative points (<strong>centroids</strong>), where would you place those centroids to minimize total distortion? Assign every point to its nearest centroid, then move each centroid to the center of mass of its assigned points. Repeat until stable.</p>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Think of dropping K pins on a map — every city joins its nearest pin, then each pin relocates to the center of its cities. Eventually the pins stop moving — that's convergence.</p>
+    </div>
+    <h3>Real-world uses</h3>
+    <ul class="plain">
+      <li>Customer segmentation — group users by behavior with no existing labels</li>
+      <li>Image compression — reduce millions of colors to K representative colors</li>
+      <li>Anomaly detection — points far from any centroid flagged as outliers</li>
+      <li>Feature engineering — cluster ID used as a categorical feature for downstream models</li>
+    </ul>
+    <div class="callout callout-warning">
+      <div class="callout-title">Key Structural Assumption</div>
+      <p>K-Means assumes clusters are roughly <strong>spherical, similarly sized, and similarly dense</strong> — because it uses Euclidean distance to a single centroid as the sole assignment criterion. This one assumption is the root cause of most of its limitations (Topic 8).</p>
+    </div>
+    <h3>Why K-Means fails on non-convex shapes</h3>
+    <p>K-Means always produces straight-line (Voronoi) decision boundaries between centroids, since every point is assigned purely by nearest-centroid distance. On classic toy datasets like <code>make_circles</code> (concentric circles) or <code>make_moons</code> (interleaving crescents), the true separating boundary is <strong>curved</strong> — a straight line can only slice the shape into pie-wedges, mixing points from both true groups into every resulting cluster.</p>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Intuition</div>
+      <div class="quiz-q">Q. Why do concentric circles defeat K-Means even though the true clusters are visually obvious?</div>
+      <div class="quiz-a">A. Both circles can share nearly the same center of mass — so distance-to-centroid can't distinguish inner ring from outer ring; every point at a given radius is equidistant from the shared center regardless of which ring it belongs to.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Answering "when would you not use K-Means?" with just "weird shapes" — the precise answer is: whenever clusters aren't linearly separable by centroid distance (non-convex, unequal density/size).</p>
+    </div>
+  </section>
+
+  <!-- 2. OBJECTIVE FUNCTION -->
+  <section class="section fade-in" id="objective">
+    <div class="section-header">
+      <span class="section-tag tag-a">Topic 2</span>
+      <h2>Objective Function (WCSS / Inertia)</h2>
+    </div>
+    <p>K-Means needs a single number quantifying "how good is this clustering" so it can minimize it. That number is <strong>Within-Cluster Sum of Squares (WCSS)</strong>, a.k.a. <strong>inertia</strong> — the total squared distance of every point from its own cluster's centroid.</p>
+    <div class="formula">J = Σᵢ₌₁ᴷ Σ_{x∈Cᵢ} ‖x − μᵢ‖²</div>
+    <p><strong>K</strong> = number of clusters &nbsp;·&nbsp; <strong>Cᵢ</strong> = set of points assigned to cluster i &nbsp;·&nbsp; <strong>x</strong> = a point in Cᵢ &nbsp;·&nbsp; <strong>μᵢ</strong> = centroid (mean) of cluster i &nbsp;·&nbsp; <strong>‖x−μᵢ‖²</strong> = squared Euclidean distance from point to its own centroid.</p>
+    <p>We square the distance for two reasons: it penalizes far points more heavily (quadratic penalty), and it makes J differentiable, giving a clean closed-form update — the mean is provably the point that minimizes sum of squared distances (∂J/∂μ=0 → μ = mean).</p>
+    <h3>Worked example</h3>
+    <p>1D cluster, points {2, 4, 6}. True mean μ=4: J = (2−4)² + (4−4)² + (6−4)² = 4+0+4 = <strong>8</strong>. Using a wrong center μ=3 instead: J = 1+1+9 = <strong>11</strong> — worse, confirming the mean is optimal.</p>
+    <div class="callout callout-insight">
+      <div class="callout-title">Interpretation</div>
+      <p>Lower J = tighter clusters. But J trivially → 0 as K→N (every point its own cluster) — so J alone can never tell you the "right" K; that's exactly why the elbow method (Topic 6) exists.</p>
+    </div>
+    <h3>What if we used absolute distance instead?</h3>
+    <p>Minimizing Σ|x−μ| instead of Σ(x−μ)² makes the <strong>median</strong> optimal, not the mean — because the derivative of |x−μ| is a constant ±1, and setting the sum of signs to zero requires an equal count of points above/below μ (the definition of median). This is the K-Medians variant — more outlier-robust, no closed-form, needs iterative search.</p>
+    <table class="compare-table">
+      <thead><tr><th>Loss</th><th>Optimal center</th><th>Robust to outliers?</th></tr></thead>
+      <tbody>
+        <tr><td>L2 (squared)</td><td>Mean</td><td>No</td></tr>
+        <tr><td>L1 (absolute)</td><td>Median</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Objective Function</div>
+      <div class="quiz-q">Q. Why can't inertia alone be used to select K?</div>
+      <div class="quiz-a">A. It monotonically decreases (or stays flat) as K increases, hitting 0 when K=N — always "improving" with more clusters regardless of whether the extra split is meaningful.</div>
+    </div>
+  </section>
+
+  <!-- 3. LLOYD'S ALGORITHM -->
+  <section class="section fade-in" id="algorithm">
+    <div class="section-header">
+      <span class="section-tag tag-a">Topic 3</span>
+      <h2>The Algorithm (Lloyd's Algorithm)</h2>
+    </div>
+    <p>Minimizing J directly is a combinatorial, NP-hard problem — checking all possible point-to-cluster assignments doesn't scale. Lloyd's algorithm alternates two easy sub-problems instead of solving the whole thing at once — a classic <strong>coordinate descent</strong> pattern.</p>
+    <div class="code-block">1. Initialize K centroids μ₁, ..., μ_K
+2. Repeat until convergence:
+   a. Assignment: for each point x, assign to cluster i = argmin_i ||x - μ_i||²
+   b. Update: for each cluster i, recompute μ_i = mean of all points assigned to it
+3. Stop when assignments stop changing</div>
+    <p>Each step is individually <em>exactly</em> optimal for its half of the problem — assignment can't do better than nearest-centroid for fixed centroids, and update can't do better than the mean for fixed assignments (Topic 2). So J never increases.</p>
+    <h3>Worked example — 1D points {1, 2, 9, 10}, K=2</h3>
+    <p>Bad init: μ₁=1, μ₂=2. Iteration 1 assigns C₁={1}, C₂={2,9,10} → update gives μ₁=1, μ₂=7. Iteration 2 reassigns C₁={1,2}, C₂={9,10} → update gives μ₁=1.5, μ₂=9.5. Iteration 3 reassigns to the same clusters — <strong>converged</strong>, correctly, despite the bad start.</p>
+    <div class="callout callout-insight">
+      <div class="callout-title">Convergence Proof Sketch</div>
+      <p>Assignment step: for frozen centroids, nearest-centroid assignment is provably optimal per point. Update step: for frozen assignments, the mean provably minimizes squared distance (Topic 2). Both steps solve their half exactly, so J is monotonically non-increasing — bounded below by 0 → must converge. But it converges to a <strong>local</strong> optimum only, since assignments and centroids are never jointly searched.</p>
+    </div>
+    <h3>Local optimum — a genuine stuck case</h3>
+    <p>True groups A={1,2,3,4}, B={5,6}, C={20,21}, K=3. Bad init μ={1,2,20} (two centroids inside A). After iterating, it converges to a <strong>stable but wrong</strong> partition: C₁={1,2}, C₂={3,4,5,6}, C₃={20,21} — group A gets split down the middle and its back half silently merges with all of B. No point wants to flip anymore (stable), yet this isn't the natural grouping a human would draw. WCSS is locally minimal, globally suboptimal.</p>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>K-Means is a special case of the <strong>EM algorithm</strong>: assignment step ≈ E-step (hard instead of soft), update step ≈ M-step (mean instead of probability-weighted mean). GMM is the general, soft-assignment version.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Assuming any "bad-looking" init gets stuck. Two well-separated groups with K=2 almost always self-correct within a couple of iterations — genuine local optima need enough clusters (K≥3) that centroids can get trapped competing over one natural group while another gets wrongly merged.</p>
+    </div>
+  </section>
+
+  <!-- 4. DISTANCE METRICS -->
+  <section class="section fade-in" id="distance">
+    <div class="section-header">
+      <span class="section-tag tag-b">Topic 4</span>
+      <h2>Distance Metrics</h2>
+    </div>
+    <div class="formula">d(x, μ)² = Σⱼ₌₁ᴰ (xⱼ − μⱼ)²</div>
+    <p>The centroid update (mean = optimal center) is only mathematically guaranteed to minimize <strong>squared Euclidean</strong> distance — Euclidean distance and K-Means are mathematically coupled, not an arbitrary default. Swap the metric and the mean is no longer provably optimal.</p>
+    <h3>Worked example — why mean fails under Manhattan distance</h3>
+    <p>Points {1, 2, 100}: mean=34.3 gives Σ|x−34.3| = 131.3; median=2 gives Σ|x−2| = 99 — lower. Mean is not optimal under L1; you need K-Medians (median-based update) instead of naively plugging L1 into vanilla K-Means.</p>
+    <table class="compare-table">
+      <thead><tr><th>Metric</th><th>Formula</th><th>Use case</th><th>Compatible update rule</th></tr></thead>
+      <tbody>
+        <tr><td>Euclidean (L2)</td><td>√Σ(xⱼ−μⱼ)²</td><td>Default, continuous features</td><td>✅ Mean</td></tr>
+        <tr><td>Manhattan (L1)</td><td>Σ|xⱼ−μⱼ|</td><td>Outlier-robust, grid data</td><td>❌ Needs median → K-Medians</td></tr>
+        <tr><td>Cosine</td><td>1 − (x·μ)/(‖x‖‖μ‖)</td><td>Text/embeddings, direction matters</td><td>❌ Needs normalization trick</td></tr>
+      </tbody>
+    </table>
+    <h3>The normalization trick for cosine K-Means</h3>
+    <p>For unit vectors (‖x‖=‖μ‖=1): ‖x−μ‖² = ‖x‖²+‖μ‖²−2(x·μ) = 2−2(x·μ) = 2(1−cosθ) — squared Euclidean distance between unit vectors is just 2× cosine distance. Since this is a constant scaling, the <strong>argmin ranking is identical</strong> — so L2-normalizing vectors then running standard Euclidean K-Means gives the exact same cluster assignments as true cosine K-Means, while keeping the mean-based update mathematically valid.</p>
+    <div class="callout callout-insight">
+      <div class="callout-title">Key Insight</div>
+      <p>For text embeddings/document clustering: always L2-normalize vectors before running standard K-Means — this quietly converts your Euclidean K-Means into cosine-based clustering without breaking convergence guarantees.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Assuming you can just swap the distance function in the assignment step (e.g. to cosine) while keeping the mean-based update — this breaks the monotonic-decrease guarantee, since the update step is no longer solving the correct sub-optimization for that metric.</p>
+    </div>
+  </section>
+
+  <!-- 5. INITIALIZATION -->
+  <section class="section fade-in" id="init">
+    <div class="section-header">
+      <span class="section-tag tag-b">Topic 5</span>
+      <h2>Centroid Initialization (Random vs. K-Means++)</h2>
+    </div>
+    <p>Bad initialization can permanently trap Lloyd's algorithm in a wrong-but-stable local optimum (Topic 3). Initialization is purely an engineering fix — it doesn't change the convergence guarantee, only the odds of landing in a good local optimum.</p>
+    <h3>Random init</h3>
+    <p>Pick K data points uniformly at random. Nothing stops two centroids from landing in the same natural cluster. Standard mitigation: run multiple times (<code>n_init</code>), keep the lowest final J — brute-force hedging, not a structural fix.</p>
+    <h3>K-Means++ (the structural fix)</h3>
+    <div class="code-block">1. Pick 1st centroid uniformly at random
+2. For each remaining point x, compute D(x) = squared distance to NEAREST chosen centroid
+3. Pick next centroid with probability proportional to D(x)²
+4. Repeat 2-3 until K centroids chosen
+5. Run standard Lloyd's algorithm from there</div>
+    <h3>Worked example — points {1,2,3,20,21}, K=2</h3>
+    <p>μ₁=2 picked first. D(x) values: 1,0,1,324,361 (sum=687). P(x=20)≈47%, P(x=21)≈53% — the far group has ~99.7% combined chance of supplying the 2nd centroid, vs. only 20% each under pure random init.</p>
+    <table class="compare-table">
+      <thead><tr><th></th><th>Random Init</th><th>K-Means++</th></tr></thead>
+      <tbody>
+        <tr><td>Risk of same-cluster centroids</td><td>High</td><td>Low</td></tr>
+        <tr><td>Deterministic?</td><td>No</td><td>No — still probabilistic</td></tr>
+        <tr><td>Guarantees global optimum?</td><td>No</td><td>No — just better odds</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-warning">
+      <div class="callout-title">Why probabilistic, not deterministic-farthest?</div>
+      <p>If you always deterministically picked the single farthest point, a single noisy outlier would <strong>always</strong> be chosen as a centroid, every run, with 100% certainty — permanently wasting a cluster slot on garbage. Weighted-random selection still favors the outlier strongly but not with certainty, so across multiple <code>n_init</code> restarts there's a real chance of recovering the correct structure instead of the same bad result every time.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Initialization</div>
+      <div class="quiz-q">Q. Does k-means++ guarantee the global optimum?</div>
+      <div class="quiz-a">A. No — it only makes bad local optima much less likely, probabilistically. `n_init` restarts remain standard practice even with k-means++.</div>
+    </div>
+  </section>
+
+  <!-- 6. CHOOSING K -->
+  <section class="section fade-in" id="choosingk">
+    <div class="section-header">
+      <span class="section-tag tag-b">Topic 6</span>
+      <h2>Choosing K</h2>
+    </div>
+    <h3>Elbow Method</h3>
+    <p>Plot inertia J vs. K. J always decreases, but the rate of decrease drops sharply after the true cluster count, then flattens — that bend is the "elbow." Splitting a genuine cluster removes lots of distortion (steep drop); subdividing an already-tight cluster barely helps (shallow drop).</p>
+    <table class="compare-table">
+      <thead><tr><th>K</th><th>Inertia J</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>850</td></tr>
+        <tr><td>2</td><td>300</td></tr>
+        <tr><td>3</td><td>120</td></tr>
+        <tr><td>4</td><td>110</td></tr>
+        <tr><td>5</td><td>102</td></tr>
+      </tbody>
+    </table>
+    <p>Elbow at K=3 — the K=3→4 drop (10) is tiny compared to K=2→3 (180). Limitation: real data often has no visually sharp bend, making this subjective.</p>
+    <h3>Silhouette Score</h3>
+    <div class="formula">s(i) = (b(i) − a(i)) / max(a(i), b(i))</div>
+    <p><strong>a(i)</strong> = avg distance from point i to others in its own cluster (cohesion, want low) &nbsp;·&nbsp; <strong>b(i)</strong> = avg distance to the nearest neighboring cluster (separation, want high). Range: −1 to +1; ~+1 = well inside own cluster, ~0 = boundary/ambiguous, negative = likely misassigned.</p>
+    <p><strong>Worked example:</strong> a(i)=2, b(i)=5 → s(i) = (5−2)/max(2,5) = 3/5 = <strong>0.6</strong> — solidly good. Average s(i) across all points, per K, and pick the K that <em>maximizes</em> it — unlike inertia, over-splitting hurts this score because sub-clusters end up close together, dragging b(i) down.</p>
+    <h3>Gap Statistic</h3>
+    <div class="formula">Gap(K) = E[log(J_random)] − log(J_data)</div>
+    <p>Compares real data's inertia against inertia from uniformly random reference data at the same K. Large gap → real structure exists at this K. More statistically rigorous than elbow, but computationally expensive (needs multiple random reference samples).</p>
+    <div class="callout callout-insight">
+      <div class="callout-title">Key Insight</div>
+      <p>Inertia only measures within-cluster cohesion — it mechanically improves with more K regardless of meaning. Silhouette forces a trade-off by also weighing inter-cluster separation, so it peaks at a genuinely good K instead of monotonically improving.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Trusting an ambiguous elbow plot over a sharp silhouette peak. When they disagree, silhouette's explicit quantitative trade-off is the more reliable signal.</p>
+    </div>
+  </section>
+
+  <!-- 7. CONVERGENCE & LOCAL OPTIMA -->
+  <section class="section fade-in" id="convergence">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 7</span>
+      <h2>Convergence &amp; Local Optima</h2>
+    </div>
+    <p>J decreases monotonically each iteration (Topic 3) and is bounded below by 0 → guaranteed convergence to <em>some</em> value. But finding the truly optimal clustering is <strong>NP-hard</strong>: the number of ways to partition N points into K groups is a <strong>Stirling number of the second kind</strong>, S(N,K), growing roughly as K^N/K! — combinatorially explosive. Lloyd's algorithm greedily descends to the nearest local minimum instead of exhaustively searching this space.</p>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Tiny example: N=3 points {a,b,c}, K=2 → S(3,2)=3 possible partitions: {a}{b,c}, {b}{a,c}, {c}{a,b}. Even this explodes fast for real N — exact global search is infeasible for anything beyond toy sizes.</p>
+    </div>
+    <h3>Why the algorithm can never cycle forever</h3>
+    <p>Suppose (for contradiction) it cycled through partitions P₁→P₂→...→P₁. Since J strictly decreases whenever the partition genuinely changes, this implies J(P₁) &gt; J(P₁) — a contradiction. So the algorithm can never revisit an earlier partition unless it has truly stopped changing. Combined with only finitely many partitions existing, it must hit a partition it can't leave (converge) within finite steps — a pigeonhole + strict-monotonicity argument.</p>
+    <table class="compare-table">
+      <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+      <tbody>
+        <tr><td>Always converges?</td><td>Yes — guaranteed, finite steps</td></tr>
+        <tr><td>Always same result?</td><td>No — random init (even in k-means++'s first pick) varies runs</td></tr>
+        <tr><td>Reaches global optimum?</td><td>No — only a local optimum</td></tr>
+      </tbody>
+    </table>
+    <h3>Practical mitigations</h3>
+    <ul class="plain">
+      <li>K-Means++ initialization — reduces (doesn't eliminate) bad local optima</li>
+      <li>Multiple restarts (<code>n_init</code>) — keep the run with lowest final J</li>
+      <li>Compare final J across runs as a diagnostic for suspiciously poor convergence</li>
+      <li>Fix <code>random_state</code> for reproducibility</li>
+    </ul>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>"Is K-Means guaranteed to terminate?" — Yes, always, in finite steps. This is separate from "does it find the best answer?" — No. Don't conflate termination with optimality.</p>
+    </div>
+  </section>
+
+  <!-- 8. LIMITATIONS -->
+  <section class="section fade-in" id="limitations">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 8</span>
+      <h2>Limitations</h2>
+    </div>
+    <table class="compare-table">
+      <thead><tr><th>Limitation</th><th>Root cause</th><th>Typical fix</th></tr></thead>
+      <tbody>
+        <tr><td>Non-convex shapes</td><td>Straight-line Voronoi boundaries only</td><td>Spectral clustering, DBSCAN, kernel K-Means</td></tr>
+        <tr><td>Unequal cluster sizes</td><td>Objective sums per-point equally, no size prior</td><td>GMM, DBSCAN</td></tr>
+        <tr><td>Unequal density</td><td>Single global distance criterion — can't tell "naturally spread" from "wrong cluster"</td><td>DBSCAN, GMM</td></tr>
+        <tr><td>Feature scale sensitivity</td><td>Euclidean distance weights large-scale features more</td><td>Standardize/normalize (Topic 9)</td></tr>
+        <tr><td>Outlier sensitivity</td><td>Mean is not a robust statistic</td><td>K-Medians, outlier removal, K-Medoids</td></tr>
+        <tr><td>Must pre-specify K</td><td>No internal model selection</td><td>Elbow/silhouette + domain knowledge, or DBSCAN</td></tr>
+      </tbody>
+    </table>
+    <h3>Equal size, different density — a distinct failure mode</h3>
+    <p>Cluster A: 100 points packed tightly in [0,1]. Cluster B: 100 points (equal size!) spread across [10,30]. K-Means punishes B's natural spread as if it "should" be tighter — since J's squared-distance penalty has no concept of a cluster being allowed a larger radius by nature — sometimes carving an unnecessary extra centroid into B even though it's genuinely one cluster.</p>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Size affects the <em>update step</em> (which cluster's mean dominates); density affects the <em>assignment step</em> (whether "far from centroid" truly means "wrong cluster"). They are genuinely distinct failure modes, not restatements of each other.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Listing only "non-convex shapes" when asked for K-Means limitations. A complete answer covers all six: shape, size, density, scale, outliers, and fixed-K.</p>
+    </div>
+  </section>
+
+  <!-- 9. FEATURE SCALING -->
+  <section class="section fade-in" id="scaling">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 9</span>
+      <h2>Feature Scaling</h2>
+    </div>
+    <div class="formula">Standardization: x' = (x − μ) / σ</div>
+    <p>Standardization sets every feature's mean to 0 and standard deviation to 1. This forces every feature's <strong>typical spread</strong> to be numerically equal — not because values become bounded to a fixed range, but because dividing by σ literally makes spread=1 for every feature, so a "1 std swing" in any feature contributes equally to squared distance regardless of original units.</p>
+    <h3>Worked example — before/after scaling changes the actual clustering</h3>
+    <p>Points (age, income): A=(25,40000), B=(65,42000), C=(45,90000). Unscaled: d(A,B)²=1600+4,000,000≈4.0M; d(A,C)²=400+2.5B. A and B look "closer" purely because income differs by only 2000 — age (25 vs 65) is essentially invisible. After standardizing, age would properly contribute.</p>
+    <div class="formula">Min-Max: x' = (x − x_min) / (x_max − x_min)</div>
+    <p>Squeezes to [0,1] but is more outlier-sensitive — one extreme value stretches x_max/x_min, compressing all "normal" values into a tiny sub-range. Standardization is generally preferred for K-Means.</p>
+    <div class="callout callout-warning">
+      <div class="callout-title">Common Misconception</div>
+      <p>Scaling is not a minor preprocessing nicety — skipping it can produce a structurally <em>different, meaningfully wrong</em> clustering, not just a slightly-off one.</p>
+    </div>
+    <h3>Categorical features</h3>
+    <p>One-hot encoded columns are bounded but still interact oddly with Euclidean distance (treats all category differences as equally dissimilar). K-Means is a poor fit for pure categorical data — use <strong>K-Modes</strong> (Hamming distance + mode) or <strong>K-Prototypes</strong> for mixed data.</p>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check — Feature Scaling</div>
+      <div class="quiz-q">Q. Why is bounding to [0,1] not actually necessary to fix the domination problem?</div>
+      <div class="quiz-a">A. Domination is purely about relative spread/variance between features — standardization equalizes spread (std=1 for every feature) directly, without needing a hard bounded range.</div>
+    </div>
+  </section>
+
+  <!-- 10. VARIANTS -->
+  <section class="section fade-in" id="variants">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 10</span>
+      <h2>Variants: K-Medoids, Mini-Batch K-Means, GMM</h2>
+    </div>
+    <h3>K-Medoids (PAM)</h3>
+    <p>Cluster "center" must be an actual data point (medoid) — the one minimizing total dissimilarity to its cluster. Update step tests every possible swap: O(n²) per cluster per iteration — far more expensive than K-Means' O(n) mean, so it doesn't scale, but it's inherently more outlier-robust since an extreme point rarely minimizes total distance.</p>
+    <h3>Mini-Batch K-Means</h3>
+    <p>Recomputes centroids using small random batches instead of the full dataset each iteration — same speed/accuracy trade-off philosophy as SGD vs. full-batch gradient descent. Much faster, scales to millions of rows, converges to a slightly worse final J.</p>
+    <h3>GMM (Gaussian Mixture Model)</h3>
+    <p>Soft, probabilistic membership across all K clusters instead of hard assignment. Each cluster gets a mean μ_k, a <strong>covariance matrix Σ_k</strong> (allows elongated/tilted/differently-sized clusters), and a mixing weight π_k. E-step computes soft membership probabilities; M-step updates μ_k, Σ_k, π_k using those probabilities as weights.</p>
+    <div class="callout callout-insight">
+      <div class="callout-title">K-Means = constrained GMM</div>
+      <p>Force Σ_k = σ²I (spherical, identical covariance for every cluster) → the weighted distance (x−μ_k)ᵀΣ_k⁻¹(x−μ_k) collapses to plain scaled Euclidean distance, identical for every cluster. Force E-step probabilities to hard 0/1 → every point belongs 100% to one cluster. Apply both constraints and GMM's E-step/M-step become exactly Lloyd's assignment/update steps. <strong>K-Means is GMM restricted to spherical/equal covariance + hard assignments</strong> — every bit of GMM's extra expressiveness comes from giving up exactly these two things.</p>
+    </div>
+    <table class="compare-table">
+      <thead><tr><th>Variant</th><th>Center type</th><th>Outlier robust?</th><th>Shape/size flexible?</th><th>Speed</th></tr></thead>
+      <tbody>
+        <tr><td>K-Means</td><td>Mean</td><td>No</td><td>No</td><td>Fast</td></tr>
+        <tr><td>K-Medians</td><td>Median</td><td>Yes</td><td>No</td><td>Fast</td></tr>
+        <tr><td>K-Medoids</td><td>Real data point</td><td>Yes</td><td>No</td><td>Slow O(n²)</td></tr>
+        <tr><td>Mini-Batch K-Means</td><td>Mean (batch)</td><td>No</td><td>No</td><td>Very fast, big data</td></tr>
+        <tr><td>GMM</td><td>Mean + covariance</td><td>Partial</td><td>Yes</td><td>Slower, more params</td></tr>
+      </tbody>
+    </table>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Saying "GMM is just a probabilistic K-Means" without being able to name the exact two constraints (spherical/equal covariance + hard assignment) that connect them mathematically.</p>
+    </div>
+  </section>
+
+  <!-- 11. COMPLEXITY -->
+  <section class="section fade-in" id="complexity">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 11</span>
+      <h2>Complexity Analysis</h2>
+    </div>
+    <div class="formula">Per iteration: O(N × K × D)  ·  Total: O(N × K × D × I)</div>
+    <p>Assignment step dominates: N points × K centroids × D dimensions per distance computation. Update step is O(N×D) — cheaper, since each point is added once to its cluster's running sum. Space: O(N×D + K×D), dominated by storing the dataset itself.</p>
+    <h3>Worked example</h3>
+    <p>N=1,000,000, K=10, D=50, I=20 → O(10¹⁰) operations ≈ seconds on modern hardware. Compare to K-Medoids' O(N²D) per iteration at the same N — O(10¹²) <em>per iteration</em>, utterly infeasible. This is exactly why K-Medoids doesn't scale and Lloyd's K-Means does.</p>
+    <table class="compare-table">
+      <thead><tr><th>Algorithm</th><th>Per-iteration time</th><th>Scales to millions?</th></tr></thead>
+      <tbody>
+        <tr><td>K-Means (Lloyd's)</td><td>O(NKD)</td><td>✅ Yes</td></tr>
+        <tr><td>K-Medoids (PAM)</td><td>O(N²D)</td><td>❌ No</td></tr>
+        <tr><td>Mini-Batch K-Means</td><td>O(bKD), b≪N</td><td>✅✅ Even better</td></tr>
+        <tr><td>Hierarchical</td><td>O(N²logN) or worse</td><td>❌ No</td></tr>
+        <tr><td>DBSCAN</td><td>O(NlogN) indexed, O(N²) naive</td><td>✅ With indexing</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-warning">
+      <div class="callout-title">Common Misconception</div>
+      <p>K-Means isn't "slow because it's iterative" — each iteration is linear in N, and the iteration count I stays small (10-50) and roughly constant regardless of N in practice.</p>
+    </div>
+    <h3>High-dimensional data (e.g. D=10,000 text embeddings)</h3>
+    <p>When N and D are both large, they jointly dominate the O(NKD) cost. Standard fix: reduce D first via <strong>PCA</strong> (or <strong>Truncated SVD</strong> for sparse data like TF-IDF, since it skips centering and preserves sparsity). This fixes both the speed bottleneck <em>and</em> the curse-of-dimensionality effect where distances stop being discriminative at very high D.</p>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Reducing D only for speed, missing the second reason: high-D Euclidean distances become less meaningful as all pairwise distances converge toward similar values (curse of dimensionality) — dimensionality reduction also improves clustering quality, not just runtime.</p>
+    </div>
+  </section>
+
+  <!-- 12. CLUSTER VALIDATION -->
+  <section class="section fade-in" id="validation">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 12</span>
+      <h2>Cluster Validation — Visual + Metrics</h2>
+    </div>
+    <h3>Visual validation</h3>
+    <p>Direct 2D/3D scatter with centroids marked for low-D data. For high-D: <strong>PCA</strong> projection (linear, fast, cheap sanity check) or <strong>t-SNE/UMAP</strong> (non-linear, preserves local neighborhood structure — more visually faithful, but distorts global distances).</p>
+    <div class="callout callout-warning">
+      <div class="callout-title">Common Misconception</div>
+      <p>t-SNE plots are not ground truth for "how separated are clusters really" — cluster sizes and inter-cluster distances in a t-SNE plot are not meaningful; only whether points land in the same visual blob is meaningful.</p>
+    </div>
+    <p><strong>Signs of bad clustering visually:</strong> heavily overlapping colors with no clear boundary; one giant cluster plus several 1-2 point clusters (outlier-driven distortion); a centroid sitting visually outside all its own assigned points (instability from bad init or non-convex data).</p>
+    <h3>Davies-Bouldin Index</h3>
+    <div class="formula">DB = (1/K) Σᵢ max_{j≠i} [ (sᵢ + sⱼ) / d(cᵢ, cⱼ) ]</div>
+    <p><strong>sᵢ</strong> = avg distance of cluster i's points to its own centroid &nbsp;·&nbsp; <strong>d(cᵢ,cⱼ)</strong> = distance between centroids i and j. Uses the <em>worst-case</em> (most confusable) neighboring cluster per i — lower DB = better.</p>
+    <p><strong>Worked example:</strong> s₁=2, s₂=3, d(c₁,c₂)=10 → DB = ½[(2+3)/10 + (3+2)/10] = ½(0.5+0.5) = <strong>0.5</strong> — good, tight and well-separated.</p>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Why max, not average, over neighbors? A clustering is only as good as its weakest link. Averaging over 9 well-separated neighbors and 1 badly-overlapping one dilutes the real defect (e.g. avg≈0.38 looks fine while max=3.0 correctly flags the problem) — max is deliberately pessimistic, the same philosophy behind reporting P99 latency instead of average latency.</p>
+    </div>
+    <h3>Calinski-Harabasz Index</h3>
+    <div class="formula">CH = [Between-cluster variance / (K−1)] / [Within-cluster variance / (N−K)]</div>
+    <p>An F-statistic-style ratio — higher CH = better. Much cheaper to compute than silhouette (cluster-level sums, not O(N²) pairwise) — practical for very large N.</p>
+    <table class="compare-table">
+      <thead><tr><th>Metric</th><th>Direction</th><th>Needs labels?</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Silhouette</td><td>Higher better (−1 to 1)</td><td>No</td><td>O(N²) — slow</td></tr>
+        <tr><td>Davies-Bouldin</td><td>Lower better</td><td>No</td><td>Fast</td></tr>
+        <tr><td>Calinski-Harabasz</td><td>Higher better</td><td>No</td><td>Fast</td></tr>
+        <tr><td>ARI / NMI</td><td>Higher better (0/−1 to 1)</td><td>Yes (external)</td><td>Fast</td></tr>
+      </tbody>
+    </table>
+    <p><strong>ARI/NMI</strong> compare predicted labels against true labels (corrected for chance agreement) — rarely available in real unsupervised settings, but standard for <em>benchmarking</em> a clustering algorithm against known labeled datasets (e.g. Iris, MNIST).</p>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Treating Davies-Bouldin's averaging-vs-max choice as arbitrary. It's deliberate: validation metrics that exist to <em>catch failure modes</em> should aggregate pessimistically (worst case), not optimistically (average).</p>
+    </div>
+  </section>
+
+  <!-- 13. IMPLEMENTATION -->
+  <section class="section fade-in" id="implementation">
+    <div class="section-header">
+      <span class="section-tag tag-c">Topic 13</span>
+      <h2>Implementation from Scratch (NumPy)</h2>
+    </div>
+    <p>A from-scratch implementation ties every earlier concept into working code: k-means++ init (Topic 5), vectorized assignment (Topic 3/11), mean-based update (Topic 2), and tolerance-based convergence (Topic 7).</p>
+    <div class="code-block">import numpy as np
+
+class KMeansScratch:
+    def __init__(self, k=3, max_iters=100, tol=1e-4, init='kmeans++', random_state=None):
+        self.k = k
+        self.max_iters = max_iters
+        self.tol = tol
+        self.init = init
+        self.rng = np.random.default_rng(random_state)
+
+    def _init_centroids(self, X):
+        n_samples = X.shape[0]
+        if self.init == 'random':
+            idx = self.rng.choice(n_samples, self.k, replace=False)
+            return X[idx].copy()
+
+        <span class="comment"># k-means++: weight next pick by squared distance to nearest chosen centroid</span>
+        centroids = np.empty((self.k, X.shape[1]))
+        first_idx = self.rng.integers(n_samples)
+        centroids[0] = X[first_idx]
+        for i in range(1, self.k):
+            dist_sq = np.min(
+                np.sum((X[:, None, :] - centroids[None, :i, :]) ** 2, axis=2), axis=1
+            )
+            probs = dist_sq / dist_sq.sum()
+            next_idx = self.rng.choice(n_samples, p=probs)
+            centroids[i] = X[next_idx]
+        return centroids
+
+    def fit(self, X):
+        self.centroids = self._init_centroids(X)
+        for iteration in range(self.max_iters):
+            <span class="comment"># Assignment step: O(N*K*D) via broadcasting</span>
+            distances = np.sum(
+                (X[:, None, :] - self.centroids[None, :, :]) ** 2, axis=2
+            )
+            labels = np.argmin(distances, axis=1)
+
+            <span class="comment"># Update step: mean minimizes squared distance</span>
+            new_centroids = np.array([
+                X[labels == j].mean(axis=0) if np.any(labels == j) else self.centroids[j]
+                for j in range(self.k)
+            ])
+
+            shift = np.linalg.norm(new_centroids - self.centroids)
+            self.centroids = new_centroids
+            if shift < self.tol:
+                break
+
+        self.labels_ = labels
+        self.n_iter_ = iteration + 1
+        self.inertia_ = self._compute_inertia(X, labels)
+        return self
+
+    def _compute_inertia(self, X, labels):
+        return sum(
+            np.sum((X[labels == j] - self.centroids[j]) ** 2)
+            for j in range(self.k)
+        )
+
+    def predict(self, X):
+        distances = np.sum(
+            (X[:, None, :] - self.centroids[None, :, :]) ** 2, axis=2
+        )
+        return np.argmin(distances, axis=1)</div>
+    <h3>Broadcasting mechanics</h3>
+    <p><code>X[:, None, :]</code> has shape (N,1,D); <code>centroids[None, :, :]</code> has shape (1,K,D). Broadcasting stretches both to (N,K,D), so <code>result[n,k,d]</code> = difference between point n's d-th coordinate and centroid k's d-th coordinate — every pairwise difference computed at once. Summing over axis=2 (D) collapses this to the final (N,K) distance matrix.</p>
+    <div class="callout callout-warning">
+      <div class="callout-title">Empty Cluster Edge Case</div>
+      <p>If an unlucky assignment leaves a cluster with zero points, <code>.mean()</code> on an empty array produces NaN, silently corrupting all future iterations. Standard fixes: keep the previous centroid unchanged, or re-seed it as the point farthest from all current centroids (mini k-means++ style recovery).</p>
+    </div>
+    <p><strong>Production note:</strong> the 3D broadcast intermediate array costs O(NKD) memory temporarily. Libraries like sklearn instead expand ‖x−μ‖² = ‖x‖²+‖μ‖²−2x·μ and use matrix multiplication — more memory-efficient at scale.</p>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>"What happens if a cluster becomes empty during training?" — a real, commonly-asked edge case. Forgetting to guard against it is a common from-scratch implementation bug.</p>
+    </div>
+  </section>
+
+  <!-- 14. INTERVIEW TRAPS -->
+  <section class="section fade-in" id="traps">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Topic 14</span>
+      <h2>Interview Traps &amp; Edge Cases — Consolidated</h2>
+    </div>
+    <table class="compare-table">
+      <thead><tr><th>Question</th><th>Correct core answer</th></tr></thead>
+      <tbody>
+        <tr><td>Supervised or unsupervised?</td><td>Unsupervised — no labels, no target y</td></tr>
+        <tr><td>Global optimum guaranteed?</td><td>No — NP-hard, only local optimum guaranteed</td></tr>
+        <tr><td>Categorical data?</td><td>No — use K-Modes / K-Prototypes</td></tr>
+        <tr><td>K = N?</td><td>Trivial, J=0, useless clustering</td></tr>
+        <tr><td>K = 1?</td><td>Baseline; centroid=global mean; J=total variance</td></tr>
+        <tr><td>Empty cluster?</td><td>NaN risk — needs explicit handling</td></tr>
+        <tr><td>Deterministic?</td><td>No — fix random_state for reproducibility</td></tr>
+        <tr><td>Why squared distance, not plain distance?</td><td>Differentiability (closed-form mean) + avoids costly sqrt at scale</td></tr>
+        <tr><td>Streaming/online data?</td><td>Mini-Batch K-Means or online centroid updates</td></tr>
+        <tr><td>K-Means vs. hierarchical clustering?</td><td>K-Means: pre-specify K, fast O(NKD), spherical assumption. Hierarchical: no pre-specified K (cut dendrogram anywhere), reveals nested structure, but O(N²logN)+ — doesn't scale</td></tr>
+      </tbody>
+    </table>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title">Classic Comparison Traps</div>
+        <ul>
+          <li>K-Means vs. GMM — spherical/equal covariance + hard assignment is the exact bridge</li>
+          <li>K-Means vs. K-Medoids/K-Medians — robustness vs. speed trade-off</li>
+          <li>Elbow vs. Silhouette — subjective vs. quantitative trade-off signal</li>
+          <li>Decision trees vs. K-Means on scaling — trees split one feature at a time (scale-invariant); K-Means combines all features into one distance (scale-sensitive)</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title">Edge-Case Traps</div>
+        <ul>
+          <li>Tie-breaking at equidistant points — implementation-dependent, rarely matters with real-valued data</li>
+          <li>Outlier permanently hijacking a centroid under deterministic-farthest init</li>
+          <li>Two centroids landing in the same natural cluster under random init</li>
+          <li>t-SNE plots over-interpreted as true global cluster geometry</li>
+        </ul>
+      </div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Conflating "converges" with "converges well." K-Means always terminates in finite steps — that guarantee says nothing about clustering quality.</p>
+    </div>
+  </section>
+
+  <!-- 30 INTERVIEW QUESTIONS -->
+  <section class="section fade-in" id="interview">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Practice</span>
+      <h2>30 Interview Questions</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All</button>
+      <button class="filter-btn" onclick="filterIQ('easy', this)">Easy</button>
+      <button class="filter-btn" onclick="filterIQ('medium', this)">Medium</button>
+      <button class="filter-btn" onclick="filterIQ('hard', this)">Hard</button>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What is the objective function K-Means minimizes?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Within-Cluster Sum of Squares (inertia): J = Σᵢ Σ_{x∈Cᵢ} ‖x−μᵢ‖² — total squared distance of every point to its own cluster's centroid.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Is K-Means supervised or unsupervised, and why?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Unsupervised — there is no target variable y; the algorithm discovers group structure purely from feature similarity.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What are the two steps of Lloyd's algorithm?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Assignment (assign each point to its nearest centroid) and Update (recompute each centroid as the mean of its assigned points), repeated until assignments stop changing.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Why must you specify K upfront in K-Means?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>The algorithm has no internal mechanism to discover the number of clusters — it only optimizes centroid positions and assignments for a fixed, given K.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What does it mean when inertia is 0?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Every point is its own cluster (K=N) — a trivial, useless clustering, since inertia mechanically shrinks to 0 as K approaches N.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q6</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Why is feature scaling important before running K-Means?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Euclidean distance combines all features into a single number; a feature with a much larger numeric range dominates the distance and effectively drowns out smaller-scale features, distorting the clustering.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Is K-Means deterministic?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>No — random initialization (even k-means++'s first pick) means results vary run to run unless random_state is fixed.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q8</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What's the role of a centroid in K-Means?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>It's the representative point (mean) of a cluster — every point is assigned based on distance to the nearest centroid, and centroids are recomputed each iteration from their assigned points.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q9</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Name two real-world applications of K-Means.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Customer segmentation (grouping users by behavior without labels) and image compression (reducing millions of colors to K representative colors). Anomaly detection and feature engineering (cluster ID as a feature) are also common.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q10</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">What distance metric does standard K-Means use, and why?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Squared Euclidean distance — because it's the only metric for which the update step's mean is provably optimal (minimizes total squared distance).</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q11</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Prove that the mean minimizes the sum of squared distances within a cluster.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Taking ∂J/∂μ = ∂/∂μ Σ(x−μ)² = −2Σ(x−μ), setting it to zero gives Σx = nμ, so μ = (1/n)Σx — the arithmetic mean. This is a global minimum since J is convex in μ.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q12</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why does K-Means fail on the classic concentric-circles (make_circles) dataset?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Both the inner circle and outer ring share nearly the same center of mass, so distance-to-centroid can't separate them — K-Means only produces straight-line (Voronoi) boundaries, but separating these clusters requires a curved boundary.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q13</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Explain how k-means++ initialization works and why it reduces bad local optima.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>The first centroid is picked randomly; each subsequent centroid is picked with probability proportional to its squared distance from the nearest already-chosen centroid. This actively spreads centroids across distinct regions of the data instead of letting them cluster together, sharply reducing the chance two centroids land in the same natural group.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q14</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why is k-means++ probabilistic rather than deterministically picking the farthest point?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>A deterministic farthest-point rule would always select a single noisy outlier as a centroid with 100% certainty on every run, permanently wasting a cluster on it. Weighted-random selection still favors far points strongly but leaves room for legitimate structure to be discovered across multiple restarts.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q15</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">How does the Silhouette Score avoid the "always improves with more K" problem that inertia has?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Inertia only measures intra-cluster cohesion (a(i)), which mechanically improves as K grows. Silhouette also factors in inter-cluster separation (b(i)) — over-splitting a genuine cluster produces sub-clusters that sit close together, lowering b(i) and thus the score, so it peaks at a genuinely good K instead of monotonically improving.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q16</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why does K-Medians use the median instead of the mean, and what's the trade-off?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Minimizing Manhattan (L1) distance is optimized by the median, not the mean, since the derivative of |x−μ| is a constant sign, requiring equal counts on each side. K-Medians is more robust to outliers than K-Means, but the median has no closed-form multivariate solution, requiring iterative search rather than a simple average.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q17</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why does L2-normalizing vectors let you run cosine-based clustering using standard Euclidean K-Means?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>For unit vectors, ‖x−μ‖² = 2(1−cosθ) — squared Euclidean distance is a constant multiple of cosine distance. Since scaling by a constant doesn't change the argmin ranking, Euclidean K-Means on normalized vectors produces identical cluster assignments to true cosine K-Means, while keeping the mean-based update mathematically valid.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q18</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Describe a scenario with equal cluster sizes where K-Means still fails due to density alone.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Two clusters with the same number of points, but one tightly packed in a small radius and the other naturally spread over a much larger radius. K-Means penalizes the spread-out cluster's natural radius as if it "should" be tighter, sometimes splitting it unnecessarily — this is distinct from a size-imbalance failure, since both clusters here have equal point counts.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q19</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What is the time complexity of K-Means per iteration, and which term dominates for high-dimensional sparse data?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>O(N×K×D) per iteration. For high-dimensional data (large D) with modest N and small K, N and D jointly dominate; the standard fix is dimensionality reduction (PCA, or Truncated SVD for sparse data) before clustering.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q20</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Why does Davies-Bouldin use the worst-case (max) neighboring cluster instead of averaging over all neighbors?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>A clustering's quality is limited by its weakest link — one badly-overlapping neighbor is a real, visible defect. Averaging over many well-separated neighbors would dilute and hide that defect, producing an artificially good score. Using max makes the metric deliberately pessimistic, which is the point of a validation diagnostic.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q21</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Prove that Lloyd's algorithm cannot cycle indefinitely between partitions.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>J strictly decreases whenever the partition actually changes (both assignment and update steps are individually exact optimizations). If the algorithm cycled P₁→P₂→...→P₁, this would require J(P₁)&gt;J(P₁) — a contradiction. Combined with only finitely many possible partitions of N points into K groups, the algorithm must reach a partition it cannot leave (convergence) within finite steps.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q22</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why is finding the globally optimal K-Means clustering NP-hard?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>The number of possible partitions of N points into K groups is a Stirling number of the second kind, growing roughly as K^N/K! — combinatorially explosive. No known algorithm can search this space exactly in polynomial time as N grows, which is why Lloyd's greedy local-search heuristic is used instead of exhaustive search.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q23</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Construct a concrete example where bad initialization traps Lloyd's algorithm in a genuinely wrong but stable local optimum.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Groups A={1,2,3,4}, B={5,6}, C={20,21}, K=3, init μ={1,2,20} (two centroids inside A). The algorithm converges to C1={1,2}, C2={3,4,5,6}, C3={20,21} — splitting A down the middle and merging its back half with all of B. No point wants to flip (stable), yet this isn't the natural human-obvious grouping — a genuine local optimum requires K≥3 with two close natural groups and one far group, unlike simple 2-cluster cases which almost always self-correct.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q24</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Derive exactly what GMM reduces to when covariance is constrained to σ²I and E-step assignments are forced to be hard.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>With Σ_k=σ²I for every cluster, the Gaussian's weighted distance (x−μ_k)ᵀΣ_k⁻¹(x−μ_k) collapses to (1/σ²)‖x−μ_k‖² — plain scaled Euclidean distance, identical in form for every cluster (removing per-cluster shape flexibility). Forcing E-step probabilities to hard 0/1 makes each point belong entirely to one cluster (removing soft ambiguity). Together, GMM's E-step/M-step become exactly Lloyd's assignment/update steps — K-Means is GMM under these two specific constraints.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q25</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why does an empty cluster arise during K-Means training, and how would you fix it in a from-scratch implementation?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>An unlucky assignment step (often from bad init) can leave zero points assigned to some centroid — computing its mean then produces NaN and corrupts all subsequent iterations. Fixes: keep that centroid unchanged for the iteration, or re-seed it as the point currently farthest from all other centroids (a mini k-means++-style recovery), then continue.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q26</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Why does standardization fix the feature-domination problem even without bounding values to a fixed range like min-max does?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Domination arises purely from unequal relative spread (variance) between features, not from unbounded ranges. Standardization (z=(x−μ)/σ) forces every feature's standard deviation to exactly 1, so a "1 std swing" in any feature contributes equally to squared Euclidean distance — no hard [0,1] boundary is required for this equalization to work.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q27</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Explain the broadcasting mechanics behind a vectorized NumPy assignment step, including the intermediate array shape and its memory cost.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>X[:,None,:] has shape (N,1,D); centroids[None,:,:] has shape (1,K,D). Broadcasting stretches both to (N,K,D), computing every point-centroid coordinate difference simultaneously. Summing over the D axis collapses this to the final (N,K) distance matrix. The intermediate (N,K,D) array costs O(NKD) memory — a real bottleneck at large N or D, which is why production libraries instead expand ‖x−μ‖²=‖x‖²+‖μ‖²−2x·μ using matrix multiplication for better memory efficiency.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q28</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">You run K-Means on 1M points with K=10 and D=50, then need to sweep K from 1 to 40 for an elbow plot. Walk through the computational implications and how you'd manage them.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Total cost is O(NKD×I) per K value; sweeping K from 1-40 instead of 1-10 roughly quadruples total computation for the search, since cost scales linearly in K. Practical mitigations: use Mini-Batch K-Means for the sweep to cut per-iteration cost via batching, cache/reuse k-means++ seeding logic where possible, and consider running the full sweep on a representative sample of the data rather than all 1M points, validating the chosen K on the full dataset afterward.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q29</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">A stakeholder asks why increasing K from 5 to 6 barely changed inertia but silhouette score dropped sharply. What's happening and what would you recommend?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>Inertia barely changing signals K=6 isn't meaningfully reducing within-cluster distortion — the extra centroid is likely splitting a genuine cluster into two closely-spaced sub-clusters rather than capturing new real structure. Silhouette dropping confirms this: the split sub-clusters now sit close together, lowering inter-cluster separation (b(i)) for their points. Recommend reverting to K=5, since the elbow (near-flat inertia change) and quantitative silhouette both agree K=6 overfits the cluster count.</p></div>
+    </div>
+
+    <div class="iq-card" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q30</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Design a clustering approach for a dataset you suspect has non-convex clusters, mixed density, and no known K. Justify every choice.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><p>1) Skip vanilla K-Means as the primary method — its spherical/equal-density assumption directly conflicts with the described structure. 2) Use DBSCAN or spectral clustering first, since both handle non-convex shapes and don't require a pre-specified K (DBSCAN infers cluster count from density; spectral clustering uses a similarity graph and eigen-decomposition to expose non-linear separability). 3) For density variation specifically, prefer DBSCAN's local density estimation (or GMM if clusters are elongated-but-Gaussian rather than arbitrarily shaped) over K-Means' single global distance criterion. 4) Validate with visual inspection (t-SNE/UMAP, aware that only local grouping is meaningful there) plus internal metrics appropriate to non-convex clusters (silhouette still applies; Davies-Bouldin/Calinski-Harabasz assume more centroid-like structure and are less reliable here). 5) Only fall back to K-Means if these methods reveal roughly convex, evenly-dense structure after all — using elbow+silhouette to pick K at that point.</p></div>
+    </div>
+
+  </section>
+
+</div>
+
+<div class="footer">
+  K-Means Clustering from Scratch · Data Scientist Interview Track · Good luck
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(diff, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const d = card.getAttribute('data-diff');
+      const show = (diff === 'all') || (d === diff);
+      card.style.display = show ? '' : 'none';
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

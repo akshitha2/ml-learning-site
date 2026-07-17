@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Interview Drill — DS Interview Track</title>
+<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e2a; --border: #2a2f3f;
+    --accent-a: #3b82f6; --accent-b: #f97316; --accent-c: #a855f7;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); } .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 640px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-interview { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 10px 0 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+  .compare-table td:nth-child(2) { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-b); }
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; } .key-insight p { margin: 0; font-size: 14px; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+
+  /* question / answer cards */
+  .qa-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; padding: 20px 22px; }
+  .qa-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 10px; }
+  .qa-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .qa-question { font-size: 15px; font-weight: 700; line-height: 1.5; }
+  .qa-schema { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 8px 12px; margin-bottom: 12px; white-space: pre-wrap; }
+  .solution-block { border: 1px solid var(--border); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .solution-header { cursor: pointer; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; user-select: none; }
+  .solution-header:hover { background: rgba(255,255,255,0.02); }
+  .sql-block .solution-header { color: var(--accent-a); }
+  .py-block .solution-header { color: var(--accent-b); }
+  .sol-icon { font-size: 12px; transition: transform 0.2s; }
+  .solution-block.open .sol-icon { transform: rotate(90deg); }
+  .sol-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+  .solution-block.open .sol-body { display: block; }
+  .qa-note { font-size: 13px; color: var(--text-muted); margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: var(--accent-a); }
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<!-- SITE-NAV:START -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
+    <span class="site-header-sep">/</span>
+    <div class="nav-dropdown" id="siteNav">
+      <span class="badge nav-dropdown-trigger" style="--accent:#22d3ee" onclick="document.getElementById('siteNav').classList.toggle('open')">💻 Programming &amp; Tools</span>
+      <div class="nav-dropdown-panel">
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
+      <a class="nav-group-link" href="hypothesis_testing.html">Hypothesis Testing</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics Deep Dive</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures for Beginners</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP for Beginners</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP Interview Study Guide</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">ML EDA &amp; Core Libraries</a>
+      <a class="nav-group-link active" href="sql_interview_questions_guide.html">SQL Interview Drill</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL Interview Study Guide</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
+      <a class="nav-group-link" href="decision_trees_complete.html">Decision Trees</a>
+      <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
+      <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
+      <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting Machines</a>
+      <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
+      <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
+      <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
+      <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
+      <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
+      <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance</a>
+      <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
+      <a class="nav-group-link" href="arima_guide.html">Time Series Masterclass</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Mastery</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture Fundamentals</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
+      <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#9898b0">📁 Other</div>
+      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
+      <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
+    </div>
+      </div>
+    </div>
+  </div>
+</header>
+<script>
+  document.addEventListener('click', function(e) {
+    var nav = document.getElementById('siteNav');
+    if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var nav = document.getElementById('siteNav');
+      if (nav) nav.classList.remove('open');
+    }
+  });
+</script>
+<!-- SITE-NAV:END -->
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">SQL &amp; Pandas · Interview Track</div>
+    <h1><span class="a">SQL Interview</span> <span class="b">Drill</span></h1>
+    <p class="hero-sub">Warm-up through advanced patterns — self-joins, gaps &amp; islands, retention/cohort analysis — each with an SQL solution and a pandas equivalent, both hidden until you click. Solve it yourself first, then check.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Warm-up</div>
+      <div class="progress-item done">✓ Core</div>
+      <div class="progress-item done">✓ Self-Joins</div>
+      <div class="progress-item done">✓ Gaps &amp; Islands</div>
+      <div class="progress-item done">✓ Retention</div>
+      <div class="progress-item done">✓ SQL→Python Cheat Sheet</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#warmup" class="a">Warm-up</a>
+  <a href="#core" class="a">Core</a>
+  <a href="#selfjoin" class="b">Self-Joins</a>
+  <a href="#gaps" class="b">Gaps &amp; Islands</a>
+  <a href="#retention" class="c">Retention</a>
+  <a href="#cheatsheet">SQL→Python Cheat Sheet</a>
+</nav>
+
+<div class="container">
+
+  <!-- ================= WARM-UP ================= -->
+  <section class="section fade-in" id="warmup">
+    <div class="section-header">
+      <span class="section-tag tag-a">Round 1</span>
+      <h2>Warm-up</h2>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">W1</span><div class="qa-question">Get all employees earning more than the average salary in their department.</div></div>
+      <div class="qa-schema">employees(employee_id, name, salary, department_id)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT e.employee_id, e.name, e.salary, e.department_id
+FROM employees e
+JOIN (
+    SELECT department_id, AVG(salary) AS avg_salary
+    FROM employees
+    GROUP BY department_id
+) d ON e.department_id = d.department_id
+WHERE e.salary > d.avg_salary;
+
+<span class="comment">-- Window function alternative (no self-join needed):</span>
+SELECT employee_id, name, salary, department_id
+FROM (
+    SELECT *, AVG(salary) OVER (PARTITION BY department_id) AS avg_salary
+    FROM employees
+) t
+WHERE salary > avg_salary;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">df["avg_salary"] = df.groupby("department_id")["salary"].transform("mean")
+result = df[df["salary"] > df["avg_salary"]]</div></div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">W2</span><div class="qa-question">Find duplicate emails in a customer table.</div></div>
+      <div class="qa-schema">customers(customer_id, email, name)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT email, COUNT(*) AS cnt
+FROM customers
+GROUP BY email
+HAVING COUNT(*) > 1;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">dupe_emails = (
+    df.groupby("email")
+      .size()
+      .reset_index(name="cnt")
+      .query("cnt > 1")
+)</div></div>
+      </div>
+      <div class="qa-note">Pitfall: HAVING filters on the aggregate; WHERE cannot reference COUNT(*).</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">W3</span><div class="qa-question">List customers who have never placed an order.</div></div>
+      <div class="qa-schema">customers(customer_id, name) · orders(order_id, customer_id, order_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT c.customer_id, c.name
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL;
+
+<span class="comment">-- Equivalent:</span>
+SELECT customer_id, name
+FROM customers
+WHERE customer_id NOT IN (SELECT customer_id FROM orders WHERE customer_id IS NOT NULL);</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">never_ordered = customers[~customers["customer_id"].isin(orders["customer_id"])]</div></div>
+      </div>
+      <div class="qa-note">Pitfall: NOT IN silently returns nothing if the subquery contains a NULL — filter NULLs out or use NOT EXISTS.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">W4</span><div class="qa-question">Count orders per month for the last year, including months with zero orders.</div></div>
+      <div class="qa-schema">orders(order_id, customer_id, order_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH months AS (
+    SELECT generate_series(
+        date_trunc('month', CURRENT_DATE - INTERVAL '11 months'),
+        date_trunc('month', CURRENT_DATE),
+        INTERVAL '1 month'
+    ) AS month_start
+)
+SELECT m.month_start, COUNT(o.order_id) AS order_count
+FROM months m
+LEFT JOIN orders o
+  ON date_trunc('month', o.order_date) = m.month_start
+GROUP BY m.month_start
+ORDER BY m.month_start;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">orders["month"] = orders["order_date"].dt.to_period("M").dt.to_timestamp()
+counts = orders.groupby("month").size()
+
+all_months = pd.date_range(end=pd.Timestamp.today().normalize().replace(day=1),
+                            periods=12, freq="MS")
+result = counts.reindex(all_months, fill_value=0)</div></div>
+      </div>
+      <div class="qa-note">Tests whether the candidate knows to generate a calendar/spine table — plain GROUP BY silently drops zero-count months.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">W5</span><div class="qa-question">Difference between WHERE and HAVING — give an example where using the wrong one breaks the query.</div></div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block"><span class="comment">-- WRONG: WHERE cannot reference an aggregate</span>
+SELECT department_id, COUNT(*)
+FROM employees
+WHERE COUNT(*) > 5   <span class="comment">-- ERROR</span>
+GROUP BY department_id;
+
+<span class="comment">-- CORRECT:</span>
+SELECT department_id, COUNT(*)
+FROM employees
+GROUP BY department_id
+HAVING COUNT(*) > 5;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block"><span class="comment"># WHERE-equivalent: filter rows first</span>
+filtered = df[df["salary"] > 50000]
+
+<span class="comment"># HAVING-equivalent: filter after aggregation</span>
+grouped = df.groupby("department_id").size().reset_index(name="cnt")
+grouped = grouped[grouped["cnt"] > 5]</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CORE ================= -->
+  <section class="section fade-in" id="core">
+    <div class="section-header">
+      <span class="section-tag tag-a">Round 2</span>
+      <h2>Core</h2>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C1</span><div class="qa-question">Find the 2nd (or Nth) highest salary per department.</div></div>
+      <div class="qa-schema">employees(employee_id, name, salary, department_id)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT department_id, employee_id, name, salary
+FROM (
+    SELECT *, DENSE_RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rnk
+    FROM employees
+) t
+WHERE rnk = 2;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">df["rnk"] = df.groupby("department_id")["salary"].rank(method="dense", ascending=False)
+result = df[df["rnk"] == 2]</div></div>
+      </div>
+      <div class="qa-note">Pitfall: use DENSE_RANK, not ROW_NUMBER, if tied salaries should count as one rank.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C2</span><div class="qa-question">Find users active on 3+ consecutive days.</div></div>
+      <div class="qa-schema">logins(user_id, login_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH grp AS (
+    SELECT user_id, login_date,
+           login_date - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date))::int AS grp_key
+    FROM (SELECT DISTINCT user_id, login_date FROM logins) d
+)
+SELECT user_id, MIN(login_date) AS streak_start, COUNT(*) AS streak_len
+FROM grp
+GROUP BY user_id, grp_key
+HAVING COUNT(*) >= 3;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">d = logins.drop_duplicates(["user_id","login_date"]).sort_values(["user_id","login_date"])
+d["rn"] = d.groupby("user_id").cumcount() + 1
+d["grp_key"] = d["login_date"] - pd.to_timedelta(d["rn"], unit="D")
+
+streaks = (
+    d.groupby(["user_id","grp_key"])
+     .agg(streak_start=("login_date","min"), streak_len=("login_date","count"))
+     .reset_index()
+)
+result = streaks[streaks["streak_len"] >= 3]</div></div>
+      </div>
+      <div class="qa-note">Same "date minus row_number" pattern as Gaps &amp; Islands G1 — the single most-tested SQL pattern in DS interviews.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C3</span><div class="qa-question">Calculate a 7-day rolling average of daily revenue.</div></div>
+      <div class="qa-schema">daily_revenue(date, revenue)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT date, revenue,
+       AVG(revenue) OVER (
+           ORDER BY date
+           ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+       ) AS rolling_7d_avg
+FROM daily_revenue
+ORDER BY date;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">df = df.sort_values("date")
+df["rolling_7d_avg"] = df["revenue"].rolling(window=7, min_periods=1).mean()</div></div>
+      </div>
+      <div class="qa-note">Pitfall: ROWS counts physical rows (assumes no missing dates); RANGE counts by date value — ask which the candidate would pick if dates have gaps.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C4</span><div class="qa-question">Find each employee's manager's manager (2 levels up).</div></div>
+      <div class="qa-schema">employees(employee_id, name, manager_id)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT e.employee_id, e.name AS employee,
+       m1.name AS manager,
+       m2.name AS skip_level_manager
+FROM employees e
+LEFT JOIN employees m1 ON e.manager_id = m1.employee_id
+LEFT JOIN employees m2 ON m1.manager_id = m2.employee_id;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">m1 = df.merge(df, left_on="manager_id", right_on="employee_id",
+              suffixes=("", "_m1"), how="left")
+result = m1.merge(df, left_on="manager_id_m1", right_on="employee_id",
+                   suffixes=("", "_m2"), how="left")
+result = result[["employee_id","name","name_m1","name_m2"]]</div></div>
+      </div>
+      <div class="qa-note">For N levels instead of a fixed 2, this needs a recursive CTE (see Self-Join S3).</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C5</span><div class="qa-question">Build a funnel: % of users who go from signup → activation → purchase.</div></div>
+      <div class="qa-schema">users(user_id, signup_date) · activations(user_id, activation_date) · purchases(user_id, purchase_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH funnel AS (
+    SELECT u.user_id,
+           1 AS signed_up,
+           CASE WHEN a.user_id IS NOT NULL THEN 1 ELSE 0 END AS activated,
+           CASE WHEN p.user_id IS NOT NULL THEN 1 ELSE 0 END AS purchased
+    FROM users u
+    LEFT JOIN activations a ON u.user_id = a.user_id
+    LEFT JOIN purchases p ON u.user_id = p.user_id
+)
+SELECT SUM(signed_up) AS signups,
+       SUM(activated) AS activations,
+       SUM(purchased) AS purchases,
+       ROUND(100.0 * SUM(activated) / SUM(signed_up), 1) AS pct_activated,
+       ROUND(100.0 * SUM(purchased) / SUM(activated), 1) AS pct_purchased_of_activated
+FROM funnel;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">funnel = users[["user_id"]].copy()
+funnel["activated"] = funnel["user_id"].isin(activations["user_id"]).astype(int)
+funnel["purchased"] = funnel["user_id"].isin(purchases["user_id"]).astype(int)
+
+signups = len(funnel)
+activated = funnel["activated"].sum()
+purchased = funnel["purchased"].sum()
+
+pct_activated = round(100 * activated / signups, 1)
+pct_purchased_of_activated = round(100 * purchased / activated, 1)</div></div>
+      </div>
+      <div class="qa-note">Ask: should purchase require activation first, or just "ever done"? Ambiguity is intentional — good candidates ask.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C6</span><div class="qa-question">Month-over-month % change in revenue.</div></div>
+      <div class="qa-schema">monthly_revenue(month, revenue)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT month, revenue,
+       LAG(revenue) OVER (ORDER BY month) AS prev_month_revenue,
+       ROUND(
+         100.0 * (revenue - LAG(revenue) OVER (ORDER BY month))
+         / NULLIF(LAG(revenue) OVER (ORDER BY month), 0), 1
+       ) AS pct_change
+FROM monthly_revenue
+ORDER BY month;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">df = df.sort_values("month")
+df["prev_month_revenue"] = df["revenue"].shift(1)
+df["pct_change"] = (df["revenue"] / df["prev_month_revenue"] - 1) * 100</div></div>
+      </div>
+      <div class="qa-note">Pitfall: first row is NULL after LAG — candidate should state how they'd handle it.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C7</span><div class="qa-question">Find each customer's first purchase date, then classify into cohorts by signup month.</div></div>
+      <div class="qa-schema">customers(customer_id, signup_date) · orders(order_id, customer_id, order_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH first_purchase AS (
+    SELECT customer_id, MIN(order_date) AS first_order_date
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT c.customer_id,
+       date_trunc('month', c.signup_date) AS cohort_month,
+       fp.first_order_date
+FROM customers c
+LEFT JOIN first_purchase fp ON c.customer_id = fp.customer_id;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">first_purchase = orders.groupby("customer_id")["order_date"].min().reset_index(name="first_order_date")
+
+result = customers.merge(first_purchase, on="customer_id", how="left")
+result["cohort_month"] = result["signup_date"].dt.to_period("M").dt.to_timestamp()</div></div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">C8</span><div class="qa-question">Find the running total per account, resetting when balance goes negative.</div></div>
+      <div class="qa-schema">transactions(account_id, txn_date, amount)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block"><span class="comment">-- Plain window functions can't reference the running value mid-calculation,
+-- so this needs a recursive CTE.</span>
+WITH RECURSIVE ordered AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY txn_date) AS rn
+    FROM transactions
+),
+running AS (
+    SELECT account_id, txn_date, amount, rn, amount AS running_total
+    FROM ordered WHERE rn = 1
+    UNION ALL
+    SELECT o.account_id, o.txn_date, o.amount, o.rn,
+           CASE WHEN r.running_total + o.amount < 0 THEN 0
+                ELSE r.running_total + o.amount END
+    FROM ordered o
+    JOIN running r ON o.account_id = r.account_id AND o.rn = r.rn + 1
+)
+SELECT account_id, txn_date, amount, running_total
+FROM running
+ORDER BY account_id, txn_date;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">def running_with_reset(group):
+    total = 0
+    out = []
+    for amt in group:
+        total += amt
+        if total < 0:
+            total = 0
+        out.append(total)
+    return out
+
+df = df.sort_values(["account_id","txn_date"])
+df["running_total"] = df.groupby("account_id")["amount"].transform(running_with_reset)</div></div>
+      </div>
+      <div class="qa-note">Senior-level trap: each step depends on the previous *computed* value, not just raw rows — needs recursion or a procedural loop.</div>
+    </div>
+  </section>
+
+  <!-- ================= SELF-JOIN ================= -->
+  <section class="section fade-in" id="selfjoin">
+    <div class="section-header">
+      <span class="section-tag tag-b">Round 3</span>
+      <h2>Self-Joins</h2>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">S1</span><div class="qa-question">Find all pairs of employees who have the same manager.</div></div>
+      <div class="qa-schema">employees(employee_id, name, manager_id)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT a.employee_id AS emp1, b.employee_id AS emp2, a.manager_id
+FROM employees a
+JOIN employees b
+  ON a.manager_id = b.manager_id
+ AND a.employee_id < b.employee_id;  <span class="comment">-- avoids mirrored pairs + self-pairs</span></div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">m = df.merge(df, on="manager_id", suffixes=("1","2"))
+pairs = m[m["employee_id1"] < m["employee_id2"]][["employee_id1","employee_id2","manager_id"]]</div></div>
+      </div>
+      <div class="qa-note">Pitfall: forgetting the "&lt;" condition gives duplicate mirrored pairs and matches employees with themselves.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">S2</span><div class="qa-question">Find employees who earn more than their manager.</div></div>
+      <div class="qa-schema">employees(employee_id, name, salary, manager_id)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT e.employee_id, e.name AS employee, e.salary,
+       m.name AS manager, m.salary AS manager_salary
+FROM employees e
+JOIN employees m ON e.manager_id = m.employee_id
+WHERE e.salary > m.salary;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">m = df.merge(df, left_on="manager_id", right_on="employee_id", suffixes=("","_mgr"))
+result = m[m["salary"] > m["salary_mgr"]]</div></div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">S3</span><div class="qa-question">Find the org chart depth for each employee (levels from the CEO).</div></div>
+      <div class="qa-schema">employees(employee_id, name, manager_id)  -- CEO has manager_id IS NULL</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH RECURSIVE org AS (
+    SELECT employee_id, name, manager_id, 0 AS depth
+    FROM employees
+    WHERE manager_id IS NULL
+    UNION ALL
+    SELECT e.employee_id, e.name, e.manager_id, o.depth + 1
+    FROM employees e
+    JOIN org o ON e.manager_id = o.employee_id
+)
+SELECT * FROM org ORDER BY depth, employee_id;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">depth = {}
+def get_depth(emp_id):
+    if emp_id in depth:
+        return depth[emp_id]
+    mgr = df.loc[df.employee_id==emp_id, "manager_id"].iloc[0]
+    if pd.isna(mgr):
+        depth[emp_id] = 0
+    else:
+        depth[emp_id] = get_depth(mgr) + 1
+    return depth[emp_id]
+
+df["depth"] = df["employee_id"].apply(get_depth)</div></div>
+      </div>
+      <div class="qa-note">A plain self-join breaks down here (fixed joins can't handle arbitrary depth) — tests if the candidate reaches for a recursive CTE.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">S4</span><div class="qa-question">Find products that were bought together in the same order (market basket pairs).</div></div>
+      <div class="qa-schema">order_items(order_id, product_id)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT a.product_id AS product_a, b.product_id AS product_b, COUNT(*) AS times_bought_together
+FROM order_items a
+JOIN order_items b
+  ON a.order_id = b.order_id
+ AND a.product_id < b.product_id
+GROUP BY a.product_id, b.product_id
+ORDER BY times_bought_together DESC;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">m = df.merge(df, on="order_id", suffixes=("_a","_b"))
+m = m[m["product_id_a"] < m["product_id_b"]]
+
+pairs = (
+    m.groupby(["product_id_a","product_id_b"])
+     .size()
+     .reset_index(name="times_bought_together")
+     .sort_values("times_bought_together", ascending=False)
+)</div></div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">S5</span><div class="qa-question">Find consecutive orders by the same customer and calculate days between them.</div></div>
+      <div class="qa-schema">orders(order_id, customer_id, order_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block"><span class="comment">-- Window-function approach (preferred over a self-join):</span>
+SELECT customer_id, order_date,
+       LAG(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) AS prev_order_date,
+       order_date - LAG(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) AS days_between
+FROM orders
+ORDER BY customer_id, order_date;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">df = df.sort_values(["customer_id","order_date"])
+df["prev_order_date"] = df.groupby("customer_id")["order_date"].shift(1)
+df["days_between"] = (df["order_date"] - df["prev_order_date"]).dt.days</div></div>
+      </div>
+      <div class="qa-note">Good discussion point: ask why LAG() is usually preferable to a self-join here (performance, readability).</div>
+    </div>
+  </section>
+
+  <!-- ================= GAPS & ISLANDS ================= -->
+  <section class="section fade-in" id="gaps">
+    <div class="section-header">
+      <span class="section-tag tag-b">Round 4</span>
+      <h2>Gaps &amp; Islands</h2>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">G1</span><div class="qa-question">Find users active on 3+ consecutive days.</div></div>
+      <div class="qa-schema">logins(user_id, login_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH grp AS (
+    SELECT user_id, login_date,
+           login_date - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date))::int AS grp_key
+    FROM (SELECT DISTINCT user_id, login_date FROM logins) d
+)
+SELECT user_id, MIN(login_date) AS streak_start, MAX(login_date) AS streak_end, COUNT(*) AS streak_len
+FROM grp
+GROUP BY user_id, grp_key
+HAVING COUNT(*) >= 3;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">d = logins.drop_duplicates(["user_id","login_date"]).sort_values(["user_id","login_date"])
+d["rn"] = d.groupby("user_id").cumcount() + 1
+d["grp_key"] = d["login_date"] - pd.to_timedelta(d["rn"], unit="D")
+
+streaks = d.groupby(["user_id","grp_key"]).agg(
+    streak_start=("login_date","min"),
+    streak_end=("login_date","max"),
+    streak_len=("login_date","count")
+).reset_index()
+result = streaks[streaks["streak_len"] >= 3]</div></div>
+      </div>
+      <div class="qa-note">The core trick: date − row_number() is constant within a consecutive run. Memorize this pattern.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">G2</span><div class="qa-question">Find the longest streak of consecutive login days per user.</div></div>
+      <div class="qa-schema">logins(user_id, login_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH grp AS (
+    SELECT user_id, login_date,
+           login_date - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date))::int AS grp_key
+    FROM (SELECT DISTINCT user_id, login_date FROM logins) d
+),
+streaks AS (
+    SELECT user_id, grp_key, COUNT(*) AS streak_len
+    FROM grp
+    GROUP BY user_id, grp_key
+)
+SELECT user_id, MAX(streak_len) AS longest_streak
+FROM streaks
+GROUP BY user_id
+ORDER BY longest_streak DESC;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">d = logins.drop_duplicates(["user_id","login_date"]).sort_values(["user_id","login_date"])
+d["rn"] = d.groupby("user_id").cumcount() + 1
+d["grp_key"] = d["login_date"] - pd.to_timedelta(d["rn"], unit="D")
+
+streak_len = d.groupby(["user_id","grp_key"]).size().reset_index(name="streak_len")
+longest = streak_len.groupby("user_id")["streak_len"].max().reset_index(name="longest_streak")</div></div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">G3</span><div class="qa-question">Find gaps of 7+ days with no activity for each user (inverse problem).</div></div>
+      <div class="qa-schema">activity(user_id, activity_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH ordered AS (
+    SELECT user_id, activity_date,
+           LEAD(activity_date) OVER (PARTITION BY user_id ORDER BY activity_date) AS next_date
+    FROM (SELECT DISTINCT user_id, activity_date FROM activity) d
+)
+SELECT user_id, activity_date AS gap_start, next_date AS gap_end,
+       next_date - activity_date AS gap_length
+FROM ordered
+WHERE next_date - activity_date >= 7
+ORDER BY user_id, activity_date;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">d = activity.drop_duplicates(["user_id","activity_date"]).sort_values(["user_id","activity_date"])
+d["next_date"] = d.groupby("user_id")["activity_date"].shift(-1)
+d["gap_length"] = (d["next_date"] - d["activity_date"]).dt.days
+
+gaps = d[d["gap_length"] >= 7][["user_id","activity_date","next_date","gap_length"]]
+gaps.columns = ["user_id","gap_start","gap_end","gap_length"]</div></div>
+      </div>
+      <div class="qa-note">Flips the pattern: use LEAD (not the row-number trick) since you're measuring distance between consecutive rows, not grouping runs.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">G4</span><div class="qa-question">Given subscription start/end dates per user, merge overlapping or adjacent date ranges into single periods.</div></div>
+      <div class="qa-schema">subscriptions(user_id, start_date, end_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH ordered AS (
+    SELECT user_id, start_date, end_date,
+           MAX(end_date) OVER (
+               PARTITION BY user_id ORDER BY start_date
+               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+           ) AS running_max_end
+    FROM subscriptions
+),
+flagged AS (
+    SELECT *,
+           CASE WHEN start_date <= COALESCE(running_max_end, start_date) + INTERVAL '1 day'
+                THEN 0 ELSE 1 END AS is_new_group
+    FROM ordered
+),
+grouped AS (
+    SELECT *, SUM(is_new_group) OVER (PARTITION BY user_id ORDER BY start_date) AS grp_id
+    FROM flagged
+)
+SELECT user_id, MIN(start_date) AS merged_start, MAX(end_date) AS merged_end
+FROM grouped
+GROUP BY user_id, grp_id
+ORDER BY user_id, merged_start;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">d = subscriptions.sort_values(["user_id","start_date"]).copy()
+d["running_max_end"] = d.groupby("user_id")["end_date"].cummax().shift(1)
+
+d["is_new_group"] = (
+    d["start_date"] > d["running_max_end"] + pd.Timedelta(days=1)
+) | d["running_max_end"].isna()
+
+d["grp_id"] = d.groupby("user_id")["is_new_group"].cumsum()
+
+merged = d.groupby(["user_id","grp_id"]).agg(
+    merged_start=("start_date","min"),
+    merged_end=("end_date","max")
+).reset_index(drop=False).drop(columns="grp_id")</div></div>
+      </div>
+      <div class="qa-note">Harder variant: ranges instead of single dates. Needs a running MAX of end_date, not just a row count, to detect overlap.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">G5</span><div class="qa-question">Find machines with 5+ consecutive failed status checks that ended in a "resolved" event.</div></div>
+      <div class="qa-schema">machine_checks(machine_id, check_time, status)  -- status: 'failed' | 'resolved' | 'ok'</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH ordered AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY machine_id ORDER BY check_time) AS rn
+    FROM machine_checks
+),
+failed_only AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY machine_id ORDER BY check_time) -
+           ROW_NUMBER() OVER (PARTITION BY machine_id, (status='failed') ORDER BY check_time) AS grp_key
+    FROM ordered
+    WHERE status = 'failed'
+),
+streaks AS (
+    SELECT machine_id, grp_key, COUNT(*) AS streak_len,
+           MIN(check_time) AS streak_start, MAX(check_time) AS streak_end
+    FROM failed_only
+    GROUP BY machine_id, grp_key
+    HAVING COUNT(*) >= 5
+)
+SELECT s.*
+FROM streaks s
+JOIN machine_checks mc
+  ON mc.machine_id = s.machine_id
+ AND mc.check_time = (
+     SELECT MIN(check_time) FROM machine_checks mc2
+     WHERE mc2.machine_id = s.machine_id AND mc2.check_time > s.streak_end
+ )
+WHERE mc.status = 'resolved';</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">d = machine_checks.sort_values(["machine_id","check_time"]).copy()
+d["rn_all"] = d.groupby("machine_id").cumcount()
+d["rn_failed"] = d[d.status=="failed"].groupby("machine_id").cumcount()
+d["grp_key"] = d["rn_all"] - d["rn_failed"]
+
+failed = d[d.status == "failed"]
+streaks = failed.groupby(["machine_id","grp_key"]).agg(
+    streak_len=("status","count"),
+    streak_start=("check_time","min"),
+    streak_end=("check_time","max")
+).reset_index()
+streaks = streaks[streaks["streak_len"] >= 5]
+
+def next_status_is_resolved(row):
+    after = d[(d.machine_id==row.machine_id) & (d.check_time > row.streak_end)]
+    if after.empty: return False
+    return after.sort_values("check_time").iloc[0]["status"] == "resolved"
+
+streaks = streaks[streaks.apply(next_status_is_resolved, axis=1)]</div></div>
+      </div>
+      <div class="qa-note">Combines gaps-and-islands grouping with a conditional lookup after the streak — a strong senior-level filter question.</div>
+    </div>
+  </section>
+
+  <!-- ================= RETENTION ================= -->
+  <section class="section fade-in" id="retention">
+    <div class="section-header">
+      <span class="section-tag tag-c">Round 5</span>
+      <h2>Retention / Cohort</h2>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">R1</span><div class="qa-question">Calculate Day-1, Day-7, Day-30 retention for users grouped by signup cohort.</div></div>
+      <div class="qa-schema">users(user_id, signup_date) · activity(user_id, activity_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH cohort AS (
+    SELECT user_id, date_trunc('month', signup_date) AS cohort_month, signup_date
+    FROM users
+),
+act AS (
+    SELECT a.user_id, c.cohort_month,
+           (a.activity_date - c.signup_date) AS days_since_signup
+    FROM activity a
+    JOIN cohort c ON a.user_id = c.user_id
+)
+SELECT c.cohort_month,
+       COUNT(DISTINCT c.user_id) AS cohort_size,
+       COUNT(DISTINCT CASE WHEN a.days_since_signup = 1 THEN a.user_id END) AS day1_retained,
+       COUNT(DISTINCT CASE WHEN a.days_since_signup = 7 THEN a.user_id END) AS day7_retained,
+       COUNT(DISTINCT CASE WHEN a.days_since_signup = 30 THEN a.user_id END) AS day30_retained
+FROM cohort c
+LEFT JOIN act a ON c.user_id = a.user_id
+GROUP BY c.cohort_month
+ORDER BY c.cohort_month;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">users["cohort_month"] = users["signup_date"].dt.to_period("M").dt.to_timestamp()
+act = activity.merge(users[["user_id","signup_date","cohort_month"]], on="user_id")
+act["days_since_signup"] = (act["activity_date"] - act["signup_date"]).dt.days
+
+def retained_on(day):
+    ids = act.loc[act.days_since_signup==day, "user_id"].unique()
+    return users.assign(retained=users.user_id.isin(ids))
+
+cohort_size = users.groupby("cohort_month")["user_id"].nunique()
+day1 = retained_on(1).groupby("cohort_month")["retained"].sum()
+day7 = retained_on(7).groupby("cohort_month")["retained"].sum()
+day30 = retained_on(30).groupby("cohort_month")["retained"].sum()
+
+result = pd.DataFrame({"cohort_size": cohort_size,
+                        "day1_retained": day1, "day7_retained": day7, "day30_retained": day30})</div></div>
+      </div>
+      <div class="qa-note">Pitfall: the denominator must always be cohort_size (fixed), not a shifting count — a common mistake that inflates retention.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">R2</span><div class="qa-question">Build a retention curve: % of cohort still active in each week after signup (week 0–8).</div></div>
+      <div class="qa-schema">users(user_id, signup_date) · activity(user_id, activity_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH cohort AS (
+    SELECT user_id, date_trunc('week', signup_date) AS cohort_week, signup_date
+    FROM users
+),
+act AS (
+    SELECT a.user_id, c.cohort_week,
+           FLOOR((a.activity_date - c.signup_date) / 7) AS week_number
+    FROM activity a
+    JOIN cohort c ON a.user_id = c.user_id
+    WHERE a.activity_date >= c.signup_date
+),
+weeks AS (SELECT generate_series(0,8) AS week_number),
+sizes AS (
+    SELECT cohort_week, COUNT(DISTINCT user_id) AS cohort_size
+    FROM cohort GROUP BY cohort_week
+)
+SELECT s.cohort_week, w.week_number,
+       COUNT(DISTINCT a.user_id) AS active_users,
+       ROUND(100.0 * COUNT(DISTINCT a.user_id) / s.cohort_size, 1) AS pct_retained
+FROM sizes s
+CROSS JOIN weeks w
+LEFT JOIN act a ON a.cohort_week = s.cohort_week AND a.week_number = w.week_number
+GROUP BY s.cohort_week, w.week_number, s.cohort_size
+ORDER BY s.cohort_week, w.week_number;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">users["cohort_week"] = users["signup_date"].dt.to_period("W").dt.start_time
+act = activity.merge(users[["user_id","signup_date","cohort_week"]], on="user_id")
+act = act[act["activity_date"] >= act["signup_date"]]
+act["week_number"] = ((act["activity_date"] - act["signup_date"]).dt.days // 7)
+
+cohort_size = users.groupby("cohort_week")["user_id"].nunique()
+
+rows = []
+for cw, grp in act.groupby("cohort_week"):
+    for w in range(0, 9):
+        active = grp.loc[grp.week_number==w, "user_id"].nunique()
+        rows.append({"cohort_week": cw, "week_number": w,
+                      "active_users": active,
+                      "pct_retained": round(100*active/cohort_size[cw],1)})
+result = pd.DataFrame(rows)</div></div>
+      </div>
+      <div class="qa-note">Needs a cross join / cartesian spine of weeks 0–8 so weeks with zero active users still show 0%, not a missing row.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">R3</span><div class="qa-question">Classify users into New / Retained / Resurrected / Churned for each month.</div></div>
+      <div class="qa-schema">activity(user_id, activity_month)  -- one row per user per active month</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH months AS (SELECT DISTINCT activity_month FROM activity),
+user_months AS (SELECT user_id, activity_month FROM activity),
+flagged AS (
+    SELECT um.user_id, m.activity_month,
+           EXISTS (SELECT 1 FROM user_months u WHERE u.user_id=um.user_id AND u.activity_month = m.activity_month) AS active_this_month,
+           EXISTS (SELECT 1 FROM user_months u WHERE u.user_id=um.user_id AND u.activity_month = m.activity_month - INTERVAL '1 month') AS active_prev_month,
+           EXISTS (SELECT 1 FROM user_months u WHERE u.user_id=um.user_id AND u.activity_month < m.activity_month) AS active_before
+    FROM (SELECT DISTINCT user_id FROM activity) um
+    CROSS JOIN months m
+)
+SELECT activity_month,
+       CASE
+         WHEN active_this_month AND NOT active_before THEN 'New'
+         WHEN active_this_month AND active_prev_month THEN 'Retained'
+         WHEN active_this_month AND NOT active_prev_month AND active_before THEN 'Resurrected'
+         WHEN NOT active_this_month AND active_prev_month THEN 'Churned'
+       END AS status,
+       COUNT(DISTINCT user_id) AS user_count
+FROM flagged
+WHERE active_this_month OR active_prev_month
+GROUP BY activity_month, status
+ORDER BY activity_month, status;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">all_months = sorted(activity["activity_month"].unique())
+all_users = activity["user_id"].unique()
+active_set = activity.groupby("activity_month")["user_id"].apply(set).to_dict()
+
+rows = []
+seen_before = {u: False for u in all_users}
+prev_month_active = set()
+
+for m in all_months:
+    this_month_active = active_set.get(m, set())
+    for u in all_users:
+        is_active = u in this_month_active
+        was_active_prev = u in prev_month_active
+        was_active_before = seen_before[u]
+
+        if is_active and not was_active_before:
+            status = "New"
+        elif is_active and was_active_prev:
+            status = "Retained"
+        elif is_active and not was_active_prev and was_active_before:
+            status = "Resurrected"
+        elif not is_active and was_active_prev:
+            status = "Churned"
+        else:
+            status = None
+        if status:
+            rows.append({"activity_month": m, "user_id": u, "status": status})
+    prev_month_active = this_month_active
+    for u in this_month_active:
+        seen_before[u] = True
+
+result = pd.DataFrame(rows).groupby(["activity_month","status"]).size().reset_index(name="user_count")</div></div>
+      </div>
+      <div class="qa-note">Senior-level filter: candidate must define "New" vs "Resurrected" themselves — reveals how they handle ambiguity.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">R4</span><div class="qa-question">Calculate rolling 28-day active users (a DAU/MAU-style metric).</div></div>
+      <div class="qa-schema">activity(user_id, activity_date)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">SELECT a.activity_date,
+       COUNT(DISTINCT b.user_id) AS active_last_28d
+FROM (SELECT DISTINCT activity_date FROM activity) a
+JOIN activity b
+  ON b.activity_date BETWEEN a.activity_date - INTERVAL '27 days' AND a.activity_date
+GROUP BY a.activity_date
+ORDER BY a.activity_date;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">dates = sorted(activity["activity_date"].unique())
+rows = []
+for d in dates:
+    window_start = d - pd.Timedelta(days=27)
+    active = activity.loc[
+        (activity.activity_date >= window_start) & (activity.activity_date <= d), "user_id"
+    ].nunique()
+    rows.append({"activity_date": d, "active_last_28d": active})
+
+result = pd.DataFrame(rows)</div></div>
+      </div>
+      <div class="qa-note">Pitfall: this is a RANGE-based window (by date value), not ROWS-based — ROWS BETWEEN 27 PRECEDING breaks if dates have gaps or duplicates.</div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-head"><span class="qa-num">R5</span><div class="qa-question">Given a cohort's revenue table, calculate cumulative LTV per cohort by month since signup.</div></div>
+      <div class="qa-schema">users(user_id, signup_date) · revenue(user_id, revenue_date, revenue)</div>
+      <div class="solution-block sql-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> SQL Solution</div>
+        <div class="sol-body"><div class="code-block">WITH cohort AS (
+    SELECT user_id, date_trunc('month', signup_date) AS cohort_month
+    FROM users
+),
+monthly AS (
+    SELECT c.cohort_month,
+           (EXTRACT(YEAR FROM r.revenue_date) - EXTRACT(YEAR FROM c.cohort_month)) * 12
+             + (EXTRACT(MONTH FROM r.revenue_date) - EXTRACT(MONTH FROM c.cohort_month)) AS month_since_signup,
+           r.revenue
+    FROM revenue r
+    JOIN cohort c ON r.user_id = c.user_id
+),
+cohort_size AS (
+    SELECT cohort_month, COUNT(DISTINCT user_id) AS n_users FROM cohort GROUP BY cohort_month
+),
+agg AS (
+    SELECT cohort_month, month_since_signup, SUM(revenue) AS month_revenue
+    FROM monthly
+    GROUP BY cohort_month, month_since_signup
+)
+SELECT a.cohort_month, a.month_since_signup,
+       SUM(a.month_revenue) OVER (
+           PARTITION BY a.cohort_month ORDER BY a.month_since_signup
+       ) / cs.n_users AS cumulative_ltv_per_user
+FROM agg a
+JOIN cohort_size cs ON a.cohort_month = cs.cohort_month
+ORDER BY a.cohort_month, a.month_since_signup;</div></div>
+      </div>
+      <div class="solution-block py-block"><div class="solution-header" onclick="toggleSolution(this)"><span class="sol-icon">›</span> Python Solution</div>
+        <div class="sol-body"><div class="code-block">users["cohort_month"] = users["signup_date"].dt.to_period("M")
+rev = revenue.merge(users[["user_id","cohort_month"]], on="user_id")
+rev["revenue_month"] = rev["revenue_date"].dt.to_period("M")
+rev["month_since_signup"] = (rev["revenue_month"] - rev["cohort_month"]).apply(lambda x: x.n)
+
+cohort_size = users.groupby("cohort_month")["user_id"].nunique()
+
+monthly = rev.groupby(["cohort_month","month_since_signup"])["revenue"].sum().reset_index()
+monthly = monthly.sort_values(["cohort_month","month_since_signup"])
+monthly["cum_revenue"] = monthly.groupby("cohort_month")["revenue"].cumsum()
+monthly["cumulative_ltv_per_user"] = monthly.apply(
+    lambda row: row["cum_revenue"] / cohort_size[row["cohort_month"]], axis=1
+)</div></div>
+      </div>
+      <div class="qa-note">Combines cohort bucketing + running SUM window function + per-user normalization — a good "tie it all together" closing question.</div>
+    </div>
+  </section>
+
+  <!-- ================= CHEAT SHEET ================= -->
+  <section class="section fade-in" id="cheatsheet">
+    <div class="section-header">
+      <span class="section-tag tag-interview">Reference</span>
+      <h2>SQL → Python Cheat Sheet</h2>
+    </div>
+    <p>Every SQL construct used above, mapped to its pandas equivalent. First column is SQL, second is pandas/Python.</p>
+
+    <h3>Aggregation &amp; Grouping</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>COUNT(*)</td><td>len(df)</td><td>Row count, including NULLs</td></tr>
+        <tr><td>COUNT(col)</td><td>df['col'].count()</td><td>Excludes NaN/NULL</td></tr>
+        <tr><td>SUM(col)</td><td>df['col'].sum()</td><td>—</td></tr>
+        <tr><td>AVG(col)</td><td>df['col'].mean()</td><td>—</td></tr>
+        <tr><td>MIN(col) / MAX(col)</td><td>df['col'].min() / .max()</td><td>—</td></tr>
+        <tr><td>GROUP BY col</td><td>df.groupby('col')</td><td>Returns a GroupBy object, then chain .agg()/.sum()/etc</td></tr>
+        <tr><td>HAVING</td><td>df.groupby('col').filter(lambda g: ...) or filter after .agg()</td><td>Filters groups, not rows</td></tr>
+        <tr><td>DISTINCT col</td><td>df['col'].unique() / df.drop_duplicates(['col'])</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Window / Ranking Functions</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>ROW_NUMBER() OVER (PARTITION BY x ORDER BY y)</td><td>df.groupby('x').cumcount() + 1</td><td>Always unique, no ties</td></tr>
+        <tr><td>RANK()</td><td>df.groupby('x')['y'].rank(method='min')</td><td>Ties share rank, leaves gaps</td></tr>
+        <tr><td>DENSE_RANK()</td><td>df.groupby('x')['y'].rank(method='dense')</td><td>Ties share rank, no gaps</td></tr>
+        <tr><td>LAG(col) OVER (PARTITION BY x ORDER BY y)</td><td>df.groupby('x')['col'].shift(1)</td><td>Previous row's value</td></tr>
+        <tr><td>LEAD(col)</td><td>df.groupby('x')['col'].shift(-1)</td><td>Next row's value</td></tr>
+        <tr><td>SUM(col) OVER (PARTITION BY x ORDER BY y)</td><td>df.groupby('x')['col'].cumsum()</td><td>Running total</td></tr>
+        <tr><td>AVG(col) OVER (ROWS BETWEEN n PRECEDING)</td><td>df['col'].rolling(window=n+1).mean()</td><td>Moving average</td></tr>
+        <tr><td>NTILE(n)</td><td>pd.qcut(df['col'], n, labels=False)</td><td>Buckets into n equal-sized groups</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Joins</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>INNER JOIN</td><td>pd.merge(df1, df2, how='inner')</td><td>Default how in merge()</td></tr>
+        <tr><td>LEFT JOIN</td><td>pd.merge(df1, df2, how='left')</td><td>—</td></tr>
+        <tr><td>RIGHT JOIN</td><td>pd.merge(df1, df2, how='right')</td><td>—</td></tr>
+        <tr><td>FULL OUTER JOIN</td><td>pd.merge(df1, df2, how='outer')</td><td>—</td></tr>
+        <tr><td>CROSS JOIN</td><td>df1.merge(df2, how='cross')</td><td>Cartesian product</td></tr>
+        <tr><td>Self-join</td><td>df.merge(df, left_on=..., right_on=..., suffixes=(...))</td><td>suffixes avoids column name collisions</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Filtering &amp; Conditionals</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>WHERE condition</td><td>df[condition]</td><td>Boolean mask</td></tr>
+        <tr><td>col IN (a, b, c)</td><td>df['col'].isin([a, b, c])</td><td>—</td></tr>
+        <tr><td>col NOT IN (a, b, c)</td><td>~df['col'].isin([a, b, c])</td><td>~ negates the mask</td></tr>
+        <tr><td>col BETWEEN a AND b</td><td>df['col'].between(a, b)</td><td>Inclusive both ends</td></tr>
+        <tr><td>col LIKE '%x%'</td><td>df['col'].str.contains('x')</td><td>Use regex=False for literal match</td></tr>
+        <tr><td>CASE WHEN ... THEN ... ELSE ... END</td><td>np.select([...], [...], default=...) or df['col'].apply(lambda x: ...)</td><td>np.select for multiple conditions, np.where for one</td></tr>
+      </tbody>
+    </table>
+
+    <h3>String Functions</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>CONCAT(a, b)</td><td>df['a'] + df['b'] or df['a'].str.cat(df['b'])</td><td>—</td></tr>
+        <tr><td>UPPER(col) / LOWER(col)</td><td>df['col'].str.upper() / .str.lower()</td><td>—</td></tr>
+        <tr><td>SUBSTRING(col, a, b)</td><td>df['col'].str[a:b] or .str.slice(a, b)</td><td>0-indexed in pandas vs 1-indexed in most SQL</td></tr>
+        <tr><td>TRIM(col)</td><td>df['col'].str.strip()</td><td>—</td></tr>
+        <tr><td>LENGTH(col)</td><td>df['col'].str.len()</td><td>—</td></tr>
+        <tr><td>REPLACE(col, a, b)</td><td>df['col'].str.replace(a, b)</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Date / Time Functions</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>DATE_TRUNC('month', col)</td><td>df['col'].dt.to_period('M').dt.to_timestamp()</td><td>Also works for 'week', 'year', 'day'</td></tr>
+        <tr><td>EXTRACT(YEAR FROM col)</td><td>df['col'].dt.year</td><td>Also .dt.month, .dt.day, .dt.dayofweek</td></tr>
+        <tr><td>col1 - col2 (date difference)</td><td>(df['col1'] - df['col2']).dt.days</td><td>Result is a Timedelta; .dt.days gets the integer</td></tr>
+        <tr><td>CURRENT_DATE</td><td>pd.Timestamp.today().normalize()</td><td>—</td></tr>
+        <tr><td>col + INTERVAL 'n days'</td><td>df['col'] + pd.Timedelta(days=n)</td><td>Also weeks=, months= needs pd.DateOffset</td></tr>
+      </tbody>
+    </table>
+
+    <h3>NULL Handling</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>col IS NULL</td><td>df['col'].isna()</td><td>—</td></tr>
+        <tr><td>col IS NOT NULL</td><td>df['col'].notna()</td><td>—</td></tr>
+        <tr><td>COALESCE(a, b)</td><td>df['a'].fillna(df['b'])</td><td>Takes 'a' unless null, then 'b'</td></tr>
+        <tr><td>NULLIF(a, b)</td><td>df['a'].mask(df['a'] == b)</td><td>Turns matching values into NaN</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Set Operations</h3>
+    <table class="compare-table">
+      <thead><tr><th>SQL</th><th>Pandas</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>UNION</td><td>pd.concat([df1, df2]).drop_duplicates()</td><td>Removes duplicate rows</td></tr>
+        <tr><td>UNION ALL</td><td>pd.concat([df1, df2])</td><td>Keeps duplicates</td></tr>
+        <tr><td>INTERSECT</td><td>pd.merge(df1, df2, how='inner')</td><td>Or set(df1.col) &amp; set(df2.col) for a single column</td></tr>
+        <tr><td>EXCEPT / MINUS</td><td>df1[~df1['col'].isin(df2['col'])]</td><td>Rows in df1 not in df2</td></tr>
+      </tbody>
+    </table>
+
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>The recurring theme: SQL's PARTITION BY almost always maps to pandas' groupby(), and OVER (ORDER BY ...) window logic maps to a method chained after groupby() — .cumsum(), .shift(), .rank(), .rolling(). If you can say the SQL window function out loud, you can usually guess its pandas equivalent from this pattern alone.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer">
+  SQL Interview Drill · Data Scientist Track · Good luck
+</div>
+
+<script>
+  function toggleSolution(header) {
+    header.parentElement.classList.toggle('open');
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

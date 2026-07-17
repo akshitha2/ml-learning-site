@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bias-Variance — Model Comparison Reference</title>
+<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --accent1: #e8c547;
+    --accent2: #5b8dee;
+    --accent3: #e05c7a;
+    --accent4: #4ecb94;
+    --accent5: #c47ae8;
+    --accent6: #e87a4e;
+    --accent7: #4ec9e8;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --text-dimmer: #55556a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Playfair Display', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; overflow-x: hidden; }
+
+  header { padding: 60px 48px 40px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(232,197,71,0.06) 0%, transparent 70%); pointer-events: none; }
+  header::after { content: ''; position: absolute; bottom: -60px; right: 100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(91,141,238,0.06) 0%, transparent 70%); pointer-events: none; }
+  .header-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent1); margin-bottom: 16px; }
+  h1 { font-family: var(--serif); font-size: clamp(32px, 5vw, 64px); font-weight: 900; line-height: 1.05; margin-bottom: 16px; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent1); }
+  .header-sub { color: var(--text-dim); font-size: 15px; max-width: 620px; font-weight: 300; }
+
+  /* SCALE BAR */
+  .scale-wrap { padding: 24px 48px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .scale-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dimmer); margin-bottom: 12px; }
+  .scale-bar { display: flex; height: 34px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); font-family: var(--mono); font-size: 11px; }
+  .scale-seg { flex: 1; display: flex; align-items: center; justify-content: center; white-space: nowrap; padding: 0 4px; }
+  .scale-ends { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-dimmer); letter-spacing: 0.05em; }
+
+  .model-pills { display: flex; flex-wrap: wrap; gap: 10px; padding: 24px 48px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .pill { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; padding: 6px 14px; border-radius: 100px; border: 1px solid; cursor: default; white-space: nowrap; }
+  .pill.lr  { border-color: var(--accent2); color: var(--accent2); background: rgba(91,141,238,0.08); }
+  .pill.dt  { border-color: var(--accent1); color: var(--accent1); background: rgba(232,197,71,0.08); }
+  .pill.rf  { border-color: var(--accent4); color: var(--accent4); background: rgba(78,203,148,0.08); }
+  .pill.gbm { border-color: var(--accent3); color: var(--accent3); background: rgba(224,92,122,0.08); }
+  .pill.knn { border-color: var(--accent5); color: var(--accent5); background: rgba(196,122,232,0.08); }
+  .pill.svm { border-color: var(--accent6); color: var(--accent6); background: rgba(232,122,78,0.08); }
+  .pill.nn  { border-color: var(--accent7); color: var(--accent7); background: rgba(78,201,232,0.08); }
+  .pill.nb  { border-color: #aa88ff; color: #aa88ff; background: rgba(170,136,255,0.08); }
+
+  .controls { padding: 20px 48px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
+  .search-wrap input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 12px; padding: 10px 14px 10px 36px; border-radius: 6px; outline: none; transition: border-color 0.2s; }
+  .search-wrap input:focus { border-color: var(--accent1); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dimmer); font-size: 13px; }
+  .filter-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { font-family: var(--mono); font-size: 11px; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent1); color: var(--accent1); background: rgba(232,197,71,0.07); }
+  .count-label { font-family: var(--mono); font-size: 11px; color: var(--text-dimmer); margin-left: auto; }
+
+  .table-outer { padding: 0 48px 60px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 1000px; margin-top: 32px; }
+
+  .section-row td { padding: 28px 0 10px 0; font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent1); border-bottom: 1px solid var(--accent1); opacity: 0.7; }
+  .section-row td:first-child { padding-left: 0; }
+
+  thead th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dimmer); padding: 16px 14px; text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  thead th:first-child { width: 200px; min-width: 200px; position: sticky; left: 0; z-index: 20; background: var(--bg); }
+
+  tbody tr.data-row { border-bottom: 1px solid rgba(42,42,58,0.6); transition: background 0.15s; }
+  tbody tr.data-row:hover { background: rgba(255,255,255,0.025); }
+  tbody tr.data-row.hidden { display: none; }
+
+  td { padding: 13px 14px; vertical-align: top; font-size: 13px; line-height: 1.5; color: var(--text); }
+  td:first-child { font-family: var(--mono); font-size: 12px; color: var(--text-dim); font-weight: 500; position: sticky; left: 0; background: var(--bg); z-index: 5; min-width: 200px; border-right: 1px solid var(--border); }
+  tbody tr.data-row:hover td:first-child { background: #0f0f18; }
+  td.reason-col { color: var(--text-dim); font-size: 12.5px; font-style: italic; max-width: 340px; }
+
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 3px; letter-spacing: 0.04em; font-weight: 500; }
+  .badge-low  { background: rgba(78,203,148,0.12); color: #4ecb94; }
+  .badge-med  { background: rgba(232,197,71,0.12); color: #e8c547; }
+  .badge-high { background: rgba(224,92,122,0.12); color: #e05c7a; }
+  .badge-veryhigh { background: rgba(224,92,122,0.2); color: #ff4466; }
+
+  tr.verdict-row td { background: rgba(232,197,71,0.04); border-top: 2px solid rgba(232,197,71,0.2); border-bottom: 2px solid rgba(232,197,71,0.2); font-weight: 500; font-size: 12.5px; color: var(--text); padding: 16px 14px; }
+  tr.verdict-row td:first-child { font-style: normal; color: var(--accent1); background: rgba(232,197,71,0.07); }
+
+  .callout { margin: 28px 48px; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent1); border-radius: 6px; }
+  .callout-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent1); margin-bottom: 10px; }
+  .callout p { color: var(--text-dim); font-size: 13px; margin-bottom: 6px; }
+  .callout strong { color: var(--text); font-weight: 500; }
+
+  footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-note { font-family: var(--mono); font-size: 11px; color: var(--text-dimmer); }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--text-dimmer); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a55; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .table-outer { animation: fadeIn 0.5s ease both; animation-delay: 0.1s; opacity: 0; }
+  header { animation: fadeIn 0.4s ease both; }
+</style>
+</head>
+<body>
+<!-- SITE-NAV:START -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
+    <span class="site-header-sep">/</span>
+    <div class="nav-dropdown" id="siteNav">
+      <span class="badge nav-dropdown-trigger" style="--accent:#2dd4a0" onclick="document.getElementById('siteNav').classList.toggle('open')">🌳 Trees &amp; Ensembles</span>
+      <div class="nav-dropdown-panel">
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
+      <a class="nav-group-link" href="hypothesis_testing.html">Hypothesis Testing</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics Deep Dive</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures for Beginners</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP for Beginners</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP Interview Study Guide</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">ML EDA &amp; Core Libraries</a>
+      <a class="nav-group-link" href="sql_interview_questions_guide.html">SQL Interview Drill</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL Interview Study Guide</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
+      <a class="nav-group-link" href="decision_trees_complete.html">Decision Trees</a>
+      <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
+      <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
+      <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting Machines</a>
+      <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
+      <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
+      <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
+      <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
+      <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
+      <a class="nav-group-link active" href="bias_variance_comparison.html">Bias-Variance</a>
+      <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
+      <a class="nav-group-link" href="arima_guide.html">Time Series Masterclass</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Mastery</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture Fundamentals</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
+      <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#9898b0">📁 Other</div>
+      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
+      <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
+    </div>
+      </div>
+    </div>
+  </div>
+</header>
+<script>
+  document.addEventListener('click', function(e) {
+    var nav = document.getElementById('siteNav');
+    if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var nav = document.getElementById('siteNav');
+      if (nav) nav.classList.remove('open');
+    }
+  });
+</script>
+<!-- SITE-NAV:END -->
+
+<header>
+  <div class="header-label">Machine Learning · Model Diagnostics</div>
+  <h1>Bias &amp; Variance<span> — The Full Model Grid</span></h1>
+  <p class="header-sub">A single reference table for every "Model A vs Model B — which has higher bias, which has higher variance" interview question. Search or filter to find any pair instantly.</p>
+</header>
+
+<div class="scale-wrap">
+  <div class="scale-label">Flexibility Spectrum (Low Variance / High Bias → High Variance / Low Bias)</div>
+  <div class="scale-bar">
+    <div class="scale-seg" style="background:rgba(224,92,122,0.25);color:#e05c7a;">Naive Bayes</div>
+    <div class="scale-seg" style="background:rgba(224,92,122,0.18);color:#e05c7a;">Linear/Logistic Reg.</div>
+    <div class="scale-seg" style="background:rgba(232,197,71,0.18);color:#e8c547;">SVM (linear) / Shallow Tree</div>
+    <div class="scale-seg" style="background:rgba(232,197,71,0.12);color:#e8c547;">KNN (large k)</div>
+    <div class="scale-seg" style="background:rgba(91,141,238,0.15);color:#5b8dee;">Random Forest / GBM (tuned)</div>
+    <div class="scale-seg" style="background:rgba(78,203,148,0.15);color:#4ecb94;">SVM (RBF) / Deep NN</div>
+    <div class="scale-seg" style="background:rgba(78,203,148,0.25);color:#4ecb94;">Deep Tree / KNN (k=1)</div>
+  </div>
+  <div class="scale-ends">
+    <span>← HIGH BIAS, LOW VARIANCE (underfits)</span>
+    <span>HIGH VARIANCE, LOW BIAS (overfits) →</span>
+  </div>
+</div>
+
+<div class="model-pills">
+  <span class="pill lr">Linear/Logistic Reg.</span>
+  <span class="pill dt">Decision Tree</span>
+  <span class="pill rf">Random Forest / Boosting</span>
+  <span class="pill knn">KNN</span>
+  <span class="pill svm">SVM</span>
+  <span class="pill nn">Neural Net</span>
+  <span class="pill nb">Naive Bayes</span>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search a model or pair..." oninput="filterRows()">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" onclick="filterSection('all', this)">All</button>
+    <button class="filter-btn" onclick="filterSection('general', this)">General Models</button>
+    <button class="filter-btn" onclick="filterSection('treeinternal', this)">Tree-Family Pairs</button>
+    <button class="filter-btn" onclick="filterSection('treeother', this)">Tree vs Other Families</button>
+    <button class="filter-btn" onclick="filterSection('pitfalls', this)">Pitfalls</button>
+  </div>
+  <span class="count-label" id="rowCount"></span>
+</div>
+
+<div class="table-outer">
+<table id="mainTable">
+<thead>
+  <tr>
+    <th>Model / Pair</th>
+    <th>Bias</th>
+    <th>Variance</th>
+    <th>Reasoning</th>
+  </tr>
+</thead>
+<tbody id="tableBody">
+
+<tr class="section-row"><td colspan="4">General Model Grid</td></tr>
+
+<tr class="data-row" data-section="general"><td>Linear / Logistic Regression</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Rigid straight-line/plane boundary — underfits nonlinear patterns but is stable across resamples.</td></tr>
+<tr class="data-row" data-section="general"><td>Ridge Regression</td><td><span class="badge badge-high">High (↑ vs OLS)</span></td><td><span class="badge badge-low">Low (↓ vs OLS)</span></td><td class="reason-col">L2 penalty shrinks coefficients toward zero — trades a bit of bias for a lot less variance.</td></tr>
+<tr class="data-row" data-section="general"><td>Lasso Regression</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">L1 penalty shrinks and eliminates features — even more bias than Ridge, still low variance.</td></tr>
+<tr class="data-row" data-section="general"><td>Naive Bayes</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Strong conditional-independence assumption regardless of true feature correlation.</td></tr>
+<tr class="data-row" data-section="general"><td>KNN (small k, e.g. k=1)</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-veryhigh">Very High</span></td><td class="reason-col">Prediction depends on one nearest point — extremely sensitive to noise in training data.</td></tr>
+<tr class="data-row" data-section="general"><td>KNN (large k)</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Averaging over many neighbors smooths the boundary until it oversimplifies.</td></tr>
+<tr class="data-row" data-section="general"><td>SVM (linear kernel)</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Same rigidity as linear regression — a single hyperplane can't capture curvature.</td></tr>
+<tr class="data-row" data-section="general"><td>SVM (RBF, poorly tuned C/gamma)</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-high">High</span></td><td class="reason-col">A too-flexible kernel wraps tightly around every training point, including noise.</td></tr>
+<tr class="data-row" data-section="general"><td>Decision Tree (deep / unpruned)</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-veryhigh">Very High</span></td><td class="reason-col">Splits recursively until leaves are pure — effectively memorizes the training set.</td></tr>
+<tr class="data-row" data-section="general"><td>Decision Tree (shallow / pruned)</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Few splits force an oversimplified, coarse decision surface.</td></tr>
+<tr class="data-row" data-section="general"><td>Random Forest</td><td><span class="badge badge-med">Med (~= base tree)</span></td><td><span class="badge badge-low">Low (↓ vs single tree)</span></td><td class="reason-col">Bagging averages many decorrelated high-variance trees, canceling out noise.</td></tr>
+<tr class="data-row" data-section="general"><td>Gradient Boosting (early rounds)</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Few weak learners so far — hasn't captured enough signal yet.</td></tr>
+<tr class="data-row" data-section="general"><td>Gradient Boosting (many rounds, no reg.)</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-high">High (risk)</span></td><td class="reason-col">Keeps fitting residuals indefinitely — can start memorizing noise without early stopping/shrinkage.</td></tr>
+<tr class="data-row" data-section="general"><td>Neural Net (shallow / few epochs)</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Low</span></td><td class="reason-col">Limited capacity or undertrained — hasn't learned the full function.</td></tr>
+<tr class="data-row" data-section="general"><td>Neural Net (deep, no regularization)</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-high">High</span></td><td class="reason-col">Huge parameter count lets it memorize training examples verbatim.</td></tr>
+
+<tr class="section-row"><td colspan="4">Tree-Family Pairs (A vs B)</td></tr>
+
+<tr class="data-row" data-section="treeinternal"><td>Shallow Tree <b>vs</b> Deep Tree</td><td>Shallow → Higher</td><td>Deep → Higher</td><td class="reason-col">Shallow stops early (underfits). Deep splits till pure (memorizes noise). Classic underfit/overfit pair.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>Single Tree <b>vs</b> Random Forest</td><td>~Similar (RF slightly ↑)</td><td>Single Tree → Higher</td><td class="reason-col">RF bags many trees and averages predictions — variance drops sharply, bias barely changes.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>Random Forest <b>vs</b> Extra Trees</td><td>RF slightly lower</td><td>Extra Trees lower</td><td class="reason-col">Extra Trees pick random split thresholds (not the best split) — more randomness, more decorrelation, tiny bias uptick.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>Random Forest <b>vs</b> Gradient Boosting</td><td>RF → Higher</td><td>GBM → Higher (if untuned)</td><td class="reason-col">RF = parallel bagging (variance reducer). GBM = sequential residual fitting (bias reducer) that can overfit unchecked.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>AdaBoost (few iterations) <b>vs</b> AdaBoost (many iterations)</td><td>Few → Higher</td><td>Many → Higher</td><td class="reason-col">More rounds = more weak learners combined = closer fit to training data = variance creeps up.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>Bagging <b>vs</b> Boosting (general)</td><td>Bagging → Higher</td><td>Boosting → Higher (if unregularized)</td><td class="reason-col">Bagging tames variance of high-variance learners; boosting tames bias of high-bias learners.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>Single Deep Tree <b>vs</b> GBM (shallow base learners)</td><td>GBM's base learners → Higher individually</td><td>Single Deep Tree → Higher</td><td class="reason-col">GBM intentionally uses high-bias stumps/depth-3-4 trees and reduces bias iteratively; a lone deep tree is low-bias/high-variance.</td></tr>
+<tr class="data-row" data-section="treeinternal"><td>XGBoost (default regularization) <b>vs</b> XGBoost (no reg., deep trees)</td><td>Default reg → Higher</td><td>No reg → Higher</td><td class="reason-col">max_depth / lambda / gamma intentionally trade a little bias for a lot less variance.</td></tr>
+
+<tr class="section-row"><td colspan="4">Tree Models vs Other Families</td></tr>
+
+<tr class="data-row" data-section="treeother"><td>Linear Regression <b>vs</b> Decision Tree (deep)</td><td>Linear Reg → Higher</td><td>Decision Tree → Higher</td><td class="reason-col">Linear assumes a straight-line relationship; tree splits recursively to fit any shape and is unstable to resampling.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Logistic Regression <b>vs</b> Decision Tree</td><td>Logistic → Higher</td><td>Decision Tree → Higher</td><td class="reason-col">Same story for classification — linear boundary vs flexible axis-aligned splits.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Linear Regression <b>vs</b> Random Forest</td><td>Linear Reg → Higher</td><td>Random Forest → Higher</td><td class="reason-col">Even after RF's variance reduction via averaging, it's still more flexible than a straight line.</td></tr>
+<tr class="data-row" data-section="treeother"><td>KNN (k=1) <b>vs</b> Decision Tree (deep)</td><td>~Both low</td><td>KNN(k=1) usually → Higher</td><td class="reason-col">Both memorize data, but KNN(k=1) has zero smoothing at all; the tree at least groups points via splits.</td></tr>
+<tr class="data-row" data-section="treeother"><td>KNN (large k) <b>vs</b> Decision Tree (shallow)</td><td>~Both high (comparable)</td><td>~Both low</td><td class="reason-col">Both are oversimplified by design; exact ranking depends on chosen k and depth.</td></tr>
+<tr class="data-row" data-section="treeother"><td>SVM (linear) <b>vs</b> Decision Tree</td><td>SVM (linear) → Higher</td><td>Decision Tree → Higher</td><td class="reason-col">Rigid hyperplane vs a tree that can carve any-shaped decision region.</td></tr>
+<tr class="data-row" data-section="treeother"><td>SVM (RBF, complex tuning) <b>vs</b> Decision Tree (deep)</td><td>~Both low</td><td>Whichever tuned more aggressively → Higher</td><td class="reason-col">Both are highly flexible; the variance winner depends on hyperparameter choices (C, gamma vs depth).</td></tr>
+<tr class="data-row" data-section="treeother"><td>Naive Bayes <b>vs</b> Decision Tree</td><td>Naive Bayes → Higher</td><td>Decision Tree → Higher</td><td class="reason-col">NB's independence assumption is a strong source of bias; trees make no such assumption.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Neural Net (shallow/undertrained) <b>vs</b> Decision Tree (deep)</td><td>Neural Net → Higher</td><td>Decision Tree → Higher</td><td class="reason-col">Undertrained shallow NN underfits; a default deep tree overfits.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Neural Net (deep, no reg.) <b>vs</b> Decision Tree (deep)</td><td>~Both low</td><td>~Both high</td><td class="reason-col">Both are high-capacity, low-bias learners that overfit without regularization or pruning.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Random Forest <b>vs</b> Neural Net (deep, no reg.)</td><td>RF slightly → Higher</td><td>Neural Net → Higher</td><td class="reason-col">RF's bagging already controls variance; an unregularized deep net can overfit more severely.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Random Forest <b>vs</b> SVM (RBF)</td><td>RF slightly → Higher</td><td>Depends on tuning (often SVM if C/gamma high)</td><td class="reason-col">Both are flexible; RF has built-in variance control via averaging that SVM lacks by default.</td></tr>
+<tr class="data-row" data-section="treeother"><td>Gradient Boosting <b>vs</b> Linear Regression</td><td>Linear Reg → Higher</td><td>GBM → Higher (if overfit)</td><td class="reason-col">Linear is rigid by construction; GBM reduces bias sequentially but risks variance without regularization.</td></tr>
+
+<tr class="section-row"><td colspan="4">Summary Verdict</td></tr>
+<tr class="data-row verdict-row" data-section="all"><td>Mental test</td><td colspan="3">"If I retrained on a slightly different sample, would predictions change a lot?" → Yes = high variance. "Barely changes, but misses the real pattern?" → high bias.</td></tr>
+<tr class="data-row verdict-row" data-section="all"><td>Bagging vs Boosting rule</td><td colspan="3">Bagging (RF, Extra Trees) → base learner is high-variance (deep tree) → ensemble reduces VARIANCE. Boosting (AdaBoost, GBM, XGBoost) → base learner is high-bias (stump) → ensemble reduces BIAS.</td></tr>
+
+<tr class="section-row"><td colspan="4">Common Interview Pitfalls</td></tr>
+<tr class="data-row" data-section="pitfalls"><td>"RF has zero bias"</td><td colspan="3">Wrong — RF inherits bias from its base trees; bagging only reduces variance, not bias.</td></tr>
+<tr class="data-row" data-section="pitfalls"><td>"Boosting always has low bias AND low variance"</td><td colspan="3">Wrong — boosting reduces bias by design, but variance can rise again with too many rounds/no regularization (why XGBoost has lambda, gamma, max_depth).</td></tr>
+<tr class="data-row" data-section="pitfalls"><td>"Complexity = variance, same word"</td><td colspan="3">Complexity causes variance, but they aren't interchangeable — a complex model can still be regularized to lower variance.</td></tr>
+<tr class="data-row" data-section="pitfalls"><td>"Tree-based = always high variance"</td><td colspan="3">Wrong — a shallow tree (stump) is high bias. Depth is the deciding factor, not "is it a tree."</td></tr>
+
+</tbody>
+</table>
+</div>
+
+<div class="callout">
+  <div class="callout-title">Quick Answer Template for "A vs B" Questions</div>
+  <p>1. Identify each model's <strong>default flexibility</strong> — linear/assumption-heavy = high bias; non-parametric/deep = high variance.</p>
+  <p>2. Name the <strong>knob</strong> that controls it — regularization strength, tree depth, k, kernel, number of boosting rounds/epochs.</p>
+  <p>3. Give the one-liner: <strong>"X assumes less structure → more variance; Y assumes more structure → more bias."</strong></p>
+</div>
+
+<footer>
+  <div class="footer-note">All comparisons reflect default/untuned behaviour unless noted; hyperparameters can shift most rows.</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4ecb94"></div>Low</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e8c547"></div>Medium</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e05c7a"></div>High</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff4466"></div>Very High</div>
+  </div>
+</footer>
+
+<script>
+  function filterRows() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#tableBody tr.data-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const matches = row.textContent.toLowerCase().includes(q);
+      row.classList.toggle('hidden', !matches);
+      if (matches) visible++;
+    });
+    document.getElementById('rowCount').textContent = `${visible} rows`;
+  }
+
+  function filterSection(section, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const rows = document.querySelectorAll('#tableBody tr.data-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const show = section === 'all' || row.dataset.section === section || row.dataset.section === 'all';
+      row.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    document.getElementById('rowCount').textContent = `${visible} rows`;
+    document.querySelectorAll('.section-row').forEach(r => {
+      r.style.display = section === 'all' ? '' : 'none';
+    });
+  }
+
+  window.addEventListener('load', () => {
+    const total = document.querySelectorAll('#tableBody tr.data-row').length;
+    document.getElementById('rowCount').textContent = `${total} rows`;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree Models &amp; Boosting — Full Q&amp;A Notes</title>
+<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e2a;
+    --border: #2a2f3f;
+    --accent-a: #3b82f6;
+    --accent-b: #f97316;
+    --accent-c: #a855f7;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); }
+  .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 640px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 26px 0 10px; }
+  p { margin-bottom: 14px; color: var(--text); }
+
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 18px 0; border-radius: 0 4px 4px 0; }
+  .callout-a { border-color: var(--accent-a); background: rgba(59,130,246,0.05); }
+  .callout-b { border-color: var(--accent-b); background: rgba(249,115,22,0.05); }
+  .callout-insight { border-color: var(--accent-c); background: rgba(168,85,247,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-a .callout-title { color: var(--accent-a); }
+  .callout-b .callout-title { color: var(--accent-b); }
+  .callout-insight .callout-title { color: var(--accent-c); }
+
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 14px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+
+  .compare-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 13.5px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 11px 14px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+  .key-insight p { margin: 0; font-size: 14px; }
+
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 18px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 18px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; }
+  .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* Q&A CARDS */
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 4px 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; }
+  .must-have-list { list-style: none; }
+  .must-have-list li { display: flex; gap: 10px; margin-bottom: 8px; font-size: 14px; align-items: flex-start; }
+  .must-have-list li::before { content: '✓'; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 3px; flex-shrink: 0; }
+  ol.steps-list { margin-left: 20px; font-size: 14px; }
+  ol.steps-list li { margin-bottom: 8px; }
+
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<!-- SITE-NAV:START -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
+    <span class="site-header-sep">/</span>
+    <div class="nav-dropdown" id="siteNav">
+      <span class="badge nav-dropdown-trigger" style="--accent:#9898b0" onclick="document.getElementById('siteNav').classList.toggle('open')">📁 Other</span>
+      <div class="nav-dropdown-panel">
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
+      <a class="nav-group-link" href="hypothesis_testing.html">Hypothesis Testing</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics Deep Dive</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures for Beginners</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP for Beginners</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP Interview Study Guide</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">ML EDA &amp; Core Libraries</a>
+      <a class="nav-group-link" href="sql_interview_questions_guide.html">SQL Interview Drill</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL Interview Study Guide</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization Across Models</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Evaluation</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Model Evaluation Metrics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
+      <a class="nav-group-link" href="decision_trees_complete.html">Decision Trees</a>
+      <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
+      <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
+      <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting Machines</a>
+      <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
+      <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
+      <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
+      <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
+      <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
+      <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance</a>
+      <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
+      <a class="nav-group-link" href="arima_guide.html">Time Series Masterclass</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Mastery</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture Fundamentals</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
+      <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#9898b0">📁 Other</div>
+      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering from Scratch</a>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression from Scratch</a>
+      <a class="nav-group-link active" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
+    </div>
+      </div>
+    </div>
+  </div>
+</header>
+<script>
+  document.addEventListener('click', function(e) {
+    var nav = document.getElementById('siteNav');
+    if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var nav = document.getElementById('siteNav');
+      if (nav) nav.classList.remove('open');
+    }
+  });
+</script>
+<!-- SITE-NAV:END -->
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">ML Interview Prep · Tree Models &amp; Boosting · Full Detail</div>
+    <h1><span class="a">Tree Models</span> &amp; <span class="b">Boosting</span> Q&amp;A</h1>
+    <p class="hero-sub">Full detailed answers — decision tree mechanics, pruning, growth strategies across AdaBoost/GBM/XGBoost/LightGBM, missing value handling, and practical hyperparameter guidance — compiled from a complete study session.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ Bias/Variance</div>
+      <div class="progress-item done">✓ Tree Mechanics</div>
+      <div class="progress-item done">✓ Boosting Growth</div>
+      <div class="progress-item done">✓ AdaBoost</div>
+      <div class="progress-item done">✓ GBM Internals</div>
+      <div class="progress-item done">✓ Practical Limits</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#fundamentals" class="a">Fundamentals</a>
+  <a href="#treemech" class="a">Tree Mechanics</a>
+  <a href="#growth" class="b">Boosting Growth</a>
+  <a href="#practical" class="b">Practical Limits</a>
+  <a href="#adaboost" class="c">AdaBoost</a>
+  <a href="#gbminit" class="c">GBM &amp; Losses</a>
+  <a href="#advanced" class="c">Advanced Mechanics</a>
+</nav>
+
+<div class="container">
+
+  <!-- FUNDAMENTALS -->
+  <section class="section fade-in" id="fundamentals">
+    <div class="section-header">
+      <span class="section-tag tag-a">Fundamentals</span>
+      <h2>Bias &amp; Variance</h2>
+    </div>
+
+    <div class="iq-card open" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q1</span><div class="iq-question">What exactly is bias and variance in a model, and why do they have opposite effects?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Core intuition</h3>
+        <ul class="must-have-list">
+          <li><strong>Bias</strong>: error from wrong assumptions in the model (model too simple → underfits). It's how far off your predictions are, on average, from the true values.</li>
+          <li><strong>Variance</strong>: error from sensitivity to the specific training data (model too complex → overfits). It's how much your predictions change if you trained on a different sample.</li>
+        </ul>
+
+        <h3>Formula (bias-variance decomposition)</h3>
+        <div class="code-block">Total Error = Bias² + Variance + Irreducible Error
+
+Bias(x) = E[f̂(x)] − f(x)              // average prediction minus true value
+Variance(x) = E[(f̂(x) − E[f̂(x)])²]    // spread of predictions around their own average
+Irreducible error = noise in data, can't be removed</div>
+
+        <h3>Numerical example</h3>
+        <p>Say true value f(x) = 10. You train the same model type on 3 different data samples, getting predictions: 6, 7, 8.</p>
+        <ul class="must-have-list">
+          <li>Average prediction = 7</li>
+          <li>Bias = 7 − 10 = −3 (squared: 9) → consistently off by 3</li>
+          <li>Variance = average of (6-7)², (7-7)², (8-7)² = (1+0+1)/3 = 0.67 → predictions don't vary much from each other</li>
+        </ul>
+        <p>This is <strong>high bias, low variance</strong> (like a straight line trying to fit curved data — consistently wrong, but consistently wrong the same way).</p>
+        <p>Now imagine predictions instead: 3, 10, 17 (average = 10, bias = 0, but variance = (49+0+49)/3 = 32.7). That's <strong>low bias, high variance</strong> — right on average, but wildly different depending on the training sample.</p>
+
+        <h3>Why they trade off (opposite effect)</h3>
+        <ul class="must-have-list">
+          <li>Simple model (e.g., linear regression) → few parameters → can't capture complexity → <strong>high bias</strong>, but stable across samples → <strong>low variance</strong>.</li>
+          <li>Complex model (e.g., deep decision tree) → many parameters → fits training data closely, including its noise → <strong>low bias</strong>, but changes a lot if you swap the dataset → <strong>high variance</strong>.</li>
+        </ul>
+        <p>You can't lower both freely with the same model complexity knob — reducing bias means letting the model flex more, which makes it more sensitive to the specific data it saw (raising variance), and vice versa. This is the <strong>bias-variance tradeoff</strong>.</p>
+
+        <div class="trap">
+          <div class="trap-title">Interview angle</div>
+          <ul class="must-have-list">
+            <li>Common question: "Model has 99% train accuracy but 60% test accuracy — bias or variance issue?" → <strong>Variance</strong> (overfitting).</li>
+            <li>Common question: "Model has 60% train accuracy and 61% test accuracy — bias or variance?" → <strong>Bias</strong> (underfitting).</li>
+            <li>Misconception: people think "high variance = bad model" always — it's not bad by itself, it's bad when it doesn't generalize. Ensemble methods (bagging) reduce variance without raising bias much (e.g., Random Forest vs single Decision Tree).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TREE MECHANICS -->
+  <section class="section fade-in" id="treemech">
+    <div class="section-header">
+      <span class="section-tag tag-a">Tree Mechanics</span>
+      <h2>Splits, Pruning &amp; Growth Order</h2>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q2</span><div class="iq-question">min_impurity_decrease vs min_samples_leaf — next best split, or does it become a leaf?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <p>These two hyperparameters get enforced at <strong>different stages</strong> of the split-search process. That's the key distinction.</p>
+
+        <h3>min_impurity_decrease</h3>
+        <p><strong>How it works:</strong> the algorithm first searches <strong>all possible splits</strong> (every feature × every threshold), computes impurity gain for each, and finds the <strong>single best</strong> one. Only then does it check: <code>best_gain &gt;= threshold?</code></p>
+        <ul class="must-have-list">
+          <li>If yes → split.</li>
+          <li>If no → <strong>leaf node immediately</strong>. There's no "next best" to fall back on — you already found the best possible split across the entire search space, and even that wasn't good enough. Nothing else in the search space could be better.</li>
+        </ul>
+        <p><strong>Example:</strong></p>
+        <ul class="must-have-list">
+          <li>Node has 3 candidate splits with gains: 0.02, 0.015, 0.008</li>
+          <li>Best gain = 0.02</li>
+          <li>If <code>min_impurity_decrease = 0.05</code> → 0.02 &lt; 0.05 → <strong>leaf</strong> (doesn't matter that 0.02 was the best; it failed the threshold)</li>
+          <li>If <code>min_impurity_decrease = 0.01</code> → 0.02 ≥ 0.01 → <strong>split using that best gain</strong></li>
+        </ul>
+        <p>So this hyperparameter is a <strong>post-search gate</strong>, not a filter during search.</p>
+
+        <h3>min_samples_leaf</h3>
+        <p><strong>How it works:</strong> this is a <strong>constraint applied during the search itself</strong>. For every candidate split, the algorithm checks: "would either resulting child have fewer than <code>min_samples_leaf</code> samples?"</p>
+        <ul class="must-have-list">
+          <li>If yes → that split is <strong>invalid/disqualified</strong>, thrown out of consideration entirely (regardless of how good its impurity gain is).</li>
+          <li>The algorithm then picks the <strong>best gain among only the valid splits</strong> (those respecting the constraint).</li>
+          <li>If <strong>no split</strong> satisfies <code>min_samples_leaf</code> for any feature/threshold → <strong>leaf node</strong>.</li>
+        </ul>
+        <p><strong>Example:</strong> Node has 20 samples, <code>min_samples_leaf = 5</code></p>
+        <table class="compare-table">
+          <thead><tr><th>Split</th><th>Gain</th><th>Left size</th><th>Right size</th><th>Valid?</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>0.30</td><td>2</td><td>18</td><td>❌ (2 &lt; 5)</td></tr>
+            <tr><td>B</td><td>0.22</td><td>6</td><td>14</td><td>✅</td></tr>
+            <tr><td>C</td><td>0.18</td><td>10</td><td>10</td><td>✅</td></tr>
+          </tbody>
+        </table>
+        <p>Even though Split A has the highest gain (0.30), it's disqualified. The algorithm picks <strong>Split B</strong> (0.22) — best among the <em>valid</em> ones. So yes, it does move to the "next best" split, but only in the sense that invalid splits are filtered out <strong>before</strong> ranking, not that it retries after a rejection.</p>
+
+        <h3>Key takeaway (the interview-relevant distinction)</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Applied when</th><th>Effect on rejected split</th></tr></thead>
+          <tbody>
+            <tr><td>min_impurity_decrease</td><td>After finding the global best split</td><td>No fallback — leaf if best fails</td></tr>
+            <tr><td>min_samples_leaf</td><td>During the search, as a filter</td><td>Search continues among remaining valid splits</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Common misconception</div>
+          <p>People think <code>min_impurity_decrease</code> searches for a "good enough" split somewhere in the tree. It doesn't — it only ever evaluates the <em>best</em> split and gates on that. There's no concept of trying second-best for this parameter.</p>
+        </div>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>If both hyperparameters are set, <code>min_samples_leaf</code> filtering happens first (narrows candidate splits), <em>then</em> <code>min_impurity_decrease</code> checks whether the best surviving split clears the bar.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q3</span><div class="iq-question">When a subtree is pruned, how is the leaf count decided if it has sub-subtrees?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>The key idea: pruning is "all-or-nothing" at a node</h3>
+        <p>When a subtree rooted at node <code>t</code> gets pruned, <strong>the entire subtree collapses into a single leaf</strong> — every node below it, at every depth, is removed. It doesn't matter if there are 2 more levels or 10 more levels beneath that node; pruning at <code>t</code> wipes out everything downstream of <code>t</code> in one shot.</p>
+
+        <h3>How leaf count is calculated (recursive, not just "children at next depth")</h3>
+        <p>The leaf count <code>|T_t|</code> for cost-complexity pruning is the <strong>total number of leaf nodes in the entire subtree rooted at t</strong>, counted recursively all the way down — not just the 2 direct children at depth+1.</p>
+        <p><strong>Formula (weakest link / cost-complexity pruning):</strong></p>
+        <div class="code-block">alpha_eff(t) = (R(t) - R(T_t)) / (|leaves(T_t)| - 1)</div>
+        <ul class="must-have-list">
+          <li><code>R(t)</code> = error if node <code>t</code> were turned into a leaf (impurity × samples at <code>t</code>, using <code>t</code>'s majority class)</li>
+          <li><code>R(T_t)</code> = total error of the <strong>entire subtree</strong> below <code>t</code> (sum of errors over all its leaf nodes)</li>
+          <li><code>|leaves(T_t)|</code> = number of leaves in the entire subtree rooted at <code>t</code> (recursively counted)</li>
+          <li><code>-1</code> accounts for: collapsing subtree replaces N leaves with 1 leaf, so we're removing (N−1) leaves</li>
+        </ul>
+
+        <h3>Worked example</h3>
+        <p>Say node <code>t</code> at depth 2 has this subtree below it:</p>
+        <div class="code-block">            t  (depth 2)
+          /   \
+    depth3-L   depth3-R
+      /  \         |
+   leaf leaf     leaf
+   (A)  (B)      (C)</div>
+        <ul class="must-have-list">
+          <li><code>t</code> itself is depth 2, has 100 samples, impurity error if made a leaf: <code>R(t) = 20</code></li>
+          <li>Subtree below has <strong>3 leaves total</strong> (A, B, C) — not 2 (the "direct children" depth3-L/R), because depth3-L itself splits further into 2 leaves.</li>
+          <li><code>|leaves(T_t)| = 3</code> (recursively counted: leaf A + leaf B + leaf C)</li>
+          <li>Suppose total error summed across A, B, C = <code>R(T_t) = 8</code></li>
+        </ul>
+        <div class="code-block">alpha_eff(t) = (20 - 8) / (3 - 1) = 12 / 2 = 6</div>
+        <div class="callout callout-insight">
+          <div class="callout-title">Interpretation</div>
+          <p>This node <code>t</code> is the "weakest link" with effective alpha = 6. When cost-complexity pruning increases its penalty <code>alpha</code> past this value, <strong>the entire subtree (depth3-L, depth3-R, and leaves A, B, C — all of it)</strong> collapses into one single leaf at <code>t</code>. Depth3-L's further split into 2 leaves doesn't survive independently — it's gone the moment <code>t</code> is pruned, regardless of how "good" that particular sub-split was.</p>
+        </div>
+
+        <h3>Key takeaway / common misconception</h3>
+        <ul class="must-have-list">
+          <li><strong>Misconception:</strong> People think leaf count only refers to the immediate 2 children of the node being evaluated. It doesn't — it's the <strong>total leaf count of the whole subtree</strong>, however deep it goes.</li>
+          <li><strong>Misconception #2:</strong> People think pruning removes one level at a time (like BFS peeling layers). It doesn't — CCP prunes at a chosen node and <strong>everything below that node vanishes in one step</strong>, however many levels deep.</li>
+        </ul>
+        <div class="trap">
+          <div class="trap-title">Interview angle</div>
+          <p><code>sklearn</code>'s <code>cost_complexity_pruning_path()</code> computes exactly this <code>alpha_eff</code> for every internal node, sorts them, and prunes nodes in increasing order of <code>alpha_eff</code> (weakest link first) as <code>ccp_alpha</code> increases.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q4</span><div class="iq-question">Does cost-complexity pruning happen top-down or bottom-up?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Two separate things: computation direction vs. pruning order</h3>
+        <p><strong>1. Computing alpha_eff: strictly bottom-up (post-order traversal)</strong></p>
+        <p>To compute <code>R(T_t)</code> and <code>|leaves(T_t)|</code> for a node, you need the values of its children <em>first</em> — you can't know a subtree's total error or leaf count until you've already computed it for everything below. So the tree is walked <strong>bottom-up</strong>: leaves first, then their parents, then grandparents, up to the root.</p>
+
+        <p><strong>2. Actual pruning: happens in order of increasing alpha_eff (NOT strictly by depth)</strong></p>
+        <p>Once every internal node has its <code>alpha_eff</code> computed, you <strong>sort all nodes by alpha_eff</strong> and prune the <strong>smallest one first</strong> ("weakest link") — collapse it into a leaf, recompute affected alpha_eff values upward, then find the next smallest, and repeat.</p>
+        <ul class="must-have-list">
+          <li><strong>In practice</strong>, the smallest alpha_eff values tend to belong to deeper nodes (small subtrees near the bottom, since they have fewer leaves and less error reduction to justify their complexity) — so pruning <em>usually looks</em> bottom-to-top.</li>
+          <li><strong>But it's not guaranteed by depth.</strong> It's possible for a shallower node to have a smaller alpha_eff than a deeper one, if its subtree offers very little error reduction relative to its leaf count. The algorithm doesn't check "depth 5, then depth 4, then depth 3..." — it checks <strong>alpha_eff values</strong>, wherever they fall.</li>
+        </ul>
+
+        <h3>Worked example</h3>
+        <table class="compare-table">
+          <thead><tr><th>Node</th><th>Depth</th><th>alpha_eff</th></tr></thead>
+          <tbody>
+            <tr><td>Node P</td><td>4</td><td>0.8</td></tr>
+            <tr><td>Node Q</td><td>3</td><td>1.5</td></tr>
+            <tr><td>Node R</td><td>2</td><td>1.2</td></tr>
+          </tbody>
+        </table>
+        <p>Pruning order: <strong>P (0.8) → R (1.2) → Q (1.5)</strong></p>
+        <p>Notice R (depth 2) gets pruned <em>before</em> Q (depth 3) — pruning order followed alpha_eff, not depth. So it's <strong>not</strong> cleanly top-to-bottom or bottom-to-top by level; it's <strong>weakest-link-first</strong>, which just <em>correlates</em> with bottom-up in typical trees.
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th>Step</th><th>Direction</th></tr></thead>
+          <tbody>
+            <tr><td>Computing R(T_t), leaf counts</td><td>Strictly bottom-up (post-order)</td></tr>
+            <tr><td>Actual pruning sequence</td><td>By increasing alpha_eff (usually correlates with bottom-up, but not guaranteed)</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>Don't say "pruning is bottom-up" as a blanket statement — say computation is bottom-up by necessity, while pruning order is alpha-driven, which <em>typically</em> removes deeper/smaller subtrees first but can occasionally prune a shallower node before a deeper one.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q5</span><div class="iq-question">max_leaf_nodes vs max_depth — don't they point to the same thing?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>They control different things — depth ≠ leaf count</h3>
+        <p><strong>max_depth</strong>: limits how many levels the tree can grow, uniformly is not required — but it caps the longest path from root to any leaf. Every branch can be at most that many splits deep.</p>
+        <p><strong>max_leaf_nodes</strong>: limits the <strong>total number of leaves</strong> across the whole tree, regardless of depth. It doesn't care if one branch goes deep and another stays shallow — it just stops once the leaf budget is used up.</p>
+
+        <h3>Why they don't point to the same thing</h3>
+        <p>A tree can be <strong>unbalanced</strong> — some branches split more than others based on where the impurity gain is highest. <code>max_depth</code> treats all branches symmetrically (implicitly allowing every path up to that depth), while <code>max_leaf_nodes</code> lets the tree <strong>grow asymmetrically</strong>, prioritizing the highest-gain splits wherever they occur.</p>
+        <p><strong>Example:</strong> <code>max_depth = 3</code> on a balanced binary tree → up to 2³ = 8 leaves <em>if every node splits</em>. But real trees rarely split every node fully — so depth=3 might actually produce only 5 leaves in practice, or up to 8 in the best case. It's a <strong>ceiling</strong>, not a guarantee.</p>
+        <p>With <code>max_leaf_nodes = 5</code>: the tree might reach <strong>depth 2 in one branch</strong> (quick, clean split) but <strong>depth 6 in another branch</strong> (harder-to-separate region needing many splits) — as long as total leaves stay at 5. It <strong>grows greedily, best-gain-split first</strong>, not level-by-level.
+
+        <h3>Concrete illustration</h3>
+        <div class="code-block">max_depth=3 (symmetric growth):          max_leaf_nodes=4 (greedy growth):
+         root                                   root
+        /    \                                 /    \
+      d1      d1                             d1      LEAF (2)
+     /  \    /  \                            /  \
+   d2   d2  d2  d2                        LEAF  d2
+  (up to 8 leaves possible)                     /  \
+                                              LEAF  LEAF
+                                        (one branch depth 1, other depth 3)</div>
+        <p><code>max_leaf_nodes</code> uses a <strong>best-first search</strong>: at each step, it expands whichever leaf in the <em>entire current tree</em> offers the highest impurity gain — not necessarily the next level down uniformly. This is why sklearn's docs describe <code>max_leaf_nodes</code> as growing the tree in <strong>"best-first fashion"</strong>, vs <code>max_depth</code> which is more like standard level-by-level (depth-first) growth.</p>
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Controls</th><th>Growth pattern</th><th>Guarantees</th></tr></thead>
+          <tbody>
+            <tr><td>max_depth</td><td>Longest path length</td><td>Depth-first, symmetric-ish</td><td>Caps depth, but leaf count varies</td></tr>
+            <tr><td>max_leaf_nodes</td><td>Total # leaves</td><td>Best-first (greedy by gain)</td><td>Caps leaves, but depth varies per branch</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People assume a shallow tree = few leaves, always. Not true — <code>max_leaf_nodes</code> can produce a tree that's <strong>very deep in one place and very shallow in another</strong>, still fitting the leaf budget. They're independent knobs; you can set both simultaneously, and whichever constraint is hit first stops that branch's growth.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q6</span><div class="iq-question">But in a decision tree, once every tree in a particular depth is split, only then does it go for creating the next depth split?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>No — that's actually a common misconception. Default growth is depth-first, not level-by-level (breadth-first)</h3>
+        <p>Standard decision tree building (like sklearn's default) does <strong>not</strong> wait for every node at depth <em>d</em> to split before moving to depth <em>d+1</em>. Instead, it typically works like this:</p>
+        <ul class="must-have-list">
+          <li>Split the root → get left child and right child.</li>
+          <li><strong>Immediately recurse into the left child</strong> — split it, then split <em>its</em> left child, then <em>its</em> left child... going all the way down one branch to a leaf.</li>
+          <li>Only after that whole left branch is fully built does it <strong>backtrack</strong> and process the right child.</li>
+        </ul>
+        <p>This is a <strong>depth-first, recursive</strong> process (like a stack), not a breadth-first "finish this level, then start the next level" process.</p>
+
+        <h3>Concrete illustration</h3>
+        <div class="code-block">Depth-first (what actually happens):        Breadth-first (NOT what happens):
+         root (1)                                    root (1)
+        /      \                                    /      \
+     (2)       (7)                                (2)       (3)
+    /   \      /  \                              /   \      /  \
+  (3)   (6)  (8)  (9)                          (4)   (5)  (6)   (7)
+  / \                                                 ...continues level by level
+(4) (5)
+
+Numbers = order nodes get split</div>
+        <p>In depth-first: node 2 splits, then immediately node 3 (its child) splits, then node 4 — going all the way down before node 7 (root's <em>other</em> child) even gets touched.</p>
+
+        <h3>Why this matters</h3>
+        <ul class="must-have-list">
+          <li><strong>max_depth</strong>: since growth is depth-first, this just means: "stop recursing further down this branch once you hit the depth limit — backtrack." It doesn't require synchronization across branches.</li>
+          <li><strong>max_leaf_nodes</strong>: this is the one exception — it <strong>forces best-first growth</strong> (via a priority queue/heap), because it needs to compare gains <em>globally across all current candidate leaves</em>, not just within one branch. It picks whichever leaf <em>anywhere in the tree</em> has the best potential split next, expands it, and repeats until the leaf budget runs out.</li>
+        </ul>
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th>Growth mode</th><th>Order</th><th>Used when</th></tr></thead>
+          <tbody>
+            <tr><td>Depth-first (default)</td><td>Recurse fully down one branch before the sibling</td><td>No <code>max_leaf_nodes</code> set</td></tr>
+            <tr><td>Best-first</td><td>Whichever leaf (anywhere) has highest gain, expand next</td><td><code>max_leaf_nodes</code> is set</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Common misconception (exactly what was asked)</div>
+          <p>No, splitting is not synchronized level-by-level. A tree can have one branch reach depth 5 while a sibling branch is still just 1 level deep, <strong>even without any max_leaf_nodes constraint</strong> — because depth-first recursion finishes one branch completely before starting the other.</p>
+        </div>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>If asked "does CART build trees breadth-first or depth-first," the correct answer is <strong>depth-first by default</strong> (implementation detail, doesn't change the final tree structure for <code>max_depth</code>/<code>min_samples_leaf</code> since those are local per-node checks) — but <strong>best-first specifically when <code>max_leaf_nodes</code> is used</strong>, since that constraint is inherently global.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOOSTING GROWTH -->
+  <section class="section fade-in" id="growth">
+    <div class="section-header">
+      <span class="section-tag tag-b">Boosting Growth</span>
+      <h2>AdaBoost / GBM / XGBoost / LightGBM</h2>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q7</span><div class="iq-question">Can you help me how the split is done in AdaBoost/GBM/XGBoost/LightGBM? I was under the impression that depth is split first and then goes for the next depth for all trees except LightGBM.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Quick correction first</h3>
+        <p>It's not "all except LightGBM are depth-first level-by-level." The real split is: <strong>AdaBoost</strong> doesn't really apply here (uses stumps), <strong>GBM</strong> and <strong>XGBoost (default)</strong> grow trees <strong>depth-first</strong> (same recursive style as a standalone CART tree), while <strong>XGBoost has an optional mode</strong> and <strong>LightGBM by default</strong> grow <strong>leaf-wise (best-first)</strong>. Let's go one by one.
+
+        <h3>AdaBoost</h3>
+        <ul class="must-have-list">
+          <li>Base learner is almost always a <strong>decision stump</strong> — a tree with <strong>max_depth = 1</strong> (one split, two leaves).</li>
+          <li>So there's no "depth-first vs leaf-wise" question here — it's just <strong>one split, done</strong>. No recursion needed.</li>
+          <li><strong>Key point:</strong> AdaBoost's "boosting" happens through <strong>re-weighting misclassified samples</strong> between rounds — each new stump is trained on a re-weighted version of the data, not by growing deeper trees.</li>
+        </ul>
+
+        <h3>GBM (Gradient Boosting, sklearn's GradientBoostingClassifier)</h3>
+        <ul class="must-have-list">
+          <li>Each individual tree is a <strong>regression tree fit to the residuals/gradients</strong>, and it's built using the standard <strong>depth-first CART algorithm</strong> (recurse fully down one branch, then backtrack).</li>
+          <li>Controlled by <code>max_depth</code> (typically small, 3-5) — grown depth-first, symmetric-ish structure.</li>
+        </ul>
+
+        <h3>XGBoost</h3>
+        <ul class="must-have-list">
+          <li><strong>Default <code>grow_policy = 'depthwise'</code></strong> → same idea as GBM: expand nodes level by level conceptually (though implementation is exact greedy or histogram-based for split-finding, the <em>tree shape control</em> is depth-first/depth-wise — controlled via <code>max_depth</code>).</li>
+          <li><strong>Optional <code>grow_policy = 'lossguide'</code></strong> → this switches to <strong>leaf-wise growth</strong> (same idea as LightGBM) — split whichever leaf gives the highest loss reduction next, globally across the tree, controlled via <code>max_leaves</code> instead of depth.</li>
+        </ul>
+        <div class="code-block">xgb.XGBClassifier(grow_policy='lossguide', max_leaves=31)  <span class="comment"># leaf-wise, like LightGBM</span>
+xgb.XGBClassifier(grow_policy='depthwise', max_depth=6)     <span class="comment"># default, depth-wise</span></div>
+        <p>So XGBoost <strong>gives you the choice</strong> — it's not fixed to depth-first.</p>
+
+        <h3>LightGBM</h3>
+        <ul class="must-have-list">
+          <li><strong>Default and defining feature: leaf-wise (best-first) growth.</strong></li>
+          <li>At each step, finds the <strong>single leaf across the entire current tree</strong> with the highest potential loss reduction, and splits <em>only that leaf</em> — not "all leaves at this depth."</li>
+          <li>Controlled primarily via <strong><code>num_leaves</code></strong> (not depth) — this is LightGBM's main capacity-control knob, analogous to <code>max_leaf_nodes</code> in sklearn.</li>
+          <li><code>max_depth</code> still exists as a secondary safety constraint (prevents runaway deep single branches), but it's <strong>not the primary growth driver</strong>.</li>
+        </ul>
+
+        <h3>Why LightGBM's leaf-wise approach is faster &amp; why it needs care</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Growth strategy</th><th>Primary hyperparameter</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>GBM (sklearn)</td><td>Depth-wise</td><td>max_depth</td><td>Can waste splits on low-gain nodes just to keep depth uniform</td></tr>
+            <tr><td>XGBoost (default)</td><td>Depth-wise</td><td>max_depth</td><td>Same as above, but faster due to histogram-based splits</td></tr>
+            <tr><td>XGBoost (lossguide)</td><td>Leaf-wise</td><td>max_leaves</td><td>Same as LightGBM below</td></tr>
+            <tr><td>LightGBM (default)</td><td><strong>Leaf-wise (best-first)</strong></td><td>num_leaves</td><td><strong>Can overfit easily</strong> if num_leaves too high relative to data</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Common misconception (yours, essentially)</div>
+          <p>People think "depth-first vs leaf-wise" is a hard dividing line between algorithms. It's actually a <code>grow_policy</code> choice — XGBoost supports both, GBM and AdaBoost don't have the option built in (GBM is depth-wise only in sklearn; AdaBoost doesn't need either since it's stumps).</p>
+        </div>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>A very common question is <em>"why can LightGBM overfit more easily than XGBoost on small datasets?"</em> — answer: because leaf-wise growth <strong>always expands the highest-gain leaf regardless of depth</strong>, so it can create one very deep, narrow, high-variance branch while other branches stay shallow — unlike depth-wise growth, which spreads splits more evenly and acts as an implicit regularizer. This is why LightGBM's docs recommend also tuning <code>max_depth</code> alongside <code>num_leaves</code> to avoid overfitting on small data.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q8</span><div class="iq-question">But does leaf-wise work? Only when we split a node, will we know where is the best split seen?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>How "best leaf" is known before splitting</h3>
+        <p>At <strong>every step</strong>, the algorithm doesn't just check one node — it <strong>evaluates the best possible split for every current leaf</strong> (loops over all leaves × all features × all thresholds), computes the <strong>gain</strong> each would give if split, and then picks the single <strong>highest-gain leaf</strong> to actually split. The others remain candidates for later steps — they don't disappear, they just wait.</p>
+        <p>So it's not "split first, then find out if it was good" — it's "<strong>evaluate all candidates' potential gains, then split the winner</strong>," at every single step. This repeats until <code>num_leaves</code> (LightGBM) or <code>max_leaves</code> (XGBoost lossguide) is reached.</p>
+
+        <h3>Reading the growth-order diagram</h3>
+        <p><strong>Depth-wise:</strong> node 1 splits into two children (nodes 2, 3). Both nodes 2 and 3 split <strong>before</strong> any of their children get touched — the whole level finishes, then the tree moves to level 3 (nodes 4-7). Uniform, level-synchronized.</p>
+        <p><strong>Leaf-wise:</strong> node 1 splits into two children. At step 2, the algorithm compares gain across <strong>every current leaf</strong> — the right child wins, so the left child becomes a <strong>permanent leaf immediately</strong> (it's never revisited). This repeats: at step 3, among all current leaves, one wins again, and the losing sibling stays a leaf. Result: one branch goes 3 levels deep while its sibling never got past depth 1.</p>
+
+        <h3>Key contrast</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Split candidates compared</th><th>When a leaf is finalized</th><th>Tree shape</th></tr></thead>
+          <tbody>
+            <tr><td>Depth-wise</td><td>All nodes at the current level</td><td>After its whole level is processed</td><td>Roughly symmetric</td></tr>
+            <tr><td>Leaf-wise</td><td>All currently open leaves, any depth</td><td>The moment it loses the gain comparison</td><td>Can be very lopsided</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>Leaf-wise is <em>not</em> "try one leaf, see if good, else try next" — it evaluates <strong>all</strong> open leaves' best splits up front, then greedily commits to the winner. That's what makes it "best-first search," a well-known interview term to drop.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q9</span><div class="iq-question">In case of hyperparameter max_depth=7 and max_leaf_nodes=10, how would the decision tree look like?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Reading the constructed tree</h3>
+        <p>With leaf-wise growth (which kicks in when max_leaf_nodes is set), the best-gain leaf splits repeatedly forming a "spine" — going straight down toward depth 7. Two other branches (left siblings from early splits) get <strong>skipped over</strong> for several rounds because their gain wasn't the best — until eventually, later in the process, they become the best available option and get split. This is the leaf-wise signature: <strong>split order ≠ depth order</strong>.</p>
+        <p>At depth 7, the newly created leaves are <strong>permanently blocked</strong> — even if one of them would've had a great next split, <code>max_depth=7</code> forbids going further. They're forced to stay leaves regardless of gain.</p>
+        <p>Total: <strong>10 leaves</strong>, so <code>max_leaf_nodes=10</code> stops growth right there — even though some shallower leaves could theoretically still split (they haven't hit the depth cap, but the leaf budget ran out).</p>
+
+        <h3>The key interaction between the two hyperparameters</h3>
+        <ul class="must-have-list">
+          <li><code>max_leaf_nodes</code> drives <strong>which</strong> leaf splits next (global best gain) and <strong>when to stop</strong> (leaf count hit).</li>
+          <li><code>max_depth</code> acts as a <strong>local veto</strong> — any leaf at depth 7 is removed from the candidate pool entirely, no matter how good its gain would be.</li>
+          <li>Result: the two together can produce a tree that's <strong>very asymmetric</strong> — some branches barely explored (depth 1-2), one branch pushed to the hard ceiling (depth 7), because leaf-wise growth chases gain wherever it's highest, and depth just caps how far any <em>single</em> branch is allowed to chase it.</li>
+        </ul>
+
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People assume <code>max_leaf_nodes=10</code> and <code>max_depth=7</code> together imply a "balanced-ish" tree with ~10 leaves spread evenly. In practice, leaf-wise growth almost never balances things — you can easily get a tree where most of the depth budget goes into one branch while others stay shallow, simply because that's wherever the gain happened to be highest at each step.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRACTICAL LIMITS -->
+  <section class="section fade-in" id="practical">
+    <div class="section-header">
+      <span class="section-tag tag-b">Practical Limits</span>
+      <h2>Nulls, Row/Feature Limits &amp; Sizing</h2>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q10</span><div class="iq-question">How is null handling done in various tree models?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>The core problem</h3>
+        <p>Standard CART (and sklearn's implementation) <strong>cannot handle missing values natively</strong> — it assumes every feature value exists when computing a split. Boosting libraries built smarter handling because real data is messy.</p>
+
+        <h3>sklearn DecisionTreeClassifier/RandomForest</h3>
+        <ul class="must-have-list">
+          <li><strong>No native support.</strong> You must impute (mean/median/mode) or drop rows before fitting.</li>
+          <li>Misconception: people think sklearn trees "just skip" missing values like XGBoost — they don't; it'll throw an error.</li>
+          <li>(Note: sklearn's <code>HistGradientBoostingClassifier</code> — different from plain <code>DecisionTreeClassifier</code> — <em>does</em> support NaNs, using logic similar to what's below.)</li>
+        </ul>
+
+        <h3>XGBoost — "Sparsity-aware split finding"</h3>
+        <ul class="must-have-list">
+          <li>At each split, XGBoost learns a <strong>default direction</strong> (left or right) for missing values, chosen to <strong>maximize gain</strong>.</li>
+          <li><strong>How:</strong> for a given feature, it computes the gain assuming all missing values go left, and separately assuming they all go right, then keeps whichever direction gives higher gain.</li>
+          <li>So missing isn't imputed with a fixed value — it's <strong>learned per split, per node</strong>, based on what best separates the target.</li>
+          <li><strong>Example:</strong> feature = income, some rows missing. At a split "income &lt; 50k," XGBoost checks: gain if missing→left = 0.42, gain if missing→right = 0.38 → picks <strong>left</strong> as the default path for all missing values at this node.</li>
+          <li>At prediction time, if income is missing for a new row, it just follows that node's learned default direction.</li>
+        </ul>
+
+        <h3>LightGBM — similar idea, different mechanism</h3>
+        <ul class="must-have-list">
+          <li>Treats missing values as their <strong>own separate bin</strong> during histogram construction (LightGBM buckets continuous features into histograms for speed).</li>
+          <li>Like XGBoost, it evaluates which side (left/right) is optimal for missing values and assigns them there — also learned per split, gain-driven.</li>
+          <li>Practical difference: because LightGBM already bins everything into histograms, missing values naturally fall into an extra "missing" bin without needing special-casing beyond that.</li>
+        </ul>
+
+        <h3>CatBoost — slightly different, especially for categoricals</h3>
+        <ul class="must-have-list">
+          <li>For <strong>numerical features</strong>: treats missing as either the minimum or maximum value (configurable via <code>nan_mode</code>: <code>"Min"</code> or <code>"Max"</code>), then lets the normal split-finding process decide where it falls — not fully "learned direction" like XGBoost, but a fixed extreme-value substitution before splitting.</li>
+          <li>For <strong>categorical features</strong>: missing is just treated as <strong>its own separate category</strong> — no special logic needed, since categories are inherently discrete.</li>
+        </ul>
+
+        <h3>Comparison table</h3>
+        <table class="compare-table">
+          <thead><tr><th>Model</th><th>Native NaN support?</th><th>Mechanism</th></tr></thead>
+          <tbody>
+            <tr><td>sklearn DecisionTree / RandomForest</td><td>❌ No</td><td>Must impute manually</td></tr>
+            <tr><td>sklearn HistGradientBoosting</td><td>✅ Yes</td><td>Learned default direction (like XGBoost)</td></tr>
+            <tr><td>XGBoost</td><td>✅ Yes</td><td>Learned default direction per split (max gain)</td></tr>
+            <tr><td>LightGBM</td><td>✅ Yes</td><td>Missing gets own histogram bin, direction learned by gain</td></tr>
+            <tr><td>CatBoost</td><td>✅ Yes</td><td>Numeric: substituted as min/max extreme; Categorical: own category</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Interview-relevant points</h3>
+        <ul class="must-have-list">
+          <li><strong>Common misconception:</strong> people think missing values are always imputed with mean/median before boosting. Wrong — XGBoost/LightGBM <strong>never impute</strong>; they learn where missing should route, which can differ node-to-node (unlike a single global imputed value).</li>
+          <li><strong>Why this is powerful:</strong> if "missingness" itself is informative (e.g., income missing because the person refused to answer — often correlated with income level), tree models can exploit that signal directly, whereas mean-imputation destroys it.</li>
+        </ul>
+        <div class="trap">
+          <div class="trap-title">Common interview question</div>
+          <p><em>"Why might imputing missing values before training a GBM hurt performance?"</em> → Answer: you're throwing away the ability of the model to learn a smarter, gain-optimized routing for missingness, and you might introduce a fake value that doesn't reflect the true distribution, misleading splits.</p>
+        </div>
+        <div class="trap">
+          <div class="trap-title">Pitfall in practice</div>
+          <p>At inference time, if a feature has a missing value pattern <em>never seen during training</em> (e.g., that specific feature was never missing in training data), the learned default direction may be arbitrary/undefined — always check how each library handles first-time missingness at test time (usually defaults to majority direction observed elsewhere, but worth verifying per library version).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q11</span><div class="iq-question">Is there any hard limit on the number of rows/features each tree model needs to work properly?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Short answer: no theoretical minimum, but real implementation ceilings exist</h3>
+        <p>There's no mathematical rule requiring "you need at least N rows" or "at most M features" for a tree to be valid — trees work with 2 rows or 2 million, 1 feature or 10,000. But there are <strong>practical constraints</strong> worth knowing.</p>
+
+        <h3>Lower bounds (what breaks with too little data)</h3>
+        <ul class="must-have-list">
+          <li><strong>Minimum rows to split at all:</strong> <code>min_samples_split</code> defaults to 2 — so technically a node needs just 2 samples to attempt a split. Below that, it's forced to be a leaf.</li>
+          <li><strong>Leaves can't exceed sample count:</strong> with <code>min_samples_leaf=1</code> (default), a fully-grown tree can have <strong>at most n leaves</strong> (one per unique sample, in the extreme). If you set <code>max_leaf_nodes</code> higher than n, it's meaningless — the tree simply can't produce more leaves than data points.</li>
+          <li><strong>Numerically pointless, not broken:</strong> a tree trained on 3 rows will still "work" (fit without error) — it just won't generalize. Nothing stops you.</li>
+        </ul>
+
+        <h3>Upper bounds (real, engineering-driven limits)</h3>
+        <p><strong>sklearn:</strong></p>
+        <ul class="must-have-list">
+          <li>Historically, tree node arrays used <strong>32-bit signed integers</strong> for indexing samples/features internally → practical ceiling around <strong>~2.1 billion (2³¹−1)</strong> samples or features. Past this, you'd hit integer overflow errors, not a graceful warning.</li>
+          <li>This is rarely hit in practice (you'd need genuinely billion-row in-memory data, which is already a memory problem before it's an indexing problem).</li>
+        </ul>
+        <p><strong>XGBoost / LightGBM (histogram-based):</strong></p>
+        <ul class="must-have-list">
+          <li>Continuous features get <strong>binned</strong> (default <code>max_bin=256</code> in LightGBM, similar in XGBoost) — this caps split <strong>precision</strong>, not correctness. Two values falling in the same bin can't be perfectly separated by a single split; this is a deliberate speed/accuracy trade-off, not a hard failure.</li>
+          <li><strong>Categorical feature cardinality:</strong> LightGBM's native categorical handling starts to degrade in quality (and slow down) with very high-cardinality categories (thousands+ of distinct categories) since it uses a Fisher-based optimal partitioning approach whose cost grows with category count. CatBoost handles this differently (ordered target statistics), scaling better to high cardinality.</li>
+          <li><strong>Memory is the real ceiling.</strong> Both hold histograms and gradient/hessian arrays in RAM proportional to <code>n_samples × n_bins</code> (roughly) — you'll run out of memory long before hitting any integer limit.</li>
+        </ul>
+
+        <h3>The p &gt;&gt; n case (more features than rows) — works fine</h3>
+        <ul class="must-have-list">
+          <li>Trees handle <strong>high-dimensional, low-sample-count data</strong> (e.g., genomics: 20,000 genes, 200 patients) without issue — at each split, only a feature subset (or all features) get evaluated, and the algorithm just picks whichever gives the best gain. No structural requirement that <code>n &gt; p</code>.</li>
+          <li><strong>Caveat:</strong> with p &gt;&gt; n, overfitting risk rises sharply (easy to find <em>some</em> feature that perfectly separates a small sample by chance) — this is a statistical concern, not an implementation limit. Regularization (<code>min_samples_leaf</code>, <code>max_depth</code>, or ensembling via Random Forest) becomes more important here, not less.</li>
+        </ul>
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th>Constraint type</th><th>Cause</th><th>What happens if exceeded</th></tr></thead>
+          <tbody>
+            <tr><td>Rows too few</td><td>min_samples_split/leaf</td><td>Node becomes a leaf early — no error</td></tr>
+            <tr><td>Leaves &gt; rows requested</td><td>Sample count itself</td><td>Silently capped at n leaves</td></tr>
+            <tr><td>Rows/features &gt; ~2^31 (older sklearn)</td><td>32-bit indexing</td><td>Integer overflow error</td></tr>
+            <tr><td>Very high cardinality categoricals</td><td>Split-search algorithm cost</td><td>Slower training, weaker splits — not a hard failure</td></tr>
+            <tr><td>Memory</td><td>Histogram/array storage</td><td>OOM crash — the actual real-world ceiling</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People expect a clean "yes, minimum 30 rows" type rule (confusing this with statistical sample-size heuristics from classical stats, like CLT's "n≥30"). Trees have <strong>no such rule</strong> — the real limits are either <strong>degenerate-but-valid</strong> (tiny data won't generalize but will "work") or <strong>engineering ceilings</strong> (integer overflow, memory, binning precision) that only matter at genuinely massive scale.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q12</span><div class="iq-question">Can you give me a ballpark range for all the different tree models to work properly such that they don't overfit or underfit?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Important caveat first</h3>
+        <p>There's no universal formula — it depends on signal-to-noise ratio, feature correlation, and problem difficulty. But practitioners do use rule-of-thumb ballparks to start from. Here they are, model by model.</p>
+
+        <h3>Rows needed relative to features (n vs p)</h3>
+        <table class="compare-table">
+          <thead><tr><th>Scenario</th><th>Rough guideline</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Single Decision Tree</td><td>n ≥ 50-100 × p (loosely)</td><td>No regularization from ensembling — very prone to memorizing noise with few rows</td></tr>
+            <tr><td>Random Forest</td><td>n ≥ 10-20 × p</td><td>Bagging + feature subsampling gives real regularization, tolerates smaller n/p ratio</td></tr>
+            <tr><td>GBM / XGBoost / LightGBM</td><td>n ≥ 20-50 × p</td><td>Sequential boosting can overfit residuals fast; needs more data than RF per feature, less than a single tree</td></tr>
+            <tr><td>CatBoost</td><td>Similar to XGBoost, but handles small-n + high-cardinality categoricals better</td><td>Ordered boosting reduces target leakage, so it's more forgiving with modest n</td></tr>
+          </tbody>
+        </table>
+        <div class="key-insight"><span class="icon">💡</span><p><strong>Rule of thumb interviewers like:</strong> "n/p &lt; 10" is a red flag for any tree model — expect heavy overfitting unless you compensate hard with regularization (shallow depth, strong subsampling, high min_samples_leaf).</p></div>
+
+        <h3>Hyperparameter ballparks per model (starting points, not gospel)</h3>
+        <table class="compare-table">
+          <thead><tr><th>Hyperparameter</th><th>Single Tree</th><th>Random Forest</th><th>GBM/XGBoost</th><th>LightGBM</th></tr></thead>
+          <tbody>
+            <tr><td>max_depth</td><td>3-10 (tune via CV)</td><td>None / unlimited (bagging handles overfit)</td><td>3-8 (shallow — boosting compounds errors if trees are deep)</td><td>4-8, but constrained by num_leaves</td></tr>
+            <tr><td>min_samples_leaf</td><td>1-20 (higher for small n)</td><td>1-5 (default 1 is usually fine)</td><td>1-20</td><td>via min_child_samples: 10-100</td></tr>
+            <tr><td>n_estimators</td><td>n/a</td><td>100-500</td><td>100-1000, paired with early stopping</td><td>100-1000, paired with early stopping</td></tr>
+            <tr><td>learning_rate</td><td>n/a</td><td>n/a</td><td>0.01-0.3 (lower = more trees needed)</td><td>0.01-0.3</td></tr>
+            <tr><td>num_leaves (LightGBM)</td><td>n/a</td><td>n/a</td><td>n/a</td><td>~20-60; rule: num_leaves &lt; 2^max_depth</td></tr>
+            <tr><td>max_features</td><td>all (None)</td><td>sqrt (classification) / 1.0 (regression)</td><td>colsample_bytree: 0.6-1.0</td><td>feature_fraction: 0.6-1.0</td></tr>
+            <tr><td>Row subsampling</td><td>n/a</td><td>via bootstrap, default 100%</td><td>subsample: 0.6-0.9 (adds regularization)</td><td>bagging_fraction: 0.6-0.9</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Signals that tell you which direction you're erring</h3>
+        <p><strong>Underfitting signs (too much regularization / too shallow):</strong></p>
+        <ul class="must-have-list">
+          <li>Train accuracy and test accuracy both low and close together</li>
+          <li>Increasing max_depth, num_leaves, or n_estimators improves both train and val score</li>
+        </ul>
+        <p><strong>Overfitting signs (too little regularization / too deep/many trees):</strong></p>
+        <ul class="must-have-list">
+          <li>Train accuracy near-perfect, test accuracy noticeably worse (gap &gt; ~5-10% depending on task)</li>
+          <li>Adding more trees/depth improves train score but validation score plateaus or worsens</li>
+        </ul>
+
+        <div class="callout callout-b">
+          <div class="callout-title">The one number worth memorizing for LightGBM specifically</div>
+          <p><strong>num_leaves should stay below 2^max_depth</strong> (e.g., max_depth=6 → keep num_leaves under 64, often much lower like 31) — since leaf-wise growth can otherwise create deep, narrow, overfit branches even while nominally respecting max_depth. This is LightGBM's most commonly cited overfitting trap in interviews and in their own docs.</p>
+        </div>
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Overfits easily when</th><th>Best defense</th></tr></thead>
+          <tbody>
+            <tr><td>Single tree</td><td>Any small n/p, deep tree</td><td>Prune, limit depth, cross-validate</td></tr>
+            <tr><td>Random Forest</td><td>Rarely (bagging is forgiving)</td><td>Increase n_estimators, trust defaults more</td></tr>
+            <tr><td>GBM/XGBoost</td><td>Too many boosting rounds, high learning rate, deep trees</td><td>Early stopping + shallow trees + subsampling</td></tr>
+            <tr><td>LightGBM</td><td>num_leaves too high relative to depth/data</td><td>Cap num_leaves, tune min_child_samples</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>Don't answer this with a single hard number ("you need at least 1000 rows") — interviewers are testing whether you understand it's a <strong>relative, n/p-and-signal-dependent</strong> judgment call, verified empirically via train/validation gap monitoring and cross-validation, not a fixed threshold.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADABOOST -->
+  <section class="section fade-in" id="adaboost">
+    <div class="section-header">
+      <span class="section-tag tag-c">AdaBoost</span>
+      <h2>Weak Learner Output &amp; Multi-class</h2>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q13</span><div class="iq-question">In AdaBoost, will h_t(x) be probability or final class? If final class, what is the prob cutoff?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Depends on which AdaBoost variant — there are two flavors</h3>
+
+        <h3>1. Discrete AdaBoost (the "classic" version)</h3>
+        <ul class="must-have-list">
+          <li><code>h_t(x)</code> outputs a <strong>hard class label</strong>, typically <code>{-1, +1}</code> for binary classification — not a probability.</li>
+          <li><strong>How the stump decides the label per leaf:</strong> since the base learner is usually a decision stump (1 split, 2 leaves), each leaf gets assigned whichever class has the <strong>higher total sample weight</strong> in that leaf — a <strong>weighted majority vote</strong>, not a probability threshold.</li>
+        </ul>
+        <p><strong>Worked example:</strong> Say a stump splits on "age &lt; 30." In the left leaf (age &lt; 30), we have samples with weights:</p>
+        <ul class="must-have-list">
+          <li>Class +1: weights sum to 0.35</li>
+          <li>Class −1: weights sum to 0.15</li>
+        </ul>
+        <p>Since 0.35 &gt; 0.15, <strong>every point in that leaf gets labeled +1</strong> — deterministically, no cutoff needed. It's just <code>argmax</code> of weighted class mass, comparing two numbers directly.</p>
+        <div class="key-insight"><span class="icon">💡</span><p><strong>Key point:</strong> there's <strong>no 0.5 threshold concept here at all</strong> — that's a probability-based idea, and discrete AdaBoost never computes a probability. It's pure majority vote within each region, weighted by the current round's sample weights.</p></div>
+
+        <h3>2. Real AdaBoost / SAMME.R (used by sklearn's default AdaBoostClassifier)</h3>
+        <ul class="must-have-list">
+          <li><code>h_t(x)</code> outputs a <strong>continuous, real-valued confidence score</strong> — not a hard label, and not exactly a raw probability either.</li>
+          <li><strong>Formula:</strong></li>
+        </ul>
+        <div class="code-block">h_t(x) = 0.5 * log( p(x) / (1 - p(x)) )</div>
+        <p>where <code>p(x)</code> = the base learner's estimated <strong>class probability</strong> (e.g., from <code>predict_proba</code>), typically <strong>clipped away from 0 and 1</strong> (e.g., to [1e-5, 1-1e-5]) to avoid <code>log(0)</code>.</p>
+        <p><strong>Numerical example:</strong> if the stump estimates <code>p(x) = 0.9</code> (90% confident it's class +1) in some leaf:</p>
+        <div class="code-block">h_t(x) = 0.5 * log(0.9 / 0.1) = 0.5 * log(9) = 0.5 * 2.197 = 1.099</div>
+        <p>If <code>p(x) = 0.5</code> (totally uncertain): <code>h_t(x) = 0.5 * log(1) = 0</code></p>
+        <p>If <code>p(x) = 0.1</code> (confident it's the other class): <code>h_t(x) = 0.5 * log(0.1/0.9) = -1.099</code></p>
+        <p><strong>Interpretation:</strong> the sign tells you the predicted class direction, and the magnitude tells you confidence — this is a <strong>smooth margin</strong>, not a discrete vote. It's added directly (unweighted by a separate <code>alpha_t</code>, since the confidence is baked in) into the additive ensemble score.</p>
+
+        <h3>Comparison table</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Discrete AdaBoost</th><th>Real AdaBoost (SAMME.R)</th></tr></thead>
+          <tbody>
+            <tr><td>h_t(x) output</td><td>Hard label {-1, +1}</td><td>Continuous score (log-odds-based)</td></tr>
+            <tr><td>"Probability cutoff"?</td><td>Not applicable — weighted majority vote, no threshold</td><td>Not a hard cutoff either — smooth function of p(x), sign naturally splits at p(x)=0.5 (where log-odds = 0)</td></tr>
+            <tr><td>Combined via</td><td>alpha_t * h_t(x), alpha_t computed from weighted error rate</td><td>Just h_t(x) summed directly (confidence already embedded)</td></tr>
+            <tr><td>sklearn default</td><td>algorithm='SAMME' was old default</td><td>SAMME.R was sklearn's default for years; check current sklearn docs — this changed across versions</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Key clarifying point (answering the exact question)</h3>
+        <ul class="must-have-list">
+          <li><strong>If discrete labels:</strong> there's no "probability cutoff" in the sense you're imagining (like a chosen 0.5 or 0.7 threshold) — it's a <strong>direct weighted vote comparison</strong> per leaf, using the current boosting round's sample weights, not probabilities at all.</li>
+          <li><strong>If continuous scores (SAMME.R):</strong> the natural "0" point (equivalent to <code>p(x)=0.5</code>) is where the sign flips — but this isn't a <em>tuned</em> cutoff, it's just where log-odds mathematically cross zero. No arbitrary threshold is chosen; it falls out of the log-odds transform.</li>
+        </ul>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>Since sklearn's AdaBoostClassifier historically defaulted to SAMME.R (real-valued), many practitioners have never actually seen discrete AdaBoost's simpler weighted-majority-vote logic — worth checking current sklearn version behavior, since this default has been revisited in some releases.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q14</span><div class="iq-question">What happens in multi-class AdaBoost? How does this work?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>The key challenge with multi-class</h3>
+        <p>Binary AdaBoost's math (labels <code>{-1,+1}</code>, single log-odds score) doesn't directly generalize to K classes — you can't just extend <code>{-1,+1}</code> to <code>{1,2,3}</code> since there's no natural ordering. This is where <strong>SAMME</strong> (Stagewise Additive Modeling using a Multi-class Exponential loss) comes in — the standard multi-class extension, and it's what sklearn's <code>AdaBoostClassifier</code> actually implements under the hood for any K.</p>
+
+        <h3>SAMME (discrete, multi-class)</h3>
+        <p><strong>Base learner output:</strong> each leaf still gets a <strong>single class label</strong> — just now chosen from K options instead of 2, via the same weighted-majority-vote idea:</p>
+        <div class="code-block">h_t(x) = argmax_k [ sum of sample weights where class == k, within that leaf ]</div>
+        <p><strong>Worked example (K=3 classes: A, B, C):</strong> a leaf contains samples with weights:</p>
+        <ul class="must-have-list">
+          <li>Class A: 0.20</li>
+          <li>Class B: 0.45</li>
+          <li>Class C: 0.10</li>
+        </ul>
+        <p>→ leaf predicts <strong>B</strong> (highest weighted mass). Same logic as binary, just comparing 3 numbers instead of 2.</p>
+
+        <p><strong>The critical change — the alpha formula gets a correction term:</strong></p>
+        <div class="code-block">alpha_t = log( (1 - err_t) / err_t ) + log(K - 1)</div>
+        <ul class="must-have-list">
+          <li><code>err_t</code> = weighted misclassification rate of the stump this round</li>
+          <li>The <strong>+ log(K-1) term</strong> is the key multi-class fix — without it, as K grows, random guessing (error rate ≈ (K-1)/K, much worse than 50%) would still produce a <em>negative</em> alpha under the binary formula, effectively <strong>penalizing</strong> weak learners that are actually doing better than chance for that K.</li>
+        </ul>
+        <p><strong>Numerical example:</strong> K=3, err_t = 0.5 (a stump that's only right half the time)</p>
+        <ul class="must-have-list">
+          <li>Binary formula (wrong to use here): <code>log(0.5/0.5) = log(1) = 0</code> → learner treated as worthless</li>
+          <li>SAMME formula (correct): <code>log(0.5/0.5) + log(3-1) = 0 + log(2) = 0.693</code> → learner still gets <strong>positive weight</strong>, because for 3 classes, random guessing would only get 33% right — so 50% accuracy is actually informative, and SAMME correctly rewards it.</li>
+        </ul>
+        <div class="key-insight"><span class="icon">💡</span><p><strong>This is the core intuition:</strong> the bar for "doing better than random" is lower when there are more classes to choose from, so the <code>log(K-1)</code> term adjusts the threshold accordingly. Interviewers love asking "what's different about the alpha formula for multi-class" — this term is the answer.</p></div>
+
+        <h3>SAMME.R (real-valued, multi-class) — sklearn's more commonly used version</h3>
+        <p>Instead of a single scalar <code>h_t(x)</code>, each learner outputs a <strong>K-dimensional vector</strong> — one score per class, using each class's estimated probability <code>p_k(x)</code>:</p>
+        <div class="code-block">h_k(x) = (K-1) * [ log(p_k(x)) - (1/K) * sum_j log(p_j(x)) ]</div>
+        <ul class="must-have-list">
+          <li>This is a <strong>symmetric log-odds transform</strong> — comparing each class's log-probability against the <em>average</em> log-probability across all K classes (rather than against just one other class, as in binary).</li>
+          <li>The final ensemble prediction sums these K-dimensional vectors across all rounds, then picks <code>argmax_k</code> of the summed score.</li>
+        </ul>
+        <p><strong>Numerical example:</strong> K=3, and for a given point the stump estimates probabilities <code>p_A=0.7, p_B=0.2, p_C=0.1</code></p>
+        <div class="code-block">avg log-p = (log(0.7) + log(0.2) + log(0.1)) / 3 = (-0.357 - 1.609 - 2.303)/3 = -1.423
+
+h_A(x) = 2 * (log(0.7) - (-1.423)) = 2 * (-0.357 + 1.423) = 2 * 1.066 = 2.132
+h_B(x) = 2 * (log(0.2) - (-1.423)) = 2 * (-1.609 + 1.423) = 2 * (-0.186) = -0.372
+h_C(x) = 2 * (log(0.1) - (-1.423)) = 2 * (-2.303 + 1.423) = 2 * (-0.880) = -1.760</div>
+        <p>→ class A gets the highest score (2.132), so this round votes strongly for A, weakly against B and C.</p>
+
+        <h3>Comparison table</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Binary AdaBoost</th><th>SAMME (discrete, multi-class)</th><th>SAMME.R (real, multi-class)</th></tr></thead>
+          <tbody>
+            <tr><td>h_t(x) output</td><td>Single label {-1,+1}</td><td>Single label from K classes</td><td>K-dimensional real-valued vector</td></tr>
+            <tr><td>Weighting formula</td><td>log((1-err)/err)</td><td>log((1-err)/err) + log(K-1)</td><td>Embedded in the vector itself</td></tr>
+            <tr><td>Combination</td><td>Sum alpha_t * h_t(x), sign = class</td><td>Weighted vote across rounds, argmax</td><td>Sum vectors across rounds, argmax final vector</td></tr>
+          </tbody>
+        </table>
+
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>The most commonly tested detail is the <strong>+ log(K-1) correction</strong> in SAMME's alpha formula — people who only know binary AdaBoost often forget this exists, and it's frequently asked as "why can't you just reuse the binary alpha formula for K classes?" The answer: because the <em>baseline for random guessing</em> shifts with K, and without the correction term, a learner that's genuinely useful for K=10 classes (say, 15% accuracy vs 10% random baseline) would incorrectly get penalized as worse than a coin flip under the binary formula.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GBM & LOSSES -->
+  <section class="section fade-in" id="gbminit">
+    <div class="section-header">
+      <span class="section-tag tag-c">GBM &amp; Losses</span>
+      <h2>Initialization &amp; Huber Loss</h2>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q15</span><div class="iq-question">In GBM, how does the first tree prediction get initialized for classification — both binary and multi-class?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>The core idea: GBM initializes with the "best constant" prediction — before any splits</h3>
+        <p>For any GBM, the very first "tree" (technically <code>F_0</code>) is just a constant value chosen to <strong>minimize the loss function</strong> if you had no features at all — essentially "what's my best guess before seeing any x." This constant is derived analytically from the loss function's math, not from training an actual tree.
+
+        <h3>Binary Classification</h3>
+        <ul class="must-have-list">
+          <li><strong>Loss function:</strong> binomial log loss (log loss / binomial deviance)</li>
+          <li><strong>Initial value formula:</strong></li>
+        </ul>
+        <div class="code-block">F_0(x) = log( p / (1 - p) )</div>
+        <p>where <code>p</code> = the overall positive-class rate in the training data (i.e., <code>mean(y)</code>), and <code>F_0(x)</code> is a <strong>log-odds</strong> value — the same constant for every sample.</p>
+        <p><strong>Why log-odds specifically:</strong> minimizing binomial log loss with respect to a single constant <code>gamma</code> gives exactly this closed-form solution — it's the same math that makes logistic regression's intercept equal <code>log(p/(1-p))</code> when there are no other features.</p>
+        <p><strong>Worked example:</strong> 1,000 training samples, 300 positive, 700 negative → <code>p = 0.3</code></p>
+        <div class="code-block">F_0(x) = log(0.3 / 0.7) = log(0.4286) = -0.847</div>
+        <p>Every sample starts with this same raw score of <strong>−0.847</strong>. To get an actual probability, pass it through sigmoid:</p>
+        <div class="code-block">sigmoid(-0.847) = 1 / (1 + e^0.847) = 0.30</div>
+        <p>Confirms it: the initial probability guess is just the base rate (30%), which makes intuitive sense — with zero information, your best guess is the overall class frequency.</p>
+        <p><strong>First round of residuals:</strong> <code>residual_i = y_i - p(x_i)</code> where <code>p(x_i) = 0.30</code> for everyone at round 0 — the first tree is trained to predict these residuals.</p>
+
+        <h3>Multi-class Classification</h3>
+        <ul class="must-have-list">
+          <li><strong>Loss function:</strong> multinomial log loss (softmax cross-entropy)</li>
+          <li><strong>Key structural difference:</strong> GBM trains <strong>K trees per boosting round</strong> (one per class), not one tree — since you need K separate raw scores to feed into softmax.</li>
+          <li><strong>Initial value formula (per class k):</strong></li>
+        </ul>
+        <div class="code-block">F_k,0(x) = log(p_k)</div>
+        <p>where <code>p_k</code> = the prior proportion of class k in the training data.</p>
+        <p><strong>Worked example:</strong> K=3 classes, 1,000 samples: A=500, B=300, C=200</p>
+        <div class="code-block">p_A = 0.5, p_B = 0.3, p_C = 0.2
+
+F_A,0 = log(0.5) = -0.693
+F_B,0 = log(0.3) = -1.204
+F_C,0 = log(0.2) = -1.609</div>
+        <p><strong>Sanity check via softmax</strong> (confirms this recovers the priors exactly):</p>
+        <div class="code-block">softmax(F_A, F_B, F_C) = [e^-0.693, e^-1.204, e^-1.609] / sum
+                        = [0.5, 0.3, 0.2] / 1.0
+                        = [0.5, 0.3, 0.2]  ✓ matches original class priors</div>
+        <p>This makes sense: since <code>exp(log(p_k)) = p_k</code> exactly, and the priors already sum to 1, softmax just returns them unchanged — confirming the "zero information → predict the base rates" logic holds for multi-class too.</p>
+
+        <h3>Comparison table</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Binary</th><th>Multi-class</th></tr></thead>
+          <tbody>
+            <tr><td>Trees per round</td><td>1</td><td>K (one per class)</td></tr>
+            <tr><td>Initial value</td><td>log(p / (1-p)) (single log-odds)</td><td>log(p_k) per class</td></tr>
+            <tr><td>Converts to probability via</td><td>sigmoid</td><td>softmax</td></tr>
+            <tr><td>Sanity check</td><td>sigmoid(init) = base rate</td><td>softmax(inits) = class priors</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Key contrast — don't confuse this with XGBoost's default</h3>
+        <ul class="must-have-list">
+          <li><strong>sklearn's GradientBoostingClassifier</strong> computes this <strong>data-driven</strong> prior automatically (as shown above).</li>
+          <li><strong>XGBoost</strong>, by contrast, defaults <code>base_score=0.5</code> for binary classification <strong>regardless of your actual class balance</strong>, unless you explicitly set it — meaning XGBoost's out-of-the-box initialization is <em>not</em> the log-odds of your data's true prior. This matters a lot on imbalanced datasets (e.g., 99%/1% split) — you may want to manually set <code>base_score</code> to the true log-odds for faster convergence, since otherwise early trees spend extra rounds just correcting the naive 50/50 starting assumption.</li>
+        </ul>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People often assume <code>F_0</code> is just <code>0</code> (a naive/neutral starting point) for all GBM implementations — it's not, in sklearn's default case; it's the <strong>closed-form loss-minimizing constant</strong>, which for classification works out to be exactly the log-odds (binary) or log-priors (multi-class) of the training labels.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q16</span><div class="iq-question">What is Huber Loss? What are its advantages over MSE, MAE and other losses?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Intuition first</h3>
+        <p>Huber loss is a <strong>hybrid</strong> between MSE and MAE — it behaves like MSE for small errors (smooth, easy to optimize) and like MAE for large errors (robust to outliers, doesn't let a few extreme points dominate the loss). Think of it as "MSE that gets tired of punishing outliers once the error gets big enough, and switches to a gentler linear penalty."
+
+        <h3>Formula</h3>
+        <div class="code-block">L_δ(y, f(x)) = 
+    0.5 * (y - f(x))²                    if |y - f(x)| ≤ δ
+    δ * (|y - f(x)| - 0.5*δ)             if |y - f(x)| > δ</div>
+        <p><strong>What each variable means:</strong></p>
+        <ul class="must-have-list">
+          <li><code>y</code> = true value, <code>f(x)</code> = predicted value</li>
+          <li><code>(y - f(x))</code> = the residual/error</li>
+          <li><code>δ</code> (delta) = the <strong>threshold hyperparameter</strong> — you choose this. It marks where the loss switches from quadratic to linear behavior.</li>
+          <li>The two pieces are constructed so they <strong>connect smoothly</strong> at <code>|error| = δ</code> (same value and same slope at the junction — this is what makes it differentiable everywhere, unlike a naive if/else patch).</li>
+        </ul>
+
+        <h3>Numerical example</h3>
+        <p>Let δ = 1. Compare three residuals: small (0.5), at threshold (1.0), and large (5.0).</p>
+        <p><strong>Residual = 0.5</strong> (≤ δ, quadratic branch):</p>
+        <div class="code-block">L = 0.5 * (0.5)² = 0.5 * 0.25 = 0.125</div>
+        <p><strong>Residual = 1.0</strong> (exactly at δ):</p>
+        <div class="code-block">Quadratic: 0.5 * (1)² = 0.5
+Linear: 1 * (1 - 0.5*1) = 1 * 0.5 = 0.5   ✓ matches — confirms smooth transition</div>
+        <p><strong>Residual = 5.0</strong> (&gt; δ, linear branch):</p>
+        <div class="code-block">L = 1 * (5 - 0.5*1) = 1 * 4.5 = 4.5</div>
+        <p><strong>Compare to what MSE would have given for residual=5:</strong></p>
+        <div class="code-block">MSE-style: 0.5 * (5)² = 12.5   (much larger — MSE punishes this outlier ~3x harder than Huber does)</div>
+        <p>This is the whole point: <strong>Huber caps how much a single large error can dominate total loss</strong>, while still behaving normally (quadratic, smooth) for typical small errors.</p>
+
+        <h3>How to interpret δ</h3>
+        <ul class="must-have-list">
+          <li><strong>Small δ</strong> → behaves closer to MAE (more robust to outliers, but loses some smoothness benefits near zero-error region)</li>
+          <li><strong>Large δ</strong> → behaves closer to MSE (smoother optimization, but less outlier protection)</li>
+          <li>δ is usually tuned via cross-validation, or set to something like the <strong>estimated standard deviation of residuals</strong> (a common rule of thumb) — since that roughly marks "typical" vs "unusual" error magnitude for your data.</li>
+        </ul>
+
+        <h3>Advantages over MSE</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>MSE</th><th>Huber</th></tr></thead>
+          <tbody>
+            <tr><td>Outlier sensitivity</td><td>Squares the error → outliers dominate the loss heavily</td><td>Caps outlier influence — linear beyond δ</td></tr>
+            <tr><td>Gradient near outliers</td><td>Gradient = error itself → huge gradient updates from one bad point</td><td>Gradient capped at δ → stable updates even with noisy/outlier-heavy data</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Example:</strong> true value 10, prediction 100 (huge miss, maybe a data entry error). MSE gradient ∝ 90 (massive weight update, model gets yanked hard by one bad point). Huber gradient caps at δ (say δ=1) → gentle, controlled update instead.</p>
+
+        <h3>Advantages over MAE</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>MAE</th><th>Huber</th></tr></thead>
+          <tbody>
+            <tr><td>Differentiability at 0</td><td>Not differentiable at error=0 (sharp corner — gradient is ±1 or undefined right at the minimum)</td><td>Smooth everywhere, including at error=0 (quadratic near zero)</td></tr>
+            <tr><td>Optimization behavior</td><td>Constant gradient magnitude regardless of error size → can overshoot/oscillate near the optimum, slower convergence</td><td>Small errors get small, proportional gradients → converges more smoothly near the minimum</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Why the MAE corner matters practically:</strong> near convergence, when errors are small, MAE still pushes updates of the same fixed size (<code>±1</code> × learning rate) — this can cause the optimizer to <strong>jitter around the minimum</strong> instead of settling. Huber's quadratic region near zero gives it MSE's smooth, shrinking-gradient convergence behavior right where it matters most.</p>
+
+        <h3>Common misconception</h3>
+        <p>People think Huber is "just MAE with outlier protection" — it's actually the reverse framing that's more useful: it's <strong>MSE's smoothness preserved for normal data, with MAE's robustness borrowed only for the tail</strong>. The δ-based switch is doing double duty — protecting against outliers <em>and</em> keeping the loss surface differentiable everywhere (which vanilla MAE fails at, at exactly the point that matters — the optimum).</p>
+
+        <h3>Interview-relevant connections</h3>
+        <ul class="must-have-list">
+          <li><strong>GBM/XGBoost:</strong> Huber loss is a selectable objective (<code>reg:pseudohubererror</code> in XGBoost) for regression tasks where the target has occasional extreme outliers (e.g., housing prices with a few mansion sales skewing a normal price dataset).</li>
+          <li><strong>Common interview question:</strong> <em>"Your regression target has heavy-tailed noise/outliers — MSE or MAE?"</em> → Trick question; the ideal answer is often <strong>Huber</strong>, since MSE overfits to outliers and MAE has convergence/gradient issues — Huber gets both benefits.</li>
+        </ul>
+        <div class="trap">
+          <div class="trap-title">Pitfall</div>
+          <p>People forget δ is a <strong>hyperparameter you must tune</strong> — Huber isn't a parameter-free "best of both worlds" that works identically everywhere; a badly chosen δ can make it behave almost entirely like one or the other extreme.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q17</span><div class="iq-question">How is the Huber delta hyperparameter chosen in XGBoost or GBM?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Short answer: it's not learned automatically — you either fix it via a rule of thumb or tune it like any other hyperparameter</h3>
+        <p>Neither XGBoost nor sklearn's GBM "learns" δ during training — it's set <strong>before</strong> fitting starts, same as <code>max_depth</code> or <code>learning_rate</code>. Here's how it's actually chosen in practice.</p>
+
+        <h3>1. Statistical rule of thumb (most common starting point)</h3>
+        <ul class="must-have-list">
+          <li><strong>δ = median absolute deviation (MAD) of residuals</strong>, or sometimes the <strong>standard deviation of residuals</strong>, computed from an initial rough fit (e.g., fit a quick baseline model, look at residual spread, set δ from that).</li>
+          <li><strong>Intuition:</strong> δ should mark the boundary of "typical" vs "unusual" error. If your residuals are mostly within ±2, set δ around there — errors bigger than that get the gentler linear treatment (likely outliers), errors smaller stay quadratic (normal noise).</li>
+        </ul>
+        <p><strong>Worked example:</strong> Fit a quick linear regression baseline, compute residuals: mostly in range [-3, 3], but a few extreme values at ±20 (probable outliers/data errors).</p>
+        <ul class="must-have-list">
+          <li><strong>MAD</strong> ≈ 2 → set <strong>δ = 2</strong></li>
+          <li>This means: errors under 2 get squared (small penalty, smooth), errors over 2 (like the ±20 outliers) get linear treatment — capping their influence at <code>δ × (|error| - 0.5δ)</code> instead of letting them explode quadratically.</li>
+        </ul>
+
+        <h3>2. Percentile-based rule (an alternative to MAD)</h3>
+        <p>Some practitioners set δ at, say, the <strong>90th percentile of absolute residuals</strong> — meaning roughly 90% of your data gets the smooth quadratic treatment, and the "worst" 10% get outlier-robust linear treatment.</p>
+
+        <h3>3. Grid search / cross-validation (most rigorous, most common in practice)</h3>
+        <ul class="must-have-list">
+          <li>Treat δ exactly like any other hyperparameter: try a range of values (e.g., <code>[0.1, 0.5, 1, 2, 5, 10]</code>), run k-fold cross-validation for each, and pick whichever gives the best validation metric (RMSE, MAE, or whatever your business metric is).</li>
+          <li><strong>XGBoost specifics:</strong> if using <code>objective='reg:pseudohubererror'</code>, the threshold is controlled via the <code>huber_slope</code> parameter — tunable through the same <code>GridSearchCV</code>/<code>RandomizedSearchCV</code>/Optuna workflows you'd use for <code>max_depth</code> or <code>learning_rate</code>.</li>
+          <li><strong>sklearn's HuberRegressor</strong> (not GBM, but same loss) also exposes <code>epsilon</code> (their name for δ) as a tunable hyperparameter, default <code>epsilon=1.35</code> — chosen originally because it gives <strong>95% statistical efficiency</strong> for normally-distributed data (a classical robust-statistics result — at ε=1.35, the estimator loses very little precision vs. pure MSE when data is actually Gaussian, while gaining strong outlier robustness when it's not).</li>
+        </ul>
+
+        <h3>4. Adaptive/iterative approach (less common, more advanced)</h3>
+        <p>Some implementations recompute δ <strong>each boosting round</strong>, based on the <strong>current</strong> residual distribution at that iteration (since residuals shrink as boosting progresses — a fixed δ picked from round-1 residuals might be too large by round 50). This isn't sklearn/XGBoost's default behavior, but it's a known technique in more custom/research implementations.</p>
+
+        <h3>Practical recommendation order (what people actually do)</h3>
+        <ol class="steps-list">
+          <li>Start with <strong>δ = 1.35</strong> (the classical statistical default, works reasonably across many datasets) or <strong>δ ≈ std/MAD of residuals</strong> from a quick baseline fit.</li>
+          <li>If you have compute budget, <strong>grid search</strong> δ alongside your other hyperparameters — don't tune it in isolation, since its optimal value interacts with <code>learning_rate</code> and <code>max_depth</code>.</li>
+          <li>Validate using a <strong>held-out set</strong>, not training loss — since δ controls robustness, its benefit only shows up in how well the model generalizes to noisy/outlier-containing validation data.</li>
+        </ol>
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th>Method</th><th>Effort</th><th>When to use</th></tr></thead>
+          <tbody>
+            <tr><td>MAD/std of residuals</td><td>Low</td><td>Quick baseline, no time for tuning</td></tr>
+            <tr><td>Percentile-based</td><td>Low</td><td>Similar — quick heuristic</td></tr>
+            <tr><td>Grid/random search / Optuna</td><td>High</td><td>Production models, enough compute budget</td></tr>
+            <tr><td>Default (1.35 or library default)</td><td>Minimal</td><td>First pass, sanity check before deeper tuning</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People sometimes assume δ is estimated automatically as part of the boosting process (confusing it with something like a learned parameter, similar to how tree splits are learned). It's <strong>not</strong> — it's a <strong>fixed hyperparameter chosen before training</strong>, exactly like any other regularization knob, and needs the same CV-based tuning discipline.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADVANCED MECHANICS -->
+  <section class="section fade-in" id="advanced">
+    <div class="section-header">
+      <span class="section-tag tag-c">Advanced Mechanics</span>
+      <h2>Subsampling, OOB, NaNs &amp; Categoricals</h2>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q18</span><div class="iq-question">In the case of subsampling, will the tree be trained on subsampled data and the final tree used for predicting data, and residuals found out to correct future data — or is there another way?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Yes, that's mostly right — but let's nail the exact sequence, since there's a subtlety in what happens to the "non-sampled" rows</h3>
+
+        <h3>Step-by-step for one boosting round (with subsampling)</h3>
+        <p><strong>Step 1 — Compute residuals/gradients on the FULL dataset</strong></p>
+        <p>Before any sampling happens, gradients (and hessians, for XGBoost) are computed for <strong>every</strong> training row, using the current ensemble's predictions <code>F_(t-1)(x)</code>.</p>
+        <p><strong>Step 2 — Randomly subsample rows</strong> (controlled by <code>subsample</code> in XGBoost/GBM, <code>bagging_fraction</code> in LightGBM)</p>
+        <p>A random fraction (e.g., 70%) of rows is drawn <strong>without replacement</strong> for this round only.</p>
+        <p><strong>Step 3 — Train the new tree ONLY on the sampled subset</strong></p>
+        <p>The tree's splits are chosen using just this subset's gradients/residuals — the excluded 30% doesn't influence this tree's structure at all.</p>
+        <p><strong>Step 4 — Predict on the FULL dataset with the newly trained tree</strong></p>
+        <p>This is the key part: once the tree is built (structure + leaf values are fixed), it's used to generate predictions for <strong>every</strong> row — including the ones that were excluded from training this round.</p>
+        <p><strong>Step 5 — Update the running prediction for all rows</strong></p>
+        <div class="code-block">F_t(x) = F_(t-1)(x) + learning_rate * tree_t(x)</div>
+        <p>This update applies to <strong>all</strong> samples, not just the sampled 70%.</p>
+        <p><strong>Step 6 — Next round:</strong> recompute residuals on the full dataset again, then <strong>re-sample a fresh random subset</strong> (a different 70% this time, typically).</p>
+
+        <h3>Concrete numerical walkthrough</h3>
+        <p>Say you have 10 rows, <code>subsample=0.7</code> (7 rows sampled per round).</p>
+        <p><strong>Round 1:</strong></p>
+        <ul class="must-have-list">
+          <li>Compute residuals for all 10 rows using <code>F_0</code> (initial constant).</li>
+          <li>Randomly sample 7 rows: say rows {1,2,3,4,5,6,7}.</li>
+          <li>Train tree_1 using only these 7 rows' residuals → get a tree structure + leaf values.</li>
+          <li>Use tree_1 to predict on <strong>all 10 rows</strong> (including rows 8, 9, 10 that weren't in training).</li>
+          <li>Update: <code>F_1(x) = F_0(x) + lr * tree_1(x)</code> for all 10 rows.</li>
+        </ul>
+        <p><strong>Round 2:</strong></p>
+        <ul class="must-have-list">
+          <li>Recompute residuals for all 10 rows using the now-updated <code>F_1</code>.</li>
+          <li>Randomly sample a <strong>new</strong> 7 rows: say {2,3,4,6,8,9,10} (different subset this time — resampled fresh each round).</li>
+          <li>Train tree_2 on this subset's residuals.</li>
+          <li>Predict tree_2 on all 10 rows, update <code>F_2</code> for everyone.</li>
+        </ul>
+        <p>So rows 8, 9, 10 — excluded from round 1's tree-building — still get their running prediction updated in round 1 (since the tree, once built, generalizes to any input), and they'll likely be included in a <em>later</em> round's training subset.</p>
+
+        <h3>Why this design works (and the key insight)</h3>
+        <ul class="must-have-list">
+          <li><strong>The tree doesn't need to have "seen" a row during training to predict on it</strong> — it's just following its learned split rules (e.g., "if feature_3 &lt; 5, go left"). Any row with a feature_3 value can be routed through those splits, sampled or not.</li>
+          <li>Over many rounds, <strong>every row eventually gets included</strong> in several trees' training subsets (with high probability, given enough rounds) — so no row is permanently ignored; it's just <strong>not part of every single tree's construction</strong>, which is exactly the point (introduces randomness/regularization, similar to Random Forest's bagging).</li>
+        </ul>
+
+        <h3>Why this differs from bagging in Random Forest</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Random Forest</th><th>GBM/XGBoost with subsampling</th></tr></thead>
+          <tbody>
+            <tr><td>Subsampling purpose</td><td>Each tree is fully independent — decorrelation for variance reduction via averaging</td><td>Regularization against overfitting to residual noise — prevents each boosting round from chasing the exact same "hard" points repeatedly</td></tr>
+            <tr><td>Are excluded rows used later?</td><td>No prediction step needed on excluded rows during training (RF doesn't do sequential residual correction)</td><td>Yes — excluded rows still get their F(x) updated immediately using the round's tree, since boosting needs a full running prediction to compute next round's residuals</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Key takeaway</h3>
+        <p><strong>The intuition is correct with one refinement:</strong> the tree trains on the subsample, but it <strong>immediately predicts on the full dataset</strong> to update everyone's running score — it's not "predict only on future/unseen data later." The correction cascades to all rows the same round, and residuals for the <em>next</em> round are always recomputed from the <strong>full</strong> dataset using the fully-updated <code>F_t</code>.</p>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>A common wrong answer is "unsampled rows get residuals corrected in a <em>later</em> round only" — that's false. The correction happens <strong>immediately</strong> (same round) for every row, since the tree structure applies universally once built; only the <strong>training/split-selection</strong> step was restricted to the subsample, not the prediction/update step.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q19</span><div class="iq-question">OOB in Stochastic GBM — how does it work?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Core idea: it's fundamentally different from Random Forest's OOB — don't assume it works the same way</h3>
+        <p>In stochastic GBM (<code>subsample &lt; 1.0</code>), OOB tracks <strong>per-round improvement</strong> on the rows that were excluded from that specific round's subsample — it is <strong>not</strong> an aggregated final-prediction error like Random Forest's OOB.</p>
+
+        <h3>How it actually works, step by step</h3>
+        <p>For each boosting round <code>t</code>:</p>
+        <ol class="steps-list">
+          <li><strong>Sample</strong> a subset of rows (say 70%) to train <code>tree_t</code> — the remaining 30% are "out-of-bag" <strong>for this round only</strong>.</li>
+          <li><strong>Before adding tree_t:</strong> compute the loss on the OOB rows using the current ensemble <code>F_(t-1)</code> (predictions before this round's tree is added).</li>
+          <li><strong>After adding tree_t:</strong> compute the loss on the <em>same</em> OOB rows using the updated ensemble <code>F_t = F_(t-1) + lr * tree_t</code>.</li>
+          <li><strong>OOB improvement for round t:</strong></li>
+        </ol>
+        <div class="code-block">oob_improvement_t = loss(F_(t-1), OOB rows) - loss(F_t, OOB rows)</div>
+        <p>This tells you: "did adding this tree actually help predict rows it never trained on?"</p>
+        <p><strong>Cumulative OOB score</strong> (sklearn's <code>oob_improvement_.cumsum()</code>): summing these improvements across rounds gives a running estimate of generalization performance — used as a proxy to decide <strong>how many trees to keep</strong> (similar purpose to early stopping, but without needing a separate held-out validation set).</p>
+
+        <h3>Numerical example</h3>
+        <p>Say <code>subsample=0.7</code>, and at round 5, the OOB rows (30% not sampled that round) have:</p>
+        <ul class="must-have-list">
+          <li>Loss under <code>F_4</code> (before adding tree_5): 0.842</li>
+          <li>Loss under <code>F_5</code> (after adding tree_5): 0.798</li>
+        </ul>
+        <div class="code-block">oob_improvement_5 = 0.842 - 0.798 = 0.044</div>
+        <p>Positive value → tree_5 genuinely improved predictions on data it never saw that round. If this number starts going <strong>negative</strong> across several consecutive rounds, it's a signal you're overfitting — later trees are hurting generalization, and you should have stopped earlier (this is literally how sklearn's <code>oob_improvement_</code>-based early stopping heuristic works).</p>
+
+        <h3>Why this differs fundamentally from Random Forest OOB</h3>
+        <table class="compare-table">
+          <thead><tr><th></th><th>Random Forest OOB</th><th>Stochastic GBM OOB</th></tr></thead>
+          <tbody>
+            <tr><td>What's measured</td><td>Final prediction accuracy per row, using only trees where that row was excluded, aggregated across the whole forest</td><td>Per-round <strong>improvement</strong> in loss on that round's excluded rows only</td></tr>
+            <tr><td>Aggregation</td><td>Each row gets one OOB prediction (majority vote / average across its "OOB trees") → one clean final OOB error estimate</td><td>No single "final OOB prediction" per row — it's a sequence of round-by-round improvement deltas</td></tr>
+            <tr><td>Reliability</td><td>Considered a solid, roughly unbiased proxy for test error</td><td>sklearn explicitly warns this is a "conservative" or somewhat pessimistic/biased estimator — trees are correlated by construction (each depends on the last), so it's a rougher signal than true cross-validation</td></tr>
+            <tr><td>Why the difference</td><td>Trees are independent — averaging over "trees that didn't see row i" is like a mini ensemble validation</td><td>Trees are sequential/additive — you can't cleanly isolate "how good is the whole ensemble on row i" without breaking the round-by-round chain, so you only get a proxy of incremental gain</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Practical use in sklearn</h3>
+        <div class="code-block">gbm = GradientBoostingClassifier(subsample=0.7, n_estimators=500)
+gbm.fit(X_train, y_train)
+
+cumulative_oob = np.cumsum(gbm.oob_improvement_)
+<span class="comment"># plot this — look for where it plateaus or turns negative
+# that's roughly where n_estimators should have stopped</span></div>
+
+        <h3>Key takeaway</h3>
+        <ul class="must-have-list">
+          <li><strong>Purpose:</strong> a cheap, built-in way to get a rough sense of generalization/overfitting <strong>without a separate validation set</strong>, using rows each round's tree never saw.</li>
+          <li><strong>Not a replacement for real validation:</strong> because trees in GBM are correlated (sequential), sklearn's own docs describe the OOB estimate here as <strong>typically pessimistic</strong> — the actual test error is often somewhat better than what <code>oob_improvement_</code> suggests. If you have the compute budget, a genuine held-out validation set + early stopping (<code>n_iter_no_change</code> in sklearn, or <code>early_stopping_rounds</code> in XGBoost/LightGBM) is more reliable.</li>
+          <li>Only available when <code>subsample &lt; 1.0</code> — if you're not doing row subsampling, there's no "excluded" data each round, so OOB tracking isn't possible at all (this is why it's specific to <em>stochastic</em> GBM).</li>
+        </ul>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People often assume GBM's OOB works "just like Random Forest's" (aggregate final predictions using held-out trees per row). That's wrong — GBM's OOB is a <strong>round-by-round loss-improvement diagnostic</strong>, not a final aggregated prediction, precisely because boosting's sequential/additive structure doesn't allow the same clean isolation trick RF's independent trees do.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q20</span><div class="iq-question">In XGBoost, since NaNs are either placed left or right and then gain is seen, doesn't this increase the calculation time?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>Short answer: yes, technically more computation than ignoring NaNs — but the algorithm is engineered so the overhead is minimal, not doubled in the way you'd expect</h3>
+        <p>Let's break down exactly what's being computed, so you can see why it's efficient rather than a brute-force doubling.</p>
+
+        <h3>The naive (expensive) way you might be imagining</h3>
+        <p>If XGBoost tried <strong>every possible assignment of missing values to left/right, combined with every possible threshold</strong>, that actually would explode combinatorially. It doesn't do that.</p>
+
+        <h3>What XGBoost actually does — a single sorted scan, computed twice (not squared)</h3>
+        <p><strong>Step 1:</strong> Only the <strong>non-missing</strong> values for a feature get sorted (missing values are set aside).</p>
+        <p><strong>Step 2:</strong> XGBoost does <strong>two linear scans</strong> over just the non-missing, sorted values:</p>
+        <ul class="must-have-list">
+          <li><strong>Scan A:</strong> assume all missing values go <strong>right</strong> — sweep thresholds left-to-right, accumulating gradient/hessian sums as you go, computing gain at each candidate split.</li>
+          <li><strong>Scan B:</strong> assume all missing values go <strong>left</strong> — same sweep, just with the missing-value gradient/hessian mass added to the left side instead.</li>
+        </ul>
+        <p><strong>Key efficiency point:</strong> both scans are <strong>O(n_non-missing log n_non-missing)</strong> for sorting (done once, reused for both scans) <strong>+ O(n_non-missing)</strong> for each linear scan. So the total cost is roughly:</p>
+        <div class="code-block">Cost ≈ sort (once) + 2 × linear scan
+     = O(n log n) + O(2n)
+     = still O(n log n) overall — just a constant factor (≈2x) on the scan part, not a combinatorial blowup</div>
+
+        <h3>Concrete numerical intuition</h3>
+        <p>Say a feature has 1,000 non-missing values and 200 missing values (1,200 total rows).</p>
+        <ul class="must-have-list">
+          <li><strong>Without missing-value handling</strong> (naive/imputed case): 1 sort + 1 scan over 1,000 values.</li>
+          <li><strong>With XGBoost's sparsity-aware approach:</strong> same 1 sort (reused) + <strong>2 scans</strong> over the same 1,000 non-missing values (missing values themselves are never individually iterated over in the threshold sweep — their combined gradient/hessian sum is just added as one lump total to whichever side is being tested).</li>
+        </ul>
+        <p>So the extra cost is <strong>roughly 1 additional linear pass</strong> — not a doubling of the whole split-search complexity, and <em>definitely</em> not proportional to testing every missing-value permutation.</p>
+
+        <h3>Why this is "cheap" relative to the alternative</h3>
+        <ul class="must-have-list">
+          <li><strong>The missing values are never sorted or individually scanned</strong> — only their <strong>aggregate gradient/hessian sum</strong> matters (computed once, added as a single number to whichever side's running total is being tested). This is why it stays linear, not exponential.</li>
+          <li>Compare this to a hypothetical (bad) approach that tried assigning <strong>each missing value independently</strong> to left or right — that would be <code>2^(num_missing)</code> combinations, computationally impossible. XGBoost avoids this entirely by treating <strong>all missing values as one block</strong> that moves together.</li>
+        </ul>
+
+        <h3>Practical performance impact</h3>
+        <ul class="must-have-list">
+          <li><strong>In practice:</strong> the overhead is small enough that XGBoost's docs and benchmarks don't treat missing-value handling as a major slowdown — it's one of the reasons XGBoost is preferred for real-world messy data instead of requiring a separate (often slower) imputation preprocessing step.</li>
+          <li><strong>Where it does add cost:</strong> if a feature has <strong>very high missingness</strong> across many features simultaneously, you're doing this extra scan <strong>per feature, per split, per node</strong> — so the constant-factor overhead compounds across a deep/wide tree. Still linear-scaling, just a real (if modest) multiplier on total training time compared to a fully dense dataset.</li>
+        </ul>
+
+        <h3>Key takeaway</h3>
+        <table class="compare-table">
+          <thead><tr><th>Approach</th><th>Complexity</th></tr></thead>
+          <tbody>
+            <tr><td>Naive: try every missing→{left,right} assignment</td><td>O(2^missing) — infeasible</td></tr>
+            <tr><td>XGBoost's actual method: two directional scans, missing treated as one block</td><td>O(n log n) sort + O(2n) scan — same order as normal split-finding, ~2x constant factor</td></tr>
+            <tr><td>Ignoring missing (drop/impute first)</td><td>O(n log n) + O(n) — baseline, no multiplier</td></tr>
+          </tbody>
+        </table>
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People sometimes assume "trying both directions" means XGBoost is testing combinatorially many missing-value placements — it's not. It's testing <strong>exactly two scenarios per split</strong> (all-missing-left vs all-missing-right), each computed via a cheap linear scan reusing the same sort — this is precisely why the "sparsity-aware split finding" paper markets it as scaling <strong>linearly</strong> with the number of non-missing entries, explicitly avoiding a naive combinatorial search.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="iq-card" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">Q21</span><div class="iq-question">Explain for each Boosting model, how categorical variable encoding matters since they're regression trees. What happens if label encoding is done, and what practices need to be followed?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body">
+        <h3>The core issue: gradient boosted trees split via thresholds (x &lt; c), so any encoding imposes a false numeric order onto categories that have none</h3>
+        <p>Even though these are technically "regression trees" (fitting gradients/residuals), the split-finding math is identical regardless of task — pick the feature and threshold that best reduces variance in the target/gradient. If you feed it label-encoded categories, the tree treats those integers as if they were <strong>ordered and continuous</strong>, which is almost never true for nominal categories.</p>
+
+        <h3>Per-model native handling</h3>
+        <p><strong>sklearn GradientBoostingClassifier/Regressor</strong></p>
+        <ul class="must-have-list">
+          <li><strong>No native categorical support</strong> in the classic estimator — you must one-hot or label encode manually before fitting.</li>
+          <li>(Note: sklearn's separate <code>HistGradientBoostingClassifier</code> <em>does</em> support categoricals natively via <code>categorical_features=</code>, using a similar optimal-partitioning approach to what's below — but this is a different estimator, not the plain GBM class.)</li>
+        </ul>
+        <p><strong>XGBoost</strong></p>
+        <ul class="must-have-list">
+          <li>Historically required manual one-hot/label encoding.</li>
+          <li>Newer versions (<code>enable_categorical=True</code>) support categoricals natively, using an internal partitioning algorithm — but you must explicitly opt in; it's not the plain default path.</li>
+        </ul>
+        <p><strong>LightGBM</strong></p>
+        <ul class="must-have-list">
+          <li><strong>Native support</strong> via <code>categorical_feature=[...]</code>. Internally, it doesn't rely on your label-encoded integer order at all — for each split, it <strong>re-sorts categories by their gradient statistics</strong> (roughly, mean gradient/target per category) and finds the optimal way to partition sorted categories into two groups.</li>
+          <li><strong>This is the key trick:</strong> LightGBM effectively <strong>discovers the "right" order on its own</strong>, based on how each category relates to the target — so even if you fed it arbitrary label-encoded integers, LightGBM ignores your ordering and computes its own from the data (as long as you tell it which columns are categorical via the parameter).</li>
+        </ul>
+        <p><strong>CatBoost</strong></p>
+        <ul class="must-have-list">
+          <li>Built specifically around categorical handling. Uses <strong>ordered target statistics</strong> — a leakage-safe form of target encoding computed using only "prior" rows in a random permutation (avoids the classic target-encoding leakage problem where a row's own target influences its own encoded value).</li>
+          <li>Also automatically creates <strong>feature combinations</strong> (e.g., combining two categorical columns) which plain label/one-hot encoding can't easily replicate.</li>
+        </ul>
+
+        <h3>What happens if you DO use plain label encoding (arbitrary integers, no native categorical handling)</h3>
+        <p><strong>It's not "broken," but it's inefficient — here's precisely why:</strong></p>
+        <p>A single split <code>category_code &lt; 3.5</code> can only separate categories <strong>{those coded 0,1,2,3} vs {4,5,6,...}</strong> — an arbitrary grouping based on however you happened to assign integers. If the true target relationship doesn't align with that arbitrary order, one split can't isolate the meaningful groups.</p>
+
+        <div class="callout callout-insight">
+          <div class="callout-title">Worked example</div>
+          <p>Categorical feature = city, label-encoded arbitrarily:</p>
+          <div class="code-block">NYC=0, Tokyo=1, Lagos=2, Miami=3, Oslo=4, Delhi=5</div>
+          <p>Suppose the true target (say, house price) is high for {NYC, Oslo} and low for everyone else — no relationship to the arbitrary 0-5 ordering. A single threshold split (e.g., <code>code &lt; 2.5</code>) groups {NYC, Tokyo, Lagos} vs {Miami, Oslo, Delhi} — this <strong>fails to isolate</strong> the true high-price group {NYC, Oslo}, since they're split across both sides.</p>
+        </div>
+
+        <p><strong>The tree can still recover this — eventually:</strong></p>
+        <p>Because trees can split on the same feature multiple times at different thresholds/depths, it <em>can</em> still carve out <code>code=0</code> (NYC) as its own leaf via one split, then separately carve out <code>code=4</code> (Oslo) via another split deeper in the tree. <strong>But this costs extra depth/splits</strong> to achieve what a properly-ordered encoding (or native categorical handling) would do in a single split — meaning for <strong>shallow trees</strong> (which boosting typically uses, <code>max_depth=3-6</code>), this relationship may never get captured well at all.</p>
+
+        <h3>Practices to follow IF label encoding must be used</h3>
+        <p><strong>1. Sort/assign integer codes by target relationship (a manual "mean encoding" trick)</strong></p>
+        <p>Instead of arbitrary/alphabetical ordering, assign integer codes based on <strong>sorted mean target value per category</strong>:</p>
+        <div class="code-block">Sort cities by mean house price: Lagos(low) → Delhi → Miami → Tokyo → NYC → Oslo(high)
+Assign: Lagos=0, Delhi=1, Miami=2, Tokyo=3, NYC=4, Oslo=5</div>
+        <p>Now a single split like <code>code &lt; 3.5</code> cleanly separates {Lagos, Delhi, Miami, Tokyo} (low) from {NYC, Oslo} (high) — because the induced order now <strong>actually correlates with the target</strong>, letting one threshold do meaningful work.</p>
+
+        <p><strong>2. Only use raw label encoding freely for genuinely ordinal categories</strong></p>
+        <p>E.g., <code>education_level = {high_school=0, bachelors=1, masters=2, phd=3}</code> — here the numeric order <em>is</em> the true relationship, so no adjustment is needed.</p>
+
+        <p><strong>3. Compensate with more depth/splits if you must use arbitrary label encoding</strong></p>
+        <p>If you can't pre-sort by target (e.g., encoding must be fixed before knowing anything about target relationships, or category meaning is unclear), increase <code>max_depth</code> or <code>num_leaves</code> so the tree has enough splits available to eventually isolate the right groups piecemeal.</p>
+
+        <p><strong>4. Watch for high cardinality</strong></p>
+        <p>With label encoding, high-cardinality features (hundreds of categories) make this problem much worse — recovering an arbitrary target-relevant grouping via repeated splitting becomes combinatorially harder as category count grows. This is exactly where <strong>native handling (LightGBM/CatBoost)</strong> or <strong>target encoding with proper regularization/cross-validation</strong> becomes much more valuable than plain label encoding.</p>
+
+        <p><strong>5. Handle unseen categories at inference time</strong></p>
+        <p>If a category appears in test data but wasn't seen during training, label encoding has no assigned code for it — decide a fallback (e.g., map to a reserved "unknown" code, or the most frequent category's code) <em>before</em> deployment, since this will otherwise throw an error or silently misassign.</p>
+
+        <p><strong>6. Avoid target encoding without proper safeguards</strong></p>
+        <p>If sorting by mean target (point 1) tempts you toward full target encoding, remember it leaks information unless done carefully (K-fold or ordered/leave-one-out schemes) — CatBoost's ordered target statistics exists specifically to prevent this leakage; a naive "encode by global mean target" done on the full training set before CV splitting <strong>will leak</strong> and inflate validation scores misleadingly.</p>
+
+        <h3>Comparison table</h3>
+        <table class="compare-table">
+          <thead><tr><th>Model</th><th>Native categorical support</th><th>If label-encoded manually</th></tr></thead>
+          <tbody>
+            <tr><td>sklearn GBM (classic)</td><td>No</td><td>Must one-hot/label encode; label encoding needs sorting by target for efficiency</td></tr>
+            <tr><td>XGBoost</td><td>Yes, via enable_categorical=True (opt-in)</td><td>Without opt-in, same caveats as above</td></tr>
+            <tr><td>LightGBM</td><td>Yes, via categorical_feature=</td><td>Ignores your ordering, re-derives its own optimal grouping from gradient stats — much more forgiving</td></tr>
+            <tr><td>CatBoost</td><td>Yes, built-in (ordered target statistics)</td><td>Rarely needed — designed to handle raw categories directly</td></tr>
+          </tbody>
+        </table>
+
+        <div class="trap">
+          <div class="trap-title">Interview pitfall</div>
+          <p>People often think "trees don't care about encoding since they just split on values" — technically true that they <em>can</em> recover the right structure eventually, but the more precise and testable claim is: <strong>label encoding imposes an implicit ordinal assumption that determines how many splits are needed</strong> to recover the true category-target relationship — and with shallow boosted trees, insufficient depth, or high cardinality, that recovery may never happen well, silently degrading model performance without throwing any errors.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer">
+  Tree Models &amp; Boosting Q&amp;A · Full Detail Edition · Compiled Study Notes
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
