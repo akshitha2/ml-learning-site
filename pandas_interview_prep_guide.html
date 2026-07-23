@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandas & Python — Data Scientist Interview Prep Guide</title>
+<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e2a; --border: #2a2f3f;
+    --accent-a: #3b82f6; --accent-b: #f97316; --accent-c: #a855f7;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --code-bg: #0a0c10;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.75; font-size: 16px; }
+  .hero { background: var(--bg); border-bottom: 1px solid var(--border); padding: 64px 40px 48px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -80px; left: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 .a { color: var(--accent-a); } .hero h1 .b { color: var(--accent-b); }
+  .hero-sub { color: var(--text-muted); font-size: 15px; max-width: 640px; }
+  .progress-bar { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .progress-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); }
+  .progress-item.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 14px 16px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+  .nav a.a:hover { color: var(--accent-a); border-bottom-color: var(--accent-a); }
+  .nav a.b:hover { color: var(--accent-b); border-bottom-color: var(--accent-b); }
+  .nav a.c:hover { color: var(--accent-c); border-bottom-color: var(--accent-c); }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+  .tag-a { background: rgba(59,130,246,0.12); color: var(--accent-a); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-b { background: rgba(249,115,22,0.12); color: var(--accent-b); border: 1px solid rgba(249,115,22,0.3); }
+  .tag-c { background: rgba(168,85,247,0.12); color: var(--accent-c); border: 1px solid rgba(168,85,247,0.3); }
+  .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--text); }
+  h3 { font-family: 'Lato', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  ul.plain { margin: 0 0 14px 20px; } ul.plain li { margin-bottom: 6px; }
+  .callout { border-left: 3px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+  .callout-warning { border-color: var(--yellow); background: rgba(234,179,8,0.05); }
+  .callout-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; color: var(--yellow); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; color: #a5b4fc; white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .compare-table th { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dim); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child, .compare-table th:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent-a); white-space: nowrap; }
+  .key-insight { display: flex; gap: 16px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin: 16px 0; }
+  .key-insight .icon { font-size: 18px; margin-top: 2px; } .key-insight p { margin: 0; font-size: 14px; }
+  .trap { margin-top: 16px; padding: 12px 16px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; }
+  .trap-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .col-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .col-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-card ul { margin-left: 18px; font-size: 13.5px; } .col-card li { margin-bottom: 6px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .quiz-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 18px 22px; margin: 18px 0; }
+  .quiz-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-a); margin-bottom: 12px; }
+  .quiz-q { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .quiz-a { font-size: 13.5px; color: var(--text-muted); margin-bottom: 14px; }
+  .quiz-a:last-child { margin-bottom: 0; }
+  .iq-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .iq-header { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; }
+  .iq-header:hover { background: rgba(255,255,255,0.02); }
+  .iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--yellow); background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .iq-diff { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; margin-top: 3px; }
+  .diff-easy { color: var(--green); border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.08); }
+  .diff-medium { color: var(--yellow); border: 1px solid rgba(234,179,8,0.35); background: rgba(234,179,8,0.08); }
+  .diff-hard { color: var(--red); border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+  .iq-question { font-size: 15px; font-weight: 700; flex: 1; line-height: 1.5; }
+  .iq-toggle { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text-dim); transition: transform 0.3s; margin-top: 2px; }
+  .iq-card.open .iq-toggle { transform: rotate(45deg); }
+  .iq-body { display: none; padding: 0 22px 22px; border-top: 1px solid var(--border); }
+  .iq-card.open .iq-body { display: block; }
+  .must-have-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; margin-top: 16px; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { border-color: var(--accent-c); color: var(--accent-c); background: rgba(168,85,247,0.08); }
+  .footer { text-align: center; padding: 40px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; border-top: 1px solid var(--border); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: var(--accent-a); }
+</style>
+</head>
+<body>
+<!-- SITE-NAV:START -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-breadcrumb" href="index.html">&larr; ML Learning Notes</a>
+    <span class="site-header-sep">/</span>
+    <div class="nav-dropdown" id="siteNav">
+      <span class="badge nav-dropdown-trigger" style="--accent:#22d3ee" onclick="document.getElementById('siteNav').classList.toggle('open')">💻 Programming &amp; Tools</span>
+      <div class="nav-dropdown-panel">
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f5a623">📊 Statistics</div>
+      <a class="nav-group-link" href="hypothesis_testing.html">Hypothesis Testing</a>
+      <a class="nav-group-link" href="statistics_deep_dive.html">Statistics</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#22d3ee">💻 Programming &amp; Tools</div>
+      <a class="nav-group-link active" href="pandas_interview_prep_guide.html">Pandas &amp; Python</a>
+      <a class="nav-group-link" href="python_data_structures_guide.html">Python Data Structures</a>
+      <a class="nav-group-link" href="python_oop_beginner_guide.html">Python OOP</a>
+      <a class="nav-group-link" href="python_oop_interview_study_guide.html">Python OOP</a>
+      <a class="nav-group-link" href="ml_eda_core_libraries_guide.html">EDA &amp; Core Libraries</a>
+      <a class="nav-group-link" href="ml_modeling_post_eda_guide.html">ML Modeling</a>
+      <a class="nav-group-link" href="sql_interview_questions_guide.html">SQL &amp; Pandas</a>
+      <a class="nav-group-link" href="sql_interview_study_guide.html">SQL</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#5cb85c">📐 Classic ML</div>
+      <a class="nav-group-link" href="linear_regression_guide.html">Linear Regression</a>
+      <a class="nav-group-link" href="bias_variance_comparison.html">Bias-Variance Tradeoff</a>
+      <a class="nav-group-link" href="regularization_deep_dive.html">Regularization</a>
+      <a class="nav-group-link" href="model_evaluation_metrics.html">Evaluation Metrics</a>
+      <a class="nav-group-link" href="ml_methods_evaluation_guide.html">ML Methods &amp; Validation</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#818cf8">🧩 Unsupervised Learning</div>
+      <a class="nav-group-link" href="kmeans_guide.html">K-Means Clustering</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#2dd4a0">🌳 Trees &amp; Ensembles</div>
+      <a class="nav-group-link" href="decision_trees_complete.html">Decision Trees</a>
+      <a class="nav-group-link" href="bagging_vs_boosting.html">Bagging vs Boosting</a>
+      <a class="nav-group-link" href="random_forest_study_guide.html">Random Forest</a>
+      <a class="nav-group-link" href="adaboost_study_guide.html">AdaBoost</a>
+      <a class="nav-group-link" href="gbm_study_guide.html">Gradient Boosting</a>
+      <a class="nav-group-link" href="xgboost_study_guide.html">XGBoost</a>
+      <a class="nav-group-link" href="xgb_gain_formula_numerical.html">XGBoost Gain Formula</a>
+      <a class="nav-group-link" href="xgboost_hyperparameter_reference.html">XGBoost</a>
+      <a class="nav-group-link" href="xgboost_advanced_topics.html">XGBoost</a>
+      <a class="nav-group-link" href="lightgbm-study-guide.html">LightGBM</a>
+      <a class="nav-group-link" href="tree_models_comparison.html">Tree Models</a>
+      <a class="nav-group-link" href="tree_models_qa_notes.html">Tree Models &amp; Boosting</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#60a8e0">📈 Time Series</div>
+      <a class="nav-group-link" href="arima_guide.html">ARIMA &amp; SARIMAX</a>
+      <a class="nav-group-link" href="timeseries_guide.html">Time Series Forecasting</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#a594f9">🤖 GenAI &amp; Agents</div>
+      <a class="nav-group-link" href="agent_architecture_fundamentals.html">Agent Architecture</a>
+      <a class="nav-group-link" href="react_study_guide.html">ReAct Pattern</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" style="--accent:#f472b6">🎯 Interview Questions</div>
+      <a class="nav-group-link" href="ml_breadth_review.html">ML Breadth Round</a>
+    </div>
+      </div>
+    </div>
+  </div>
+</header>
+<script>
+  document.addEventListener('click', function(e) {
+    var nav = document.getElementById('siteNav');
+    if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var nav = document.getElementById('siteNav');
+      if (nav) nav.classList.remove('open');
+    }
+  });
+
+  // Some pages ship their own sticky in-page nav (e.g. a section-jump bar)
+  // right after this header. It doesn't know this header's height, so push
+  // it down to sit just below the header instead of colliding with it.
+  (function() {
+    var header = document.querySelector('.site-header');
+    if (!header) return;
+    function offsetStickySiblings() {
+      var h = header.offsetHeight;
+      var el = header.nextElementSibling;
+      while (el) {
+        if (getComputedStyle(el).position === 'sticky') {
+          el.style.top = h + 'px';
+        }
+        el = el.nextElementSibling;
+      }
+    }
+    offsetStickySiblings();
+    window.addEventListener('resize', offsetStickySiblings);
+    if (window.ResizeObserver) {
+      new ResizeObserver(offsetStickySiblings).observe(header);
+    }
+  })();
+</script>
+<!-- SITE-NAV:END -->
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">CodeSignal Prep · Pandas & Python · Data Scientist Track</div>
+    <h1><span class="a">Pandas</span> &amp; <span class="b">Python Syntax</span></h1>
+    <p class="hero-sub">A reference guide for pandas/Python coding interviews — deep dive on string &amp; date methods, groupby vs transform vs pivot, conditional logic gotchas, common interview traps, and worked practice questions with corrected answers.</p>
+    <div class="progress-bar">
+      <div class="progress-item done">✓ String Methods</div>
+      <div class="progress-item done">✓ Dates</div>
+      <div class="progress-item done">✓ GroupBy/Transform</div>
+      <div class="progress-item done">✓ Merge/Dedup</div>
+      <div class="progress-item done">✓ Pivot Tables</div>
+      <div class="progress-item done">✓ Conditional Logic</div>
+      <div class="progress-item done">✓ Interview Traps</div>
+      <div class="progress-item done">✓ 48 Practice Qs</div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a class="a" href="#strings">String Methods</a>
+  <a class="a" href="#dates">Dates</a>
+  <a class="b" href="#groupby">GroupBy &amp; Transform</a>
+  <a class="b" href="#merge">Merge &amp; Dedup</a>
+  <a class="b" href="#pivot">Pivot Tables</a>
+  <a class="c" href="#conditional">Conditional Logic</a>
+  <a class="c" href="#traps">Interview Traps</a>
+  <a class="c" href="#questions">All Session Qs</a>
+</nav>
+
+<div class="container">
+
+  <!-- STRING METHODS -->
+  <section class="section fade-in" id="strings">
+    <div class="section-header"><span class="section-tag tag-a">Deep Dive</span><h2>String Methods — The <code>.str</code> Accessor</h2></div>
+    <p>The core rule: <strong>any Python string method (.split, .contains, .lower, .replace, .strip) does NOT work directly on a pandas column.</strong> A column (Series) is a container of strings, not a string itself — you must go through the <code>.str</code> accessor to apply the method to every row at once. This is one of the most common sources of syntax errors under time pressure, so it's worth internalizing early.</p>
+    <div class="code-block"><span class="comment"># WRONG — Series has no .split() method</span>
+df['category_path'].split('/')
+
+<span class="comment"># RIGHT — .str broadcasts the string method across every row</span>
+df['category_path'].str.split('/')</div>
+    <h3>Most-used <code>.str</code> methods</h3>
+    <table class="compare-table">
+      <thead><tr><th>Method</th><th>What it does</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>.str.split('/')</td><td>Splits each string into a list</td><td>"a/b/c" → ['a','b','c']</td></tr>
+        <tr><td>.str.split('/').str[0]</td><td>Split then grab one element (chain .str twice)</td><td>"a/b/c" → "a"</td></tr>
+        <tr><td>.str.contains('phone', case=False, na=False)</td><td>Boolean mask — substring match, regex by default</td><td>"iPhone 13" → True</td></tr>
+        <tr><td>.str.lower() / .str.upper()</td><td>Case conversion per row</td><td>"Nike" → "nike"</td></tr>
+        <tr><td>.str.replace(r'\D', '', regex=True)</td><td>Regex-based find/replace</td><td>"(123) 456-7890" → "1234567890"</td></tr>
+        <tr><td>.str.strip()</td><td>Removes leading/trailing whitespace</td><td>"  abc  " → "abc"</td></tr>
+        <tr><td>.str.get('key')</td><td>Dict-style key access when column holds dicts</td><td>{'brand':'Nike'} → "Nike"</td></tr>
+        <tr><td>.str.len()</td><td>String length per row</td><td>"abc" → 3</td></tr>
+      </tbody>
+    </table>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p><strong>Matching against a list of keywords is a common trap.</strong> <code>.str.contains()</code> takes a single pattern, not a list. To check for "any of these words," join the list with regex OR: <code>pattern = '|'.join(['diamond','gold','luxury'])</code> then <code>.str.contains(pattern, case=False, na=False)</code>.</p>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check</div>
+      <div class="quiz-q">Q. Why does <code>na=False</code> matter in .str.contains()?</div>
+      <div class="quiz-a">A. If a row is null, .str.contains() returns NaN by default instead of True/False — that breaks boolean indexing (df[mask] errors or misbehaves on NaN). na=False treats nulls as "no match."</div>
+      <div class="quiz-q">Q. Why use case=False instead of chaining .str.lower().str.contains()?</div>
+      <div class="quiz-a">A. Fewer operations, same result — case=False is a built-in parameter, so there's no need to transform the whole column first.</div>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Chaining <code>.str.lower().contains(...)</code> without the second <code>.str</code> — every <code>.str.</code> method call returns a plain Series again, so the *next* string method also needs its own <code>.str.</code> prefix. There's no auto-chaining.</p>
+    </div>
+  </section>
+
+  <!-- DATES -->
+  <section class="section fade-in" id="dates">
+    <div class="section-header"><span class="section-tag tag-a">Deep Dive</span><h2>Date &amp; Time Handling</h2></div>
+    <div class="code-block">df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')  <span class="comment"># NOT coerce_errors=</span>
+today = pd.Timestamp.now()                                             <span class="comment"># no import needed beyond pandas</span>
+df['days_since_order'] = (today - df['order_date']).dt.days           <span class="comment"># today MINUS date = positive</span></div>
+    <table class="compare-table">
+      <thead><tr><th>Need</th><th>Syntax</th></tr></thead>
+      <tbody>
+        <tr><td>Parse strings to datetime</td><td>pd.to_datetime(col, errors='coerce')</td></tr>
+        <tr><td>Get today's timestamp</td><td>pd.Timestamp.now()</td></tr>
+        <tr><td>Extract year/month/day</td><td>df['date'].dt.year / .dt.month / .dt.day</td></tr>
+        <tr><td>Day-of-week</td><td>df['date'].dt.dayofweek / .dt.day_name()</td></tr>
+        <tr><td>Difference between two dates</td><td>(date1 - date2).dt.days</td></tr>
+        <tr><td>Filter last N days</td><td>df['date'] >= pd.Timestamp.now() - pd.Timedelta(days=30)</td></tr>
+      </tbody>
+    </table>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p>Subtracting two datetime columns gives a <strong>Timedelta</strong>, not a number — that's why <code>.dt.days</code> is needed to pull out the integer day count.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Getting the subtraction order backwards. <code>(order_date - today)</code> gives a <strong>negative</strong> number for past orders. For "days since X" (a positive count going forward), it's always <code>today - past_date</code>.</p>
+    </div>
+  </section>
+
+  <!-- GROUPBY & TRANSFORM -->
+  <section class="section fade-in" id="groupby">
+    <div class="section-header"><span class="section-tag tag-b">Core</span><h2>GroupBy, Agg, Transform &amp; Rank</h2></div>
+    <table class="compare-table">
+      <thead><tr><th>Method</th><th>Output shape</th><th>When to use</th></tr></thead>
+      <tbody>
+        <tr><td>.groupby().agg()</td><td>One row per group</td><td>Summary table (e.g. avg price per category)</td></tr>
+        <tr><td>.groupby().transform()</td><td>Same shape as original df</td><td>Add group stat back onto every row (e.g. "price vs category avg")</td></tr>
+        <tr><td>.groupby().rank()</td><td>Same shape, ranks within group</td><td>Rank rows within their own group</td></tr>
+        <tr><td>.groupby().nunique()</td><td>One row per group</td><td>Count distinct values (e.g. distinct users), not just rows</td></tr>
+      </tbody>
+    </table>
+    <div class="code-block"><span class="comment"># transform -- broadcasts the group mean back onto every row</span>
+df['category_avg'] = df.groupby('category')['price'].transform('mean')
+df['price_vs_avg'] = df['price'] / df['category_avg']</div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p><strong>"Top X within a group" is a two-step problem.</strong> Grouping by too many keys at once (e.g. region + salesperson) collapses the exact comparison you need. Aggregate first (one row per entity), then rank the aggregated table within the outer group.</p>
+    </div>
+    <div class="code-block"><span class="comment"># WRONG: groups by region+salesperson together -- never compares people to each other</span>
+df.groupby(['region','salesperson'])['revenue'].rank(...)
+
+<span class="comment"># RIGHT: aggregate first, then rank across salespeople within region</span>
+agg = df.groupby(['region','salesperson'])['revenue'].sum().reset_index()
+agg['rank'] = agg.groupby('region')['revenue'].rank(method='first', ascending=False)
+top = agg[agg['rank'] == 1]</div>
+    <div class="quiz-box">
+      <div class="quiz-label">Quick Check</div>
+      <div class="quiz-q">Q. Why use nunique() instead of count() for "number of users who viewed"?</div>
+      <div class="quiz-a">A. count() counts rows/events — if one user views a product twice, they'd be counted twice. nunique() counts distinct users, matching the actual question.</div>
+      <div class="quiz-q">Q. Why can't you chain .reset_index() after sort_values(..., inplace=True)?</div>
+      <div class="quiz-a">A. inplace=True modifies the dataframe and returns None — there's nothing to chain onto. Either drop inplace and reassign, or split into two lines.</div>
+    </div>
+  </section>
+
+  <!-- MERGE & DEDUP -->
+  <section class="section fade-in" id="merge">
+    <div class="section-header"><span class="section-tag tag-b">Core</span><h2>Merge, Duplicates &amp; Nulls</h2></div>
+    <div class="code-block">df = views.merge(cart_adds, on=['user_id','product_id'], how='left', suffixes=('_view','_cart'))</div>
+    <h3>Three ways to dedupe, keeping the latest row per key</h3>
+    <div class="code-block"><span class="comment"># Option A: sort + drop_duplicates (cleanest)</span>
+df = df.sort_values('updated_at').drop_duplicates(subset='listing_id', keep='last')
+
+<span class="comment"># Option B: idxmax</span>
+df = df.loc[df.groupby('listing_id')['updated_at'].idxmax()]
+
+<span class="comment"># Option C: rank (more verbose, same result)</span>
+df['rank'] = df.groupby('listing_id')['updated_at'].rank(method='first', ascending=False)
+df = df[df['rank'] == 1]</div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p><code>dropna(subset=['price'])</code> only drops rows where <em>that specific column</em> is null — plain <code>dropna()</code> with no subset drops a row if <em>any</em> column has a null, which is usually not what you want.</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Merging two raw event tables (views × cart_adds) and then using <code>.count()</code> on timestamps to get "users who viewed/added" — a merge fans out rows on duplicate keys, inflating your counts. Aggregate each side to distinct users <em>before</em> merging, or use nunique() directly.</p>
+    </div>
+  </section>
+
+  <!-- PIVOT -->
+  <section class="section fade-in" id="pivot">
+    <div class="section-header"><span class="section-tag tag-b">Core</span><h2>Pivot Tables</h2></div>
+    <div class="code-block">pd.pivot_table(df, values='revenue', index='region', columns='month', aggfunc='sum')</div>
+    <div class="key-insight">
+      <span class="icon">💡</span>
+      <p><strong>Default aggfunc is 'mean', not 'sum'.</strong> If the question asks for "total," you must pass <code>aggfunc='sum'</code> explicitly. Also — pandas uses <code>'mean'</code>, never <code>'avg'</code> (that's SQL syntax bleeding in).</p>
+    </div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p>Passing values/index/columns positionally instead of as keywords. It works, but is easy to mix up under time pressure and unclear to a reader — always write <code>values=</code>, <code>index=</code>, <code>columns=</code> explicitly.</p>
+    </div>
+  </section>
+
+  <!-- CONDITIONAL LOGIC -->
+  <section class="section fade-in" id="conditional">
+    <div class="section-header"><span class="section-tag tag-c">Core</span><h2>Conditional Logic &amp; Filtering</h2></div>
+    <table class="compare-table">
+      <thead><tr><th>Situation</th><th>Correct syntax</th></tr></thead>
+      <tbody>
+        <tr><td>Combining boolean Series conditions</td><td>(cond1) &amp; (cond2) — never <code>and</code>/<code>or</code></td></tr>
+        <tr><td>If/else creating a new column</td><td>np.where(condition, value_if_true, value_if_false)</td></tr>
+        <tr><td>Extracting dict values from a column</td><td>df['col'].apply(lambda x: x.get('key')) or .str.get('key')</td></tr>
+      </tbody>
+    </table>
+    <div class="code-block"><span class="comment"># WRONG -- 'and' only works on single booleans, not Series</span>
+df[df['a'] >= 1 and df['b'] <= 2]
+
+<span class="comment"># RIGHT</span>
+df[(df['a'] >= 1) & (df['b'] <= 2)]</div>
+    <div class="trap">
+      <div class="trap-title">Interview Trap</div>
+      <p><code>np.where(df[boolean_mask], ...)</code> — wrapping the condition in <code>df[...]</code> filters rows instead of passing a condition to evaluate. np.where takes the boolean Series directly, no df[] wrapper.</p>
+    </div>
+  </section>
+
+  <!-- INTERVIEW TRAPS SUMMARY -->
+  <section class="section fade-in" id="traps">
+    <div class="section-header"><span class="section-tag tag-c">Cheat Sheet</span><h2>Common Traps Quick Reference</h2></div>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title" style="color:var(--red)">Syntax Traps</div>
+        <ul>
+          <li><code>and</code>/<code>or</code> on Series → use <code>&amp;</code> / <code>|</code> with parens</li>
+          <li>String methods need <code>.str.</code> accessor — never call directly on a column</li>
+          <li><code>'avg'</code> is not valid — pandas uses <code>'mean'</code></li>
+          <li><code>errors='coerce'</code>, not <code>coerce_errors=True</code></li>
+          <li><code>inplace=True</code> returns None — can't chain after it</li>
+          <li><code>reset_index(drop=True)</code> — forgetting <code>drop=True</code> adds a stray column</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title" style="color:var(--yellow)">Logic Traps</div>
+        <ul>
+          <li>.str.contains() takes one pattern — join a list with <code>'|'</code> for "any of"</li>
+          <li>count() counts rows/events; nunique() counts distinct entities — pick deliberately</li>
+          <li>"Top X per group" often needs aggregate-then-rank, not rank on raw rows</li>
+          <li>today − past_date is positive; past_date − today is negative — order matters</li>
+          <li>Merging raw event tables before counting can silently inflate counts (fan-out)</li>
+          <li>np.where(condition, a, b) — condition is a boolean Series, not df[condition]</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALL SESSION QUESTIONS -->
+  <section class="section fade-in" id="questions">
+    <div class="section-header"><span class="section-tag tag-c">Reference</span><h2>Practice Questions &amp; Answers</h2></div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIQ('all', this)">All</button>
+      <button class="filter-btn" onclick="filterIQ('string', this)">String Methods</button>
+      <button class="filter-btn" onclick="filterIQ('dates', this)">Dates</button>
+      <button class="filter-btn" onclick="filterIQ('groupby', this)">GroupBy &amp; Transform</button>
+      <button class="filter-btn" onclick="filterIQ('merge', this)">Merge &amp; Dedup</button>
+      <button class="filter-btn" onclick="filterIQ('pivot', this)">Pivot Tables</button>
+      <button class="filter-btn" onclick="filterIQ('logic', this)">Conditional Logic</button>
+    </div>
+
+    <!-- ============ STRING METHODS (8) ============ -->
+    <div class="iq-card" data-group="string" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Extract the top-level category from "Electronics/Phones/Smartphones".</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['main_category'] = df['category_path'].str.split('/').str[0]</div>
+        <p>Common trap: calling <code>.split()</code> directly on a column instead of via <code>.str</code>.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S2</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Extract 'brand' from a dict column like {'brand':'Nike','color':'red'}.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">products['brand'] = products['attributes'].apply(lambda x: x.get('brand'))
+<span class="comment"># or: products['attributes'].str.get('brand')</span></div>
+        <p>Using <code>.get()</code> avoids a KeyError if a row's dict is missing that key. Indexing the Series directly with a key (<code>series['brand']</code>) is a common trap.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S3</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Filter orders where status=='shipped' and product_name contains "phone" (case-insensitive).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df[(df['status'] == 'shipped') & (df['product_name'].str.contains('phone', case=False, na=False))]</div>
+        <p><code>case=False</code> makes an extra <code>.str.lower()</code> unnecessary; <code>na=False</code> prevents nulls from breaking the boolean mask.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S4</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Strip a phone column like "(123) 456-7890" down to just digits.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['phone_clean'] = df['phone'].str.replace(r'\D', '', regex=True)</div>
+        <p><code>\D</code> matches any non-digit character; <code>regex=True</code> tells pandas to treat the pattern as regex, not literal text.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S5</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Extract the domain from an email column, e.g. "jane@ebay.com" → "ebay.com".</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['domain'] = df['email'].str.split('@').str[1]
+<span class="comment"># or, more robust to malformed emails:</span>
+df['domain'] = df['email'].str.extract(r'@(.+)$')</div>
+        <p><code>.str.extract()</code> with a regex capture group returns NaN instead of erroring on rows with no "@" — safer on messy real-world data than a plain split.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S6</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Count the number of words in a product title column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['word_count'] = df['title'].str.split().str.len()</div>
+        <p><code>.str.split()</code> with no argument splits on any whitespace and collapses multiple spaces — safer than <code>.str.split(' ')</code>, which would count consecutive spaces as empty tokens.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Standardize a 'city' column: trim whitespace and convert to title case.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['city'] = df['city'].str.strip().str.title()</div>
+        <p>Each <code>.str.</code> call returns a new Series, so chaining <code>.str.strip().str.title()</code> requires the accessor before every method — a single <code>.str.strip().title()</code> would fail.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="string" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">S8</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Flag SKUs that don't match the expected pattern: 3 letters followed by 4 digits (e.g. "ABC1234").</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['invalid_sku'] = ~df['sku'].str.match(r'^[A-Za-z]{3}\d{4}$')</div>
+        <p><code>.str.match()</code> anchors at the start of the string by default (like <code>re.match</code>); adding <code>$</code> also anchors the end so partial matches on longer strings aren't accepted. The <code>~</code> inverts the mask to flag invalid rows.</p>
+      </div>
+    </div>
+
+    <!-- ============ DATES (8) ============ -->
+    <div class="iq-card" data-group="dates" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D1</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Convert order_date string to datetime, add days_since_order relative to today.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">today = pd.Timestamp.now()
+df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
+df['days_since_order'] = (today - df['order_date']).dt.days</div>
+        <p>Common traps: wrong parameter name (<code>coerce_errors</code> vs <code>errors='coerce'</code>), and reversing the subtraction order, which flips the sign to negative.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Extract the month name and day-of-week name from a datetime column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['month_name'] = df['order_date'].dt.month_name()
+df['day_of_week'] = df['order_date'].dt.day_name()</div>
+        <p>Both return human-readable strings ("January", "Monday") — use <code>.dt.month</code> / <code>.dt.dayofweek</code> instead if you need the numeric versions for sorting or modeling.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D3</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Filter to orders placed on a weekend.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df[df['order_date'].dt.dayofweek >= 5]</div>
+        <p><code>.dt.dayofweek</code> returns 0=Monday through 6=Sunday, so 5 and 6 are Saturday/Sunday.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Compute age in years from a date_of_birth column.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['age'] = ((pd.Timestamp.now() - df['dob']).dt.days / 365.25).astype(int)</div>
+        <p>Dividing by 365.25 (not 365) accounts for leap years over long spans. <code>.astype(int)</code> truncates to whole years rather than rounding.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D5</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Bucket each order into "this_week", "this_month", or "older" based on order_date.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">now = pd.Timestamp.now()
+conditions = [
+    df['order_date'] >= now - pd.Timedelta(days=7),
+    df['order_date'] >= now - pd.Timedelta(days=30)
+]
+choices = ['this_week', 'this_month']
+df['recency_bucket'] = np.select(conditions, choices, default='older')</div>
+        <p><code>np.select</code> is the right tool once you have more than two outcomes — <code>np.where</code> only handles binary if/else.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Find each user's first and most recent order date.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df.groupby('user_id')['order_date'].agg(['min', 'max']).reset_index()</div>
+        <p><code>min</code>/<code>max</code> work directly on datetime columns inside <code>.agg()</code> — no special date-handling needed since datetimes are naturally ordered.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D7</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Compute a 7-day rolling average of daily revenue.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">daily = df.groupby('order_date')['revenue'].sum().reset_index().sort_values('order_date')
+daily['rolling_7d_avg'] = daily['revenue'].rolling(window=7).mean()</div>
+        <p>Data must be sorted by date and aggregated to one row per day first — <code>.rolling()</code> operates on row order, not on the date values themselves, so unsorted or duplicate-date rows silently give wrong results.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="dates" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">D8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Convert a Unix timestamp column (epoch seconds) into a readable datetime.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['event_time'] = pd.to_datetime(df['epoch_seconds'], unit='s')</div>
+        <p><code>unit='s'</code> tells pandas the numbers are seconds since 1970-01-01 — forgetting it makes pandas assume nanoseconds (its default), producing dates in the year 1970.</p>
+      </div>
+    </div>
+
+    <!-- ============ GROUPBY & TRANSFORM (8) ============ -->
+    <div class="iq-card" data-group="groupby" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G1</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Top 3 users by total spend in the last 30 days.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df_2 = df[(df['order_date'] >= '2026-06-21') & (df['order_date'] <= '2026-07-22')]
+user_spends = df_2.groupby('user_id')['spend'].sum().reset_index()
+user_spends = user_spends.sort_values('spend', ascending=False).reset_index(drop=True)
+user_spends.head(3)</div>
+        <p>Common traps: <code>and</code> instead of <code>&amp;</code> for combining conditions, and chaining a method after <code>sort_values(..., inplace=True)</code>, which returns None.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Add price_vs_category_avg = price / avg price of its category, in one line.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['price_vs_category_avg'] = df['price'] / df.groupby('category')['price'].transform('mean')</div>
+        <p><code>.transform()</code> broadcasts the group stat back onto every row in the original shape — <code>.agg()</code> would collapse to one row per group instead.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G3</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Top salesperson (by total revenue) within each region.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">agg = df.groupby(['region', 'salesperson'])['revenue'].sum().reset_index()
+agg['rank'] = agg.groupby('region')['revenue'].rank(method='first', ascending=False)
+top_sellers = agg[agg['rank'] == 1]</div>
+        <p>Ranking directly on <code>groupby(['region','salesperson'])</code> compares each person only to their own rows. Aggregate to one row per salesperson first, then rank within region.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G4</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Cancellation rate per user = cancelled orders / total orders.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">cancel_counts = df[df['status'] == 'cancelled'].groupby('user_id')['order_id'].count()
+total_counts = df.groupby('user_id')['order_id'].count()
+cancellation_rate = (cancel_counts / total_counts).fillna(0).reset_index(name='cancellation_rate')</div>
+        <p>A row-level <code>np.where</code> approach only produces a meaningful value on 'cancelled' rows — aggregating each piece separately, then dividing, gives one clean rate per user.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Find users who have placed more than 5 orders.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">order_counts = df.groupby('user_id')['order_id'].count()
+frequent_users = order_counts[order_counts > 5].reset_index(name='order_count')</div>
+        <p>Filtering happens on the aggregated Series before resetting the index — filtering the raw dataframe first would not give per-user totals.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">What % of total revenue does each category contribute?</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">cat_revenue = df.groupby('category')['revenue'].sum().reset_index()
+cat_revenue['pct_of_total'] = cat_revenue['revenue'] / cat_revenue['revenue'].sum() * 100</div>
+        <p>The denominator (<code>.sum()</code> of the already-aggregated column) is the grand total across categories — dividing by the ungrouped raw column would give the wrong denominator.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G7</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Flag rows where a value is a statistical outlier relative to its group (z-score &gt; 3).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">group_mean = df.groupby('category')['price'].transform('mean')
+group_std = df.groupby('category')['price'].transform('std')
+df['z_score'] = (df['price'] - group_mean) / group_std
+df['is_outlier'] = df['z_score'].abs() > 3</div>
+        <p>Two separate <code>.transform()</code> calls (mean and std) are needed since <code>.agg(['mean','std'])</code> would collapse to one row per group instead of broadcasting to every row.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="groupby" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">G8</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Find the number of distinct products each user has purchased.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df.groupby('user_id')['product_id'].nunique().reset_index(name='distinct_products')</div>
+        <p><code>nunique()</code> counts distinct values, not rows — using <code>count()</code> here would double-count a user who bought the same product twice.</p>
+      </div>
+    </div>
+
+    <!-- ============ MERGE & DEDUP (8) ============ -->
+    <div class="iq-card" data-group="merge" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M1</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Per-product click-through rate = users who added / users who viewed.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">views_count = views.groupby('product_id')['user_id'].nunique().reset_index(name='users_who_viewed')
+adds_count = cart_adds.groupby('product_id')['user_id'].nunique().reset_index(name='users_who_added')
+df_2 = views_count.merge(adds_count, on='product_id', how='left')
+df_2['users_who_added'] = df_2['users_who_added'].fillna(0)
+df_2['click_through_rate'] = df_2['users_who_added'] / df_2['users_who_viewed']</div>
+        <p>Aggregate each side to distinct users <em>before</em> merging — merging raw event tables first and counting rows afterward causes a fan-out that inflates the counts.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M2</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Dedupe listings: one row per listing_id (latest by updated_at), rows with null price dropped.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = df.dropna(subset=['price'])
+df = df.sort_values('updated_at').drop_duplicates(subset='listing_id', keep='last')
+<span class="comment"># or: df.loc[df.groupby('listing_id')['updated_at'].idxmax()]</span></div>
+        <p><code>dropna(subset=['price'])</code> only drops rows where that specific column is null — plain <code>dropna()</code> would drop a row if <em>any</em> column had a null.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M3</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Find users present in the "signups" table but not in the "orders" table (i.e., never ordered).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">merged = signups.merge(orders[['user_id']].drop_duplicates(), on='user_id', how='left', indicator=True)
+never_ordered = merged[merged['_merge'] == 'left_only']</div>
+        <p><code>indicator=True</code> adds a <code>_merge</code> column showing whether each row matched <code>'both'</code>, <code>'left_only'</code>, or <code>'right_only'</code> — the cleanest way to do an anti-join in pandas.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Combine an orders table and a customers table, keeping only rows that match in both.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = orders.merge(customers, on='customer_id', how='inner')</div>
+        <p><code>how='inner'</code> (the default) keeps only matching keys — use <code>'left'</code> to keep all orders even if a customer record is missing.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M5</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Find duplicate rows based only on ['user_id', 'product_id'], ignoring other columns.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">dupes = df[df.duplicated(subset=['user_id', 'product_id'], keep=False)]</div>
+        <p><code>keep=False</code> flags <em>all</em> occurrences of a duplicate (not just the 2nd onward) — useful when you want to inspect every duplicated row, not just remove extras.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Fill missing values in a 'category' column using values from a backup table, matched by product_id.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = df.merge(backup[['product_id','category']], on='product_id', how='left', suffixes=('', '_backup'))
+df['category'] = df['category'].fillna(df['category_backup'])
+df = df.drop(columns=['category_backup'])</div>
+        <p><code>suffixes</code> prevents a column name collision on merge; <code>fillna</code> then only replaces the nulls, leaving existing values untouched.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Combine 12 monthly CSV files into a single dataframe.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">import glob
+files = glob.glob('sales_2026_*.csv')
+df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)</div>
+        <p><code>ignore_index=True</code> re-indexes the combined dataframe from 0 — without it, each file's original index is preserved, causing duplicate index values across files.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="merge" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">M8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Merge two tables where the join key is named differently in each (e.g. 'user_id' vs 'customer_id').</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = orders.merge(customers, left_on='user_id', right_on='customer_id', how='left')</div>
+        <p><code>left_on</code>/<code>right_on</code> are needed instead of <code>on</code> whenever the key names differ — the result keeps both original key columns unless you explicitly drop one.</p>
+      </div>
+    </div>
+
+    <!-- ============ PIVOT TABLES (8) ============ -->
+    <div class="iq-card" data-group="pivot" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P1</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Pivot table: region as rows, month as columns, total revenue as values.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.pivot_table(df, values='revenue', index='region', columns='month', aggfunc='sum')</div>
+        <p>Default <code>aggfunc</code> is <code>'mean'</code>, not <code>'sum'</code> — for totals it must be passed explicitly. Also note pandas uses <code>'mean'</code>, never <code>'avg'</code>.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Build a table showing average and max bid_price per category.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.pivot_table(df, values='bid_price', index='category', aggfunc=['mean', 'max'])</div>
+        <p>Passing a list to <code>aggfunc</code> computes multiple statistics at once, producing a multi-level column header (e.g. ('mean','bid_price'), ('max','bid_price')).</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P3</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Build a pivot table showing both total revenue and order count per region/month.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.pivot_table(df, values='revenue', index='region', columns='month', aggfunc=['sum', 'count'])</div>
+        <p>Same pattern as combining aggregations in <code>.agg()</code> — pass a list of functions instead of one.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P4</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Add grand total row/column to a region x month revenue pivot table.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.pivot_table(df, values='revenue', index='region', columns='month', aggfunc='sum', margins=True, margins_name='Total')</div>
+        <p><code>margins=True</code> adds an "All"/"Total" row and column with grand totals — <code>margins_name</code> lets you rename it from the default 'All'.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P5</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Convert a wide pivoted table (region rows, month columns) back into long format.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">long_df = wide_df.reset_index().melt(id_vars='region', var_name='month', value_name='revenue')</div>
+        <p><code>.melt()</code> is the inverse of pivoting — <code>id_vars</code> specifies which column(s) stay fixed, and every other column gets unpivoted into name/value pairs.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Build a pivot table with a two-level row index: category then subcategory.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.pivot_table(df, values='revenue', index=['category', 'subcategory'], columns='month', aggfunc='sum')</div>
+        <p>Passing a list to <code>index</code> creates a hierarchical (multi-level) row index — access a group with <code>.loc[('Electronics','Phones')]</code>.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">A pivot table has NaN cells for region/month combos with no data. Replace them with 0.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.pivot_table(df, values='revenue', index='region', columns='month', aggfunc='sum', fill_value=0)</div>
+        <p><code>fill_value</code> is a pivot_table parameter that handles this at creation time — cleaner than a separate <code>.fillna(0)</code> call afterward.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="pivot" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">P8</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Get a count of orders broken down by status (rows) and region (columns).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">pd.crosstab(df['status'], df['region'])</div>
+        <p><code>pd.crosstab()</code> is a shortcut for pivot tables whose only purpose is counting frequency — no <code>values</code>/<code>aggfunc</code> needed since counting is its default behavior.</p>
+      </div>
+    </div>
+
+    <!-- ============ CONDITIONAL LOGIC (8) ============ -->
+    <div class="iq-card" data-group="logic" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L1</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Flag listings 'high_value' if title contains diamond/gold/luxury, else 'standard'.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">lis = ['diamond', 'gold', 'luxury']
+pattern = '|'.join(lis)
+df['category'] = np.where(df['title'].str.contains(pattern, case=False, na=False), 'high_value', 'standard')</div>
+        <p><code>.str.contains()</code> takes a single pattern, not a list — join the list with <code>'|'</code> for regex OR. <code>np.where</code> takes the boolean Series directly, never wrapped in <code>df[...]</code>.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L2</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Filter rows where price is between 10 and 50 AND category is 'Electronics'.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df[(df['price'] >= 10) & (df['price'] <= 50) & (df['category'] == 'Electronics')]</div>
+        <p><code>and</code>/<code>or</code> only work on single booleans, not Series — combining conditions on columns always requires <code>&amp;</code>/<code>|</code> with each condition parenthesized.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L3</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Classify orders into 'high', 'medium', 'low' spend tiers based on order value (3+ outcomes).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">conditions = [df['order_value'] >= 500, df['order_value'] >= 100]
+choices = ['high', 'medium']
+df['spend_tier'] = np.select(conditions, choices, default='low')</div>
+        <p><code>np.where</code> only handles two outcomes (if/else) — once there are 3+ categories, <code>np.select</code> is the right tool. Conditions are checked in order; the first match wins.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L4</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Set all negative values in a 'quantity' column to 0.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df.loc[df['quantity'] < 0, 'quantity'] = 0</div>
+        <p><code>.loc[row_condition, column]</code> is the standard pattern for conditionally overwriting values in place — safer than chained indexing like <code>df[df['quantity']<0]['quantity']=0</code>, which can trigger a SettingWithCopyWarning and silently fail.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L5</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Create a column combining two others with custom row-wise logic (e.g. a discount rule based on both price and category).</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">def discount_rule(row):
+    if row['category'] == 'Electronics' and row['price'] > 500:
+        return 0.10
+    return 0.0
+
+df['discount'] = df.apply(discount_rule, axis=1)</div>
+        <p><code>axis=1</code> applies the function row-wise (giving access to multiple columns via <code>row[...]</code>) instead of the default <code>axis=0</code>, which applies column-wise. Note: row-wise apply is slow on large data — vectorized <code>np.where</code>/<code>np.select</code> is preferred when the logic allows it.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="medium" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L6</span><span class="iq-diff diff-medium">Medium</span><div class="iq-question">Cap ('clip') a 'price' column so no value exceeds 1000 or falls below 0.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['price'] = df['price'].clip(lower=0, upper=1000)</div>
+        <p><code>.clip()</code> is purpose-built for this — cleaner than two separate <code>.loc[]</code> conditional overwrites for the same job.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="easy" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L7</span><span class="iq-diff diff-easy">Easy</span><div class="iq-question">Flag orders where category is one of ['Books','Toys','Games'].</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df['is_target_category'] = df['category'].isin(['Books', 'Toys', 'Games'])</div>
+        <p><code>.isin()</code> is the vectorized way to check membership in a list — avoids writing out a chain of <code>(df['category']=='Books') | (df['category']=='Toys') | ...</code>.</p>
+      </div>
+    </div>
+
+    <div class="iq-card" data-group="logic" data-diff="hard" onclick="toggleIQ(this)">
+      <div class="iq-header"><span class="iq-num">L8</span><span class="iq-diff diff-hard">Hard</span><div class="iq-question">Flag only each user's first purchase (chronologically) as True, all later purchases as False.</div><div class="iq-toggle">+</div></div>
+      <div class="iq-body"><div class="must-have-title">Answer</div>
+        <div class="code-block">df = df.sort_values(['user_id', 'order_date'])
+df['is_first_purchase'] = ~df.duplicated(subset='user_id', keep='first')</div>
+        <p>Sort by date first so "first" reflects chronological order, not row order in the raw data. <code>duplicated(keep='first')</code> marks every row <em>after</em> the first occurrence as True, so negating with <code>~</code> flags only the first purchase itself.</p>
+      </div>
+    </div>
+
+  </section>
+
+
+</div>
+
+<div class="footer">
+  Pandas &amp; Python Prep · Data Scientist Coding Round · Good luck
+</div>
+
+<script>
+  function toggleIQ(card) { card.classList.toggle('open'); }
+  function filterIQ(group, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.iq-card').forEach(card => {
+      const g = card.getAttribute('data-group');
+      let show = (group === 'all') ? true : (g === group);
+      card.style.display = show ? '' : 'none';
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
